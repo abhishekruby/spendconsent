@@ -6,7 +6,8 @@ Updated: 16 October 2026. This is a task-focused handoff, not a verbatim transcr
 
 - Workspace name: **PayPal AI Hackathon 2026 — Project Lab**.
 - Canonical folder: `/home/abhishek/Documents/personal-project/PayPal AI Hackathon 2026 — Project Lab`.
-- GitHub destination: `https://github.com/abhishekruby/paypal-ai-hackathon-2026`. The requested repository is private during preparation; verify actual creation/push status in docs/project-setup.md.
+- GitHub destination: `https://github.com/abhishekruby/paypal-ai-hackathon-2026`. The repository was created privately and the main push independently verified. See docs/project-setup.md.
+- Saved Codex project: **PayPal AI Hackathon 2026**, project ID `cc3ec3f0-99d5-4c3e-9348-0ebcf65456cb`. The app project listing confirms the canonical folder; the setup chat was moved into this project on 16 October.
 - Product working name: **SpendConsent**. Product implementation still requires agreement.
 - This folder was copied from the original Codex output folder on 16 October. The original was preserved as an earlier snapshot. Continue work here rather than maintaining two working copies.
 
@@ -28,7 +29,7 @@ The main unresolved business question is whether comparison plus review saves en
 
 ## Decisions and authorization
 
-**Completed/authorized:** local lab setup; PayPal login assistance; approved sandbox app creation; OAuth-only test; official rules/resources and competitor research; public-evidence screening; target users; PRD; stack selection; this canonical folder and context; private GitHub repository creation and initial synchronization; preparation for adding a saved local project.
+**Completed/authorized:** local lab setup; PayPal login assistance; approved sandbox app creation; OAuth-only test; official rules/resources and competitor research; public-evidence screening; target users; PRD; stack selection; this canonical folder and context; private GitHub repository creation and initial synchronization; saved local project registration and moving the setup chat into it.
 
 **Current planning stack, revised 16 October after the user's Django/PostgreSQL question:** React + TypeScript + Vite; Python 3.12 + Django 5.2 LTS + Django REST Framework; PostgreSQL; PayPal Orders v2 + JavaScript SDK v6; one local Ollama/Qwen3-1.7B tool loop. Use current supported patch versions and compatible dependencies when implementation begins. FastAPI/SQLite was the previous minimal-demo plan, now superseded. Do not run two application backends or retain two databases for the same feature.
 

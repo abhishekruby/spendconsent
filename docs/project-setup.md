@@ -28,10 +28,16 @@ The repository should contain research, project instructions/context, PRD, archi
 
 ## Codex Projects registration
 
-Status at preparation: **not yet registered**. Available app tools list/move existing projects but do not expose project creation. The installed Linux Codex CLI does not provide the documented macOS/Windows `app` launcher. Native app automation is unavailable in this session. No internal application database or settings file has been modified as a workaround.
+Status: **registered and verified**, 16 October 2026.
 
-The remaining user action is to create/add a local project from the app's Projects view, name it **PayPal AI Hackathon 2026 — Project Lab**, and attach this canonical folder as its primary folder. Use the prepared instructions above if an instructions field is available. The root AGENTS.md is ready for Codex's automatic project guidance.
+- Saved app label: **PayPal AI Hackathon 2026** (the user's selected label).
+- Project ID: `cc3ec3f0-99d5-4c3e-9348-0ebcf65456cb`.
+- App project listing confirms the canonical folder path, local host, and Git repository status.
+- Setup conversation `01a134fe-0ee2-77f0-b8cb-a43858c513e3` was moved into this project through the supported app tool; the tool returned the matching project ID.
+- Root AGENTS.md and PROJECT_CONTEXT.md are in the attached repository. A separate app instructions field was not inspected or modified.
 
-After registration, re-run the project listing to verify the exact path and identity. An existing chat may be moved into the project through the supported app tool once its project ID is available; that changes sidebar membership and does not necessarily change a running chat's working directory. Start subsequent coding work from the canonical primary folder.
+The user performed the initial registration because the available app tools cannot create a saved project and native app automation is unavailable. No internal app database/settings workaround was used.
+
+Moving a chat changes project membership and does not necessarily change the current turn's working directory. Subsequent work must use the canonical path explicitly or start from this project's primary folder.
 
 Official guidance: [Projects and chats](https://learn.chatgpt.com/docs/projects) and [CLI command reference](https://learn.chatgpt.com/docs/cli/reference). These describe local folder context and the documented launcher platforms; the limitation above is based on the tools/CLI available in this session.

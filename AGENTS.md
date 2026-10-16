@@ -6,7 +6,7 @@ Collaborate with the user to develop a useful, differentiated PayPal + AI hackat
 
 ## Canonical workspace and context
 
-The canonical folder is `/home/abhishek/Documents/personal-project/PayPal AI Hackathon 2026 — Project Lab`. Read `PROJECT_CONTEXT.md` after this file, then README, PRD, architecture, and the latest progress entry. Older research rankings are historical. Current backend planning is Django 5.2 LTS + Django REST Framework + PostgreSQL, revised on 16 October after the user's stack question. No application is installed or implemented. The user authorized private GitHub repository creation/synchronization for this setup; public visibility, deployment, and submission remain unapproved. See docs/project-setup.md for actual verification and remaining Projects registration.
+The canonical folder is `/home/abhishek/Documents/personal-project/PayPal AI Hackathon 2026 — Project Lab`. Read `PROJECT_CONTEXT.md` after this file, then README, PRD, architecture, and the latest progress entry. Older research rankings are historical. Current backend planning is Django 5.2 LTS + Django REST Framework + PostgreSQL, revised on 16 October after the user's stack question. No application is installed or implemented. The user authorized private GitHub repository creation/synchronization for this setup; public visibility, deployment, and submission remain unapproved. Codex Project PayPal AI Hackathon 2026 is registered with this canonical path, and the setup chat belongs to it. See docs/project-setup.md for verification.
 
 ## Master instructions
 

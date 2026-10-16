@@ -1,5 +1,12 @@
 # Progress — project log
 
+## Latest status — 16 October 2026: Projects registration completed
+
+- User confirmed Project added. The app project listing independently verified **PayPal AI Hackathon 2026**, ID cc3ec3f0-99d5-4c3e-9348-0ebcf65456cb, attached to the exact canonical project folder and recognized as a local Git repository.
+- Moved the existing setup chat into that project with the supported move_thread_to_project tool; its result confirmed the matching conversation and project IDs.
+- Updated README, AGENTS, PROJECT_CONTEXT, and project-setup documentation to replace pending registration with the verified outcome. The app's separate instructions field was not inspected; repository instructions/context are present.
+- Repository setup and project association are complete. Product build agreement and local-model feasibility remain the next product-stage decisions; no implementation or financial action occurred.
+
 ## Latest status — 16 October 2026: canonical folder and private GitHub setup
 
 - User requested a professional project under Documents/Personal Project, a new GitHub repository, Codex Projects registration, complete project context/instructions, and an opinion on Django/PostgreSQL.
