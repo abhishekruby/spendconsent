@@ -4,6 +4,8 @@ A dedicated local workspace for research, sandbox verification, and product plan
 
 Latest deliverables, 16 October: [research and target users](docs/research-and-users.md), [PRD](docs/PRD.md), and [selected stack and architecture](docs/architecture.md). The user authorized research, PRD preparation, and stack selection. The proposal helps a small-business buyer compare routine supplies and approve an exact PayPal sandbox purchase. Differentiation and demand remain unproven. Earlier idea changes are retained in [two finalists and organizer fit](docs/two-finalists-and-organizer-fit.md).
 
+System design is ready: [detailed architecture](docs/system-design.md), [visual overview](docs/diagrams/system-overview.svg), and [implementation sequence](docs/implementation-plan.md). These specify the database relationships, application API, bounded AI tools, exact approval, PayPal sequence, and recovery states. Product implementation has not started.
+
 Selected planning stack, revised after the user's backend question: React + TypeScript + Vite, Python 3.12 + Django 5.2 LTS + Django REST Framework, PostgreSQL, PayPal Orders v2 + JavaScript SDK v6, and local Ollama/Qwen3-1.7B. See [backend comparison](docs/stack-review.md). The model must pass the documented laptop feasibility gate before this inference choice is committed to implementation. No packages or models were installed.
 
 ## Canonical workspace and continuity
@@ -27,6 +29,9 @@ docs/market-research-and-ranking.md  Market evidence and personalized ranking
 docs/research-and-users.md Current evidence, users, competitors, and limitations
 docs/PRD.md                Proposed product scope and acceptance criteria
 docs/architecture.md       Selected planning stack, boundaries, and feasibility gates
+docs/system-design.md      Components, data model, APIs, sequence and state diagrams
+docs/implementation-plan.md Ordered milestones and verification gates
+docs/diagrams/             Editable SVG and rendered PNG system overview
 docs/progress.md           Evidence, checks, and next actions
 docs/tooling.md            Installed tools and access limits
 docs/sandbox-setup.md      Credential creation and safe API test

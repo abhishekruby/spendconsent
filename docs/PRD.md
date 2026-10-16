@@ -1,6 +1,8 @@
 # Product requirements — SpendConsent
 
-Version 0.2 · 16 October 2026 · Working name
+Version 0.3 · 16 October 2026 · Working name
+
+The [detailed system design](system-design.md) and [implementation plan](implementation-plan.md) now specify the architecture. This is design authorization, not product-build agreement.
 
 Planning stack revised to Django 5.2 LTS + Django REST Framework + PostgreSQL after the user's backend question. See architecture.md and stack-review.md; product scope remains the same.
 
@@ -36,7 +38,7 @@ The person explicitly approves that version, then starts PayPal sandbox checkout
 
 ## 3. Scope
 
-**Must have:** one local buyer session; one authorized sample merchant; roughly 12–20 clearly labeled sample SKUs; USD only; exact product identifiers and pack units; fixed synthetic delivery/tax quotes; actual model inference; bounded catalog tools; comparison and review; expiring exact-cart approval; approved real sandbox checkout; server-verified payment result; concise decision history; clear failure states.
+**Must have:** one local buyer session; one authorized sample merchant; roughly 12–20 clearly labeled sample SKUs; one offer/SKU per purchase with an exact pack count; USD only; exact product identifiers and pack units; fixed synthetic delivery/tax quotes; actual model inference; bounded catalog tools; comparison and review; expiring exact-cart approval; approved real sandbox checkout; server-verified payment result; concise decision history; clear failure states.
 
 **Later, only if the core succeeds:** a second independently connected merchant, repeat-order preferences, genuine shipping estimates, or a richer decision table. Each needs evidence of value and a verified zero-cost integration path.
 
@@ -82,6 +84,8 @@ changed quote, cart, terms, or expired approval → review required
 An approval reserves one specific application payment attempt when checkout begins. It cannot be reused for a new order. Retrying that same attempt is different from granting a new purchase. Before irreversible steps, still check the quote and approval validity. If terms change or approval expires during checkout, do not capture; obtain a new review and start a new eligible attempt after resolving the previous one.
 
 Persist state across refresh/restart. A network timeout must not erase the order ID, release a consumed approval for reuse, or hide the possibility of a completed capture. Local inventory/quote mutation and purchase reservation need transactional checks; do not hold database transactions open during external HTTP calls.
+
+Architecture clarification: check approval expiry and material changes before dispatching capture, then freeze/honor the exact held quote. An operation already dispatched may still complete after expiry or cancellation; reconcile it rather than treating it as undone. Keep stock/attempt holds while an outcome is uncertain. Mixed-SKU baskets and third-party merchant quote guarantees are deferred.
 
 ## 7. Data and integration boundaries
 

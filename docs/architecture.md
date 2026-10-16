@@ -4,6 +4,8 @@ Decision date: 16 October 2026; revised after the user asked about Django/Postgr
 
 ## Stack decision
 
+Detailed design: [components, database, API and payment flows](system-design.md). Delivery sequence: [implementation plan](implementation-plan.md). The diagram in this document is a high-level summary; the detailed design defines quote holds and unresolved-operation behavior.
+
 | Layer | Selected technology | Reason and cost boundary |
 | --- | --- | --- |
 | Interface | React + TypeScript + Vite; plain CSS and native HTML controls | Clear comparison/review experience using familiar frontend skills. No server rendering, paid UI kit, or additional state library needed. React/Vite are MIT; TypeScript is Apache-2.0. |
@@ -11,7 +13,7 @@ Decision date: 16 October 2026; revised after the user asked about Django/Postgr
 | Storage | Existing local PostgreSQL 16 service, dedicated database/role when needed, Django ORM + psycopg | Persistent approvals and attempts with constraints, short transactions, and row locking. No paid hosted database. Do not reuse or alter unrelated databases or server settings. |
 | AI | Local Ollama + `qwen3:1.7b`, quantized model | Actual model inference with documented tool support and no hosted token bill or expiring trial. Ollama is MIT; Qwen3-1.7B is Apache-2.0. Download and runtime have not yet been installed/tested here. |
 | Agent workflow | A bounded Python tool loop calling Ollama's local HTTP API | One model and three narrow proposal tools. DRF serializers validate arguments/results. No agent framework, vector database, MCP server, or model-controlled HTTP client required. |
-| Payments | PayPal Orders v2 REST + current JavaScript SDK v6, sandbox only | Normal buyer approval, server-side order creation/capture, and verified payment outcome. SDK browser-safe token is distinct from the secret REST access token. Current sandbox entitlements and v6 client-token flow require an integration check. |
+| Payments | PayPal Orders v2 REST + current JavaScript SDK v6, sandbox only | Normal buyer approval, server-side create/capture and verified outcome. Current standard-checkout authentication guidance recommends a browser-safe client ID; contradictory token examples remain on that page. Verify the official sample and sandbox readiness before implementation. REST secrets/tokens remain server-only. |
 | HTTP and money utilities | Python standard library `urllib.request`, `json`, `decimal`, `hashlib`, `secrets`, `uuid` | Fixed destinations, timeouts, redirect rejection, exact money formatting, approval/session identifiers, and operation IDs. No general payment SDK or extra HTTP package until needed. |
 | Verification | Django test runner and transactional database tests; TypeScript/build checks; manual browser journey | Small tests focused on incorrect financial behavior and recovery. Fake responses for routine tests; explicitly approved real sandbox verification separately. |
 | Delivery | Local Django server and Vite frontend with same-origin API proxy | No cloud bill, card, domain purchase, or trial expiry. Prepare reproducible local judging instructions. Development servers are not a public production deployment. No Docker requirement. |
@@ -67,7 +69,7 @@ Persist these responsibilities with simple tables; avoid a generic workflow engi
 
 The model-facing tool contract exposes only `search_catalog`, `get_offer`, and `compare_quotes`. Its output is checked against allowlisted IDs and schemas. Initial loop ceiling: six tool steps and an overall timeout; invalid arguments cause a bounded correction or visible failure, never an unsafe fallback.
 
-Application handlers accept requests, return comparisons/reviews, accept direct approval, create the approved PayPal order, capture an approved existing order, and read status. Browser callers provide opaque local IDs, never trusted amounts or arbitrary PayPal order IDs. The server resolves ownership and the immutable payload. A browser-safe v6 client-token handler must never return the secret REST access token or credentials.
+Application handlers accept requests, return comparisons/reviews, accept direct approval, create the approved PayPal order, capture an approved existing order, and read status. Browser callers provide opaque local IDs, never trusted amounts or arbitrary PayPal order IDs. The server resolves ownership and the immutable payload. Runtime SDK configuration may expose the browser-safe sandbox client ID without hardcoding/logging its actual value. No endpoint returns an ordinary REST bearer token or client secret. A separate client-token endpoint is deferred unless the verified SDK integration requires it.
 
 Use integer cents for storage/comparison and exact decimal strings for PayPal. Count product packs and individual units separately. Avoid persisted floating-point unit costs; calculate display ratios from exact totals with explicit rounding.
 
@@ -77,7 +79,7 @@ Use a single configured sandbox merchant with `CAPTURE` intent and normal human 
 
 Reserve the approval for one attempt transactionally before calling PayPal. Use short Django atomic blocks and row locks for approval reservation; do not hold a transaction or lock open across a network call. On completion, record the outcome with a conditional state update. Repeated requests recover that attempt rather than allocating a new one.
 
-Revalidate quote/cart/stock/terms immediately before create and capture. After order creation, compare PayPal order details to the bound snapshot. If the buyer or merchant changes relevant fields, or approval expires, do not capture under the old approval. The sample merchant must keep quote mutation and purchase reservation consistent. A production external merchant requires its own quote/stock guarantees; the buyer app alone cannot provide them.
+Revalidate quote/cart/stock/terms immediately before create and capture. After order creation, compare PayPal order details to the bound snapshot. If the buyer or merchant changes relevant fields, or approval expires before capture dispatch, do not capture under the old approval. Freeze and honor the held quote when capture is dispatched; later merchant edits affect future quotes. Do not release stock or create a replacement while an operation is uncertain. See system-design.md for the transaction boundaries and state machine. A production external merchant requires its own quote/stock guarantees; the buyer app alone cannot provide them.
 
 [PayPal idempotency documentation](https://developer.paypal.com/api/rest/reference/idempotency/) says support and retention vary by API. Verify the selected Orders operations' exact behavior before implementation. Use different persisted keys per create/capture operation and reuse the same key for retries of that operation. An uncertain request remains pending/unknown while read-only verification resolves it. Do not promise network-wide exactly-once delivery.
 

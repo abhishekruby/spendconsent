@@ -35,6 +35,8 @@ The main unresolved business question is whether comparison plus review saves en
 
 **Not authorized:** implementing the final product without scope agreement; actual sandbox financial actions without action-time approval; paid accounts/billing/cards; public publication, deployment, hackathon submission, or outreach. Creating a private GitHub repository does not authorize making it public. The current instruction authorizes repository setup, not these other actions.
 
+**Architecture requested and prepared, 16 October:** docs/system-design.md defines components, single-offer purchase scope, data relationships, APIs, agent tools, exact approval, stock/quote holds, payment states and recovery. docs/implementation-plan.md defines milestones and exit checks. docs/diagrams/system-overview.svg/.png provides the visual. This request authorizes design/planning, not product implementation. Current SDK documentation has inconsistent authentication examples; standard-checkout client-ID initialization is the planning default pending verification, replacing the earlier assumed mandatory client-token endpoint.
+
 ## What actually works today
 
 - Documents and placeholder backend/frontend directories exist; there is no application yet.
@@ -63,6 +65,7 @@ Printing assistance and workshop leftovers were rejected because of close existi
 2. This file, then `README.md` — current context and navigation.
 3. `docs/PRD.md` — proposed scope and acceptance targets.
 4. `docs/architecture.md` — current stack and execution boundaries.
+   Then `docs/system-design.md` and `docs/implementation-plan.md` — detailed architecture and build gates.
 5. `docs/research-and-users.md` and `docs/stack-review.md` — evidence and tradeoffs.
 6. `docs/project-setup.md` and the latest section of `docs/progress.md` — verified setup and remaining work.
 

@@ -1,5 +1,17 @@
 # Progress — project log
 
+## Latest status — 16 October 2026: detailed system architecture completed
+
+- User requested architecture and system-design planning. Created docs/system-design.md and docs/implementation-plan.md; product implementation remains unapproved.
+- Defined one Django/DRF application, PostgreSQL, React/Vite, one bounded local Ollama agent, and PayPal sandbox. Added four Mermaid diagrams: component boundaries, logical data relationships, approval/payment sequence, and payment/recovery states. Added an editable SVG overview and a rendered PNG in docs/diagrams/.
+- Specified proposed models/constraints, owner-scoped sessions, exact review snapshots, API contracts, three nonfinancial AI tools, stock reservations, consistent row-lock order, quote freeze at capture dispatch, separate idempotency keys, crash/timeout reconciliation, cancellation races, and mismatching captured-payment handling. Session expiry does not delete durable purchase evidence.
+- Clarified the first prototype as one selected offer/SKU per purchase. Changes before capture require a fresh review; an already dispatched operation must be reconciled before replacement. Unknown outcomes retain stock/attempt holds. These are design rules, not implemented guarantees.
+- Rechecked official Django/DRF, Ollama and PayPal references. Current PayPal v6 documentation recommends client-ID authentication for standard checkout while retaining conflicting token examples elsewhere; removed the prior assumption that a client-token endpoint is mandatory and made sample verification a readiness gate. No credential or financial API was accessed.
+- Added the explicit anonymous-session CSRF requirement: DRF SessionAuthentication alone is insufficient for anonymous writes. The proposed implementation must enforce Django CSRF checks on every unsafe endpoint.
+- Build plan orders scope agreement, local-model feasibility, domain/state foundation, actual AI comparison/review, fake payment/concurrency checks, explicitly approved real sandbox integration, then usability/demo measurement. No account signup, dependency/model installation, database/schema creation, hosted service, product code, or financial operation occurred.
+- Verification: 21 Markdown files passed local-link, fence-balance and whitespace checks; SVG XML validated; PNG rendered and visually reviewed after layout correction. Four Mermaid blocks were structurally inspected but not executed through a Mermaid renderer. Backend/frontend still contain only .gitkeep. Design does not establish model performance, market fit, production security, or prize chances.
+- Updated README, PRD, stack architecture and PROJECT_CONTEXT to point to the detailed design and superseding integration assumptions. Continue private-repository synchronization under the existing authorization; public publication/submission remains separate.
+
 ## Latest status — 16 October 2026: Projects registration completed
 
 - User confirmed Project added. The app project listing independently verified **PayPal AI Hackathon 2026**, ID cc3ec3f0-99d5-4c3e-9348-0ebcf65456cb, attached to the exact canonical project folder and recognized as a local Git repository.
