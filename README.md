@@ -10,7 +10,7 @@ Selected planning stack, revised after the user's backend question: React + Type
 
 Work here: `/home/abhishek/Documents/personal-project/PayPal AI Hackathon 2026 — Project Lab`. The original Codex output folder is preserved as an earlier snapshot. Read [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md) for the complete task-focused handoff and [project setup](docs/project-setup.md) for GitHub and Codex Projects status.
 
-GitHub: [abhishekruby/paypal-ai-hackathon-2026](https://github.com/abhishekruby/paypal-ai-hackathon-2026), private during preparation; verify creation/push in the setup log.
+GitHub: [abhishekruby/paypal-ai-hackathon-2026](https://github.com/abhishekruby/paypal-ai-hackathon-2026), private; initial main push independently verified. Codex Projects registration is the remaining user UI step recorded in the setup log.
 
 ## Workspace map
 

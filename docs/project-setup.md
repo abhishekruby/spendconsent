@@ -20,7 +20,9 @@ Suggested project instructions if the app offers a separate instructions field:
 
 ## GitHub
 
-Created destination: `https://github.com/abhishekruby/paypal-ai-hackathon-2026`. GitHub API verification confirms visibility **PRIVATE** and owner **abhishekruby**. Local origin is configured. Initial push verification will be recorded below after completion. The user explicitly authorized creating this repository; future public visibility, deployment, or hackathon submission still needs separate authorization.
+Created destination: `https://github.com/abhishekruby/paypal-ai-hackathon-2026`. GitHub API verification confirms visibility **PRIVATE** and owner **abhishekruby**. Local origin is configured. Initial commit `2eaffed64740d65a7588b0878ddaa9cddde988c3` was pushed to `main`; the GitHub commits API independently returned the same SHA, and the local branch tracks `origin/main`. The user explicitly authorized creating this repository; future public visibility, deployment, or hackathon submission still needs separate authorization.
+
+Pre-push verification: 25 explicitly selected text/placeholder files passed known credential-pattern and blank-template checks; actual `.env`, database artifacts, logs, private files, and the local account-related screenshot are ignored. No comprehensive secret-detection guarantee is claimed. The diagnostic self-test passed with zero network calls; 19 Markdown documents passed local-link/code-fence checks. This setup does not establish application readiness or a payment flow.
 
 The repository should contain research, project instructions/context, PRD, architecture, blank environment example, and the safe diagnostic. Actual `.env`, tokens, local database files, logs, model weights, and the account-related sandbox screenshot are excluded. A root MIT license is included for original repository material; it does not relicense linked sources or vendor assets.
 
