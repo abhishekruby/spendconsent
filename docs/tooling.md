@@ -21,3 +21,8 @@ On 16 October the user requested stack selection. The planning stack was initial
 Read-only hardware check, 16 October: Intel i5-1035G1, 8 logical CPUs, 7.4 GiB RAM total with about 2.9 GiB available at inspection, NVIDIA MX250 with 2048 MiB VRAM, and about 55 GiB free disk. Ollama was not found on PATH. Small-model feasibility remains an explicit gate; GPU acceleration and adequate runtime memory are not assumed.
 
 Read-only canonical-folder setup check, 16 October: GitHub CLI authenticated as abhishekruby; PostgreSQL 16.15 readiness accepted on the local socket. Django was not installed in system Python. No existing database contents, database credentials, or server configuration were inspected/changed.
+
+
+## Authorized AI readiness experiment — 16 October 2026
+
+Project-local `.runtime/` and `.ai-cache/` are Git-ignored. Official llama.cpp b11696 CPU runtime and official Ollama registry Qwen3-1.7B Q4_K_M model are the current readiness path. This supersedes the untested Ollama installation plan without changing model family or zero-cost execution. No system service, sudo installer or hosted inference is used. See ai-feasibility.md for downloads, licenses, actual execution/results and repeatable commands.

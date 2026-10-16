@@ -1,12 +1,12 @@
 # Product requirements — SpendConsent
 
-Version 0.3 · 16 October 2026 · Working name
+Version 0.4 · 16 October 2026 · Working name
 
-The [detailed system design](system-design.md) and [implementation plan](implementation-plan.md) now specify the architecture. This is design authorization, not product-build agreement.
+The [detailed system design](system-design.md) and [implementation plan](implementation-plan.md) now specify the architecture. The active project-completion goal on 16 October records product-build agreement for this scope.
 
 Planning stack revised to Django 5.2 LTS + Django REST Framework + PostgreSQL after the user's backend question. See architecture.md and stack-review.md; product scope remains the same.
 
-Status: research-backed planning proposal. Research, user definition, PRD preparation, and tech-stack selection are authorized. This document does not record agreement to implement the final product, adopt paid services, publish, or execute sandbox payments.
+Status: implementation authorized on 16 October 2026 by the user’s explicit project-completion goal. The user authorized multiple agents, iterative build/review/fix/testing and private commits/pushes. Paid services, public publication/deployment/submission/outreach and actual sandbox financial actions remain separately restricted. All acceptance targets below remain unachieved until verified.
 
 ## 1. Product and problem
 
@@ -129,7 +129,7 @@ Suggested video allocation: 20 seconds user/problem; 45 seconds real AI comparis
 
 ## 10. Delivery order and unresolved decisions
 
-1. Review this scope, including its competitor overlap and single-merchant limitation. Record product/build agreement before implementation.
+1. Review this scope, including its competitor overlap and single-merchant limitation. Product/build agreement was recorded on 16 October through the active goal; preserve this scope.
 2. Prove local model feasibility with read-only sample tasks. No financial calls or feature expansion.
 3. Implement comparison, review, and approval invariants; verify with fake payment responses.
 4. With explicit action-time permission, integrate and verify one real sandbox purchase and recovery path.

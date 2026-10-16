@@ -1,6 +1,6 @@
-# Architecture and selected planning stack
+# Architecture and selected stack
 
-Decision date: 16 October 2026; revised after the user asked about Django/PostgreSQL. The current planning stack is Django/PostgreSQL; FastAPI/SQLite is superseded. The user requested stack selection for the proposed SpendConsent PRD. These are selected engineering defaults for planning, not a claim that packages are installed, model performance is verified, or the final product is approved for implementation.
+Decision date: 16 October 2026; revised after the user asked about Django/PostgreSQL. The current planning stack is Django/PostgreSQL; FastAPI/SQLite is superseded. The active project-completion goal now authorizes implementation of the SpendConsent PRD. Model performance remains an evidence gate. Runtime readiness work is recorded in ai-feasibility.md.
 
 ## Stack decision
 
@@ -11,8 +11,8 @@ Detailed design: [components, database, API and payment flows](system-design.md)
 | Interface | React + TypeScript + Vite; plain CSS and native HTML controls | Clear comparison/review experience using familiar frontend skills. No server rendering, paid UI kit, or additional state library needed. React/Vite are MIT; TypeScript is Apache-2.0. |
 | Application server | Python 3.12 + Django 5.2 LTS + Django REST Framework | Familiar framework, models/migrations, sessions/CSRF, validated API and tool inputs. Select compatible supported patch versions in a project-local environment. Django/DRF have permissive BSD licenses; verify dependency licenses before installation. |
 | Storage | Existing local PostgreSQL 16 service, dedicated database/role when needed, Django ORM + psycopg | Persistent approvals and attempts with constraints, short transactions, and row locking. No paid hosted database. Do not reuse or alter unrelated databases or server settings. |
-| AI | Local Ollama + `qwen3:1.7b`, quantized model | Actual model inference with documented tool support and no hosted token bill or expiring trial. Ollama is MIT; Qwen3-1.7B is Apache-2.0. Download and runtime have not yet been installed/tested here. |
-| Agent workflow | A bounded Python tool loop calling Ollama's local HTTP API | One model and three narrow proposal tools. DRF serializers validate arguments/results. No agent framework, vector database, MCP server, or model-controlled HTTP client required. |
+| AI | Project-local llama.cpp CPU server + Ollama registry `qwen3:1.7b` Q4_K_M GGUF | Actual model inference with documented tool support and no hosted token bill or expiring trial. llama.cpp is MIT; Qwen3-1.7B is Apache-2.0. Download and runtime have not yet been installed/tested here. |
+| Agent workflow | A bounded Python tool loop calling the loopback llama.cpp chat API | One model and three narrow proposal tools. DRF serializers validate arguments/results. No agent framework, vector database, MCP server, or model-controlled HTTP client required. |
 | Payments | PayPal Orders v2 REST + current JavaScript SDK v6, sandbox only | Normal buyer approval, server-side create/capture and verified outcome. Current standard-checkout authentication guidance recommends a browser-safe client ID; contradictory token examples remain on that page. Verify the official sample and sandbox readiness before implementation. REST secrets/tokens remain server-only. |
 | HTTP and money utilities | Python standard library `urllib.request`, `json`, `decimal`, `hashlib`, `secrets`, `uuid` | Fixed destinations, timeouts, redirect rejection, exact money formatting, approval/session identifiers, and operation IDs. No general payment SDK or extra HTTP package until needed. |
 | Verification | Django test runner and transactional database tests; TypeScript/build checks; manual browser journey | Small tests focused on incorrect financial behavior and recovery. Fake responses for routine tests; explicitly approved real sandbox verification separately. |
@@ -32,7 +32,7 @@ For the first approved feasibility experiment, use a compact schema, retrieved s
 
 The PRD's initial gate is 18/20 correct validated task outcomes and warm median request-to-review under 60 seconds. These are targets, not results. Also measure usefulness against manual shopping. If the local model cannot meet them, stop that implementation path and revisit inference or scope. Never replace it silently with prerecorded output or a paid API.
 
-The [Ollama FAQ](https://docs.ollama.com/faq) documents `OLLAMA_NO_CLOUD=1`; use local-only mode, bind the server to loopback, and select the local model explicitly. Local inference has no API quota or trial expiry; existing electricity, storage, and network use still apply. No background service or system-wide installer has been started.
+Bind the llama.cpp CPU server to `127.0.0.1:11435`, load the explicit local GGUF, disable its web UI, and use the original Qwen chat template. The current runtime does not have a hosted inference fallback. The original Ollama plan documented `OLLAMA_NO_CLOUD=1`, but no Ollama daemon is adopted. Local inference has no API quota or trial expiry; existing electricity, storage, and network use still apply. No background service or system-wide installer has been started.
 
 Hosted inference was considered. [Gemini pricing](https://ai.google.dev/gemini-api/docs/pricing) advertises limited free model access, but [actual quotas](https://ai.google.dev/gemini-api/docs/rate-limits) and account availability have not been verified here, and free-tier content may be used for product improvement. It is not selected or adopted. No API key, signup, billing change, or private-data transfer occurred.
 
@@ -42,7 +42,7 @@ Hosted inference was considered. [Gemini pricing](https://ai.google.dev/gemini-a
 flowchart TD
     U[Buyer: request and constraints] --> UI[React comparison and review]
     UI --> API[Django application]
-    API --> AI[Local Ollama model]
+    API --> AI[Local Qwen model]
     AI --> T[Validated catalog and quote tools]
     T --> DB[(PostgreSQL: merchant facts and state)]
     T --> AI
@@ -111,3 +111,8 @@ PayPal is essential. No additional sponsor product is required for the core. Do 
 ## Current implementation status
 
 Only the existing standard-library sandbox OAuth diagnostic exists. Its authentication check passed on 13 October; that does not establish Orders entitlement, SDK token setup, payment success, or AI feasibility. No application packages, model weights, application server, project database, frontend, or payment flow were created during planning. PostgreSQL already runs locally; project credentials, database access, and application readiness remain unverified. The later repository setup is documented in project-setup.md.
+
+
+## Readiness runtime revision — 16 October 2026
+
+The authorized feasibility experiment uses the official llama.cpp CPU release b11696 (MIT) instead of installing Ollama. Its 17.9 MB standalone archive avoids the current Ollama Linux bundle’s 1.44 GB GPU libraries and any global service installer. It runs the same Qwen3-1.7B Q4_K_M model published by the official Ollama registry. The model license is Apache-2.0. Native function calling and structured final output use the original Qwen chat template and the local OpenAI-compatible HTTP protocol; no hosted model/API key is involved. The tool contract and human financial authority are unchanged. Results and exact provenance are recorded in [AI feasibility](ai-feasibility.md). Older Ollama-specific setup paragraphs above describe the original plan and are superseded for this experiment; no Ollama daemon/cloud account was adopted.

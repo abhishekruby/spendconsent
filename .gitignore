@@ -20,3 +20,6 @@ dist/
 *.backup
 models/
 docs/sandbox-app-created.jpg
+
+.runtime/
+.ai-cache/

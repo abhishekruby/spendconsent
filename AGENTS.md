@@ -2,7 +2,7 @@
 
 ## Mission and current phase
 
-Collaborate with the user to develop a useful, differentiated PayPal + AI hackathon entry. Current phase: research, user definition, PRD, and tech-stack planning. On 16 October 2026 the user authorized these planning deliverables and stack selection for the proposed SpendConsent purchasing assistant. See docs/research-and-users.md, docs/PRD.md, and docs/architecture.md. The selected planning stack is not installed or performance-verified. Final product implementation is not agreed; SpendConsent remains a working name. The lab name is a workspace name only.
+Collaborate with the user to develop a useful, differentiated PayPal + AI hackathon entry. Current phase: authorized implementation and verification of SpendConsent. On 16 October 2026 the user set an active goal to complete this hackathon project, explicitly authorized team-lead execution with multiple agents, iterative build/review/fix/testing, and private commits/pushes for completed tasks. This records product/build agreement for the existing PRD scope; it does not approve public publication or sandbox financial actions. See docs/research-and-users.md, docs/PRD.md, and docs/architecture.md. The selected planning stack is not installed or performance-verified. Product implementation is now agreed; SpendConsent remains a working name. The lab name is a workspace name only.
 
 ## Canonical workspace and context
 
@@ -16,7 +16,7 @@ The canonical folder is `/home/abhishek/Documents/personal-project/PayPal AI Hac
 - Sandbox only. Never switch to Live or use a production API. No payments, captures, authorizations, refunds, payouts, subscription activation, invoice sending, financial-account changes, or other money-moving actions without explicit user approval, including simulated money-moving sandbox steps. OAuth authentication and read-only sandbox API checks are authorized.
 - No destructive actions without approval: preserve user files and existing apps, accounts, branches, configuration, and credentials. Do not delete or overwrite unrelated work, revoke keys, reset accounts, or weaken security controls.
 - The user handles sign-in credentials, OTPs, verification, account registration, and agreement review. Get required action-time approval before creating persistent API credentials or accepting terms. Do not publish, deploy, submit a hackathon entry, or message anyone without user authorization.
-- Do not choose or implement the final product until agreed with the user. Record candidates and tradeoffs in `docs/ideas.md`, then record the explicit decision before building product features.
+- The user has agreed to build the current SpendConsent PRD scope through the active project-completion goal. Record major scope changes and tradeoffs before expanding features. Multi-agent implementation/review and private repository commits/pushes are explicitly authorized; the financial action-time, zero-cost, secret, and public-publication boundaries remain in force.
 
 ## Working method
 

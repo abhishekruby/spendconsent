@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1160" height="760" viewBox="0 0 1160 760" role="img" aria-labelledby="title desc">
-<title id="title">SpendConsent proposed system architecture</title><desc id="desc">A buyer uses React. Django owns catalog validation, purchase approval and payment state in PostgreSQL. Ollama can only propose catalog actions. PayPal sandbox receives human checkout approval and server-controlled payment requests.</desc>
+<title id="title">SpendConsent proposed system architecture</title><desc id="desc">A buyer uses React. Django owns catalog validation, purchase approval and payment state in PostgreSQL. The local Qwen model can only propose catalog actions. PayPal sandbox receives human checkout approval and server-controlled payment requests.</desc>
 <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10Z" fill="#47617b"/></marker></defs>
 <rect width="1160" height="760" fill="#f5f7fa"/>
 <g font-family="DejaVu Sans, sans-serif" fill="#182b40">
@@ -28,8 +28,8 @@
 <text x="884" y="254" font-size="13" fill="#445a70">Immutable review records</text>
 <text x="884" y="277" font-size="13" fill="#445a70">Approvals and attempts</text>
 <rect x="542" y="366" width="280" height="130" rx="12" fill="#edf7f0" stroke="#91b69b"/>
-<text x="560" y="398" font-size="18" font-weight="700">Ollama / Qwen</text>
-<text x="560" y="427" font-size="13" fill="#445a70">Local inference · bounded tools</text>
+<text x="560" y="398" font-size="18" font-weight="700">Local Qwen</text>
+<text x="560" y="427" font-size="13" fill="#445a70">CPU-local inference · bounded tools</text>
 <text x="560" y="450" font-size="13" fill="#445a70">Catalog proposals only</text>
 <text x="560" y="473" font-size="13" fill="#445a70">No payment or approval tool</text>
 <rect x="542" y="582" width="280" height="112" rx="12" fill="#eaf2ff" stroke="#779bc5"/>

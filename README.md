@@ -1,12 +1,12 @@
 # PayPal AI Hackathon 2026 — Project Lab
 
-A dedicated local workspace for research, sandbox verification, and product planning. Setup is complete; sandbox OAuth authentication passed with HTTP 200 on 13 October 2026. **Current planning direction: SpendConsent; product implementation awaits agreement.** No frontend or backend application has been implemented.
+A dedicated local workspace for research, sandbox verification, and product planning. Setup is complete; sandbox OAuth authentication passed with HTTP 200 on 13 October 2026. **Current direction: SpendConsent; implementation authorized by the active project-completion goal on 16 October 2026.** No frontend or backend application has been implemented.
 
-Latest deliverables, 16 October: [research and target users](docs/research-and-users.md), [PRD](docs/PRD.md), and [selected stack and architecture](docs/architecture.md). The user authorized research, PRD preparation, and stack selection. The proposal helps a small-business buyer compare routine supplies and approve an exact PayPal sandbox purchase. Differentiation and demand remain unproven. Earlier idea changes are retained in [two finalists and organizer fit](docs/two-finalists-and-organizer-fit.md).
+Latest deliverables, 16 October: [research and target users](docs/research-and-users.md), [PRD](docs/PRD.md), and [selected stack and architecture](docs/architecture.md). The user authorized research, PRD preparation, stack selection and subsequent product implementation, multi-agent review/testing, and private commits/pushes. The proposal helps a small-business buyer compare routine supplies and approve an exact PayPal sandbox purchase. Differentiation and demand remain unproven. Earlier idea changes are retained in [two finalists and organizer fit](docs/two-finalists-and-organizer-fit.md).
 
-System design is ready: [detailed architecture](docs/system-design.md), [visual overview](docs/diagrams/system-overview.svg), and [implementation sequence](docs/implementation-plan.md). These specify the database relationships, application API, bounded AI tools, exact approval, PayPal sequence, and recovery states. Product implementation has not started.
+System design is ready: [detailed architecture](docs/system-design.md), [visual overview](docs/diagrams/system-overview.svg), and [implementation sequence](docs/implementation-plan.md). These specify the database relationships, application API, bounded AI tools, exact approval, PayPal sequence, and recovery states. Implementation is authorized; readiness checks are the first milestone.
 
-Selected planning stack, revised after the user's backend question: React + TypeScript + Vite, Python 3.12 + Django 5.2 LTS + Django REST Framework, PostgreSQL, PayPal Orders v2 + JavaScript SDK v6, and local Ollama/Qwen3-1.7B. See [backend comparison](docs/stack-review.md). The model must pass the documented laptop feasibility gate before this inference choice is committed to implementation. No packages or models were installed.
+Selected planning stack, revised after the user's backend question: React + TypeScript + Vite, Python 3.12 + Django 5.2 LTS + Django REST Framework, PostgreSQL, PayPal Orders v2 + JavaScript SDK v6, and local Qwen3-1.7B Q4_K_M through a project-local llama.cpp CPU server. See [backend comparison](docs/stack-review.md). The model must pass the documented laptop feasibility gate before this inference choice is committed to implementation. Runtime/model downloads are in progress; no successful inference is claimed. See [AI feasibility](docs/ai-feasibility.md).
 
 ## Canonical workspace and continuity
 
@@ -35,8 +35,8 @@ docs/diagrams/             Editable SVG and rendered PNG system overview
 docs/progress.md           Evidence, checks, and next actions
 docs/tooling.md            Installed tools and access limits
 docs/sandbox-setup.md      Credential creation and safe API test
-backend/                   Reserved for an agreed product
-frontend/                  Reserved for an agreed product
+backend/                   Application implementation
+frontend/                  Application implementation
 scripts/sandbox_check.py   Sandbox-only OAuth diagnostic
 ```
 
@@ -59,7 +59,7 @@ The private `.env` was filled by the user and copied locally with owner-only per
 
 1. Sandbox credential setup and authenticated OAuth response are verified; retain sandbox-only operation.
 2. Review the current [PRD](docs/PRD.md), including the target user, competitor overlap, and single-merchant limitation.
-3. Record agreement to implement this scope before building product features.
+3. Build agreement is recorded; verify the model gate before building product features.
 4. Check the selected local model's actual speed/reliability and dependency compatibility. Published licensing and zero hosted-inference cost do not establish laptop feasibility.
 5. Build the smallest approved PayPal + AI flow; request explicit approval before actual sandbox financial actions, then improve reliability, accessibility, and presentation.
 

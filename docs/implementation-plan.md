@@ -1,6 +1,6 @@
 # Architecture implementation plan
 
-16 October 2026. Planning only. Start product implementation after scope/build agreement is recorded. Real sandbox financial calls need separate action-time approval. The [system design](system-design.md) defines the behavior; the [PRD](PRD.md) defines the acceptance targets.
+16 October 2026. Build authorized through the active project-completion goal on 16 October. Scope/build agreement is recorded in PROJECT_CONTEXT.md; measure each gate before claiming it passed. Real sandbox financial calls need separate action-time approval. The [system design](system-design.md) defines the behavior; the [PRD](PRD.md) defines the acceptance targets.
 
 ## Sequence and exit criteria
 

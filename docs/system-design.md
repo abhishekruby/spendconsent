@@ -22,7 +22,7 @@ flowchart LR
     subgraph Laptop["Local laptop boundary"]
         UI --> API["Django + DRF\nSession and CSRF checks"]
         API --> Agent["Bounded Python agent loop"]
-        Agent --> Model["Ollama / Qwen3-1.7B"]
+        Agent --> Model["llama.cpp CPU / Qwen3-1.7B"]
         Model --> Agent
         Agent --> Catalog["Allowlisted catalog tools"]
         Catalog --> DB[("PostgreSQL")]
@@ -45,7 +45,7 @@ flowchart LR
 | PayPal client | Fixed sandbox authentication, create/capture after permission, read-back verification | Follow model-supplied URLs, enable Live, or emit raw credentials/responses |
 | PostgreSQL | Durable requests, snapshots, approval ownership, payment attempts and short events | Make the distributed PayPal call atomic with a database transaction |
 
-Local default ports are proposed as Vite 5173, Django 8000, PostgreSQL's existing local socket, and Ollama 11434. Bind web/model services to loopback. Proxy `/api` through Vite so browser API calls share the frontend origin; do not enable broad CORS. Existing PostgreSQL is shared infrastructure: later create an isolated project database/role without changing unrelated databases or server configuration.
+Local default ports are proposed as Vite 5173, Django 8000, PostgreSQL's existing local socket, and the local llama.cpp model server 11435. Bind web/model services to loopback. Proxy `/api` through Vite so browser API calls share the frontend origin; do not enable broad CORS. Existing PostgreSQL is shared infrastructure: later create an isolated project database/role without changing unrelated databases or server configuration.
 
 Use one application process initially. Only one model inference runs at a time; a process-local semaphore is sufficient for this explicit deployment limit. A second inference request gets a visible busy response, not an unbounded queue. No Redis, task broker, background agent, public tunnel, or paid hosting is needed for the demo. Scaling beyond one process requires revisiting model admission and hosting, not pretending the semaphore is distributed.
 
@@ -112,7 +112,7 @@ Build the review digest from a fixed schema with normalized integer quantities/c
 ## 5. AI workflow and catalog truth
 
 1. Validate request length and allowed fields. The model proposes structured requirements; show extracted constraints for correction before financial review. Essential ambiguity produces a question.
-2. Send only the request, confirmed constraints and compact tool schemas to local Ollama. Catalog descriptions are explicitly untrusted data; render them as escaped text.
+2. Send only the request, confirmed constraints and compact tool schemas to the local Qwen model server. Catalog descriptions are explicitly untrusted data; render them as escaped text.
 3. Permit only `search_catalog`, `get_offer`, and `compare_quotes`. Validate every argument with DRF serializers and scope every result to this catalog/request. No arbitrary SQL, HTTP destination, or function-name dispatch.
 4. Code checks dimensions, exact requested individual quantity, whole-pack divisibility, stock, and total budget. Tax/delivery are labeled fixed merchant fixtures. Unknown attributes cannot satisfy a must-have. Choose the lowest full total among eligible retrieved offers, with ties displayed explicitly; do not claim all suppliers were searched.
 5. Return at most three candidates with evidence references and deterministic rejection reasons. AI explains them; server-rendered prices/quantities come from tools, never extracted from model prose.
@@ -120,7 +120,7 @@ Build the review digest from a fixed schema with normalized integer quantities/c
 
 Initial proposed limits: six tool invocations total, one malformed-output repair, 4K model context, one concurrent run, and a 90-second overall deadline. Bound each network request by the remaining deadline. Compact retrieved data before submission; never silently truncate confirmed constraints. If context, model, or time limits are exceeded, return a visible incomplete/error state. A browser disconnect may not immediately stop inference, so version/run IDs prevent stale completion from overwriting current results.
 
-Ollama remains local-only. No private financial data enters the model. The local-model feasibility gate from the PRD remains unpassed; these limits are design defaults to measure, not performance results. [Ollama's tool-calling interface](https://docs.ollama.com/capabilities/tool-calling) supports the selected interaction pattern.
+The llama.cpp runtime remains loopback-only, with no private financial data in model context. The local-model feasibility gate remains unpassed; these limits are defaults to measure. The [llama.cpp server tool-calling interface](https://github.com/ggml-org/llama.cpp/blob/b11696/tools/server/README.md) supports the selected interaction pattern. This supersedes the original Ollama daemon plan; see ai-feasibility.md.
 
 ## 6. Approval and purchase sequence
 
