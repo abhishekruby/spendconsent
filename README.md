@@ -2,11 +2,13 @@
 
 A dedicated local workspace for research, sandbox verification, and product planning. Setup is complete; sandbox OAuth authentication passed with HTTP 200 on 13 October 2026. **Current direction: SpendConsent; implementation authorized by the active project-completion goal on 16 October 2026.** No frontend or backend application has been implemented.
 
-Latest deliverables, 16 October: [research and target users](docs/research-and-users.md), [PRD](docs/PRD.md), and [selected stack and architecture](docs/architecture.md). The user authorized research, PRD preparation, stack selection and subsequent product implementation, multi-agent review/testing, and private commits/pushes. The proposal helps a small-business buyer compare routine supplies and approve an exact PayPal sandbox purchase. Differentiation and demand remain unproven. Earlier idea changes are retained in [two finalists and organizer fit](docs/two-finalists-and-organizer-fit.md).
+Latest architecture consolidation, 17 October: [system design](docs/system-design.md), [implementation gates](docs/implementation-plan.md), [stable API contract](docs/prebuild-audit.md#stable-api-contract-for-backendfrontend-agreement), and [frontend design](docs/frontend-design.md).
 
-System design is ready: [detailed architecture](docs/system-design.md), [visual overview](docs/diagrams/system-overview.svg), and [implementation sequence](docs/implementation-plan.md). These specify the database relationships, application API, bounded AI tools, exact approval, PayPal sequence, and recovery states. Implementation is authorized; readiness checks are the first milestone.
+Product deliverables, 16 October: [research and target users](docs/research-and-users.md), [PRD](docs/PRD.md), and [selected stack and architecture](docs/architecture.md). The user authorized research, PRD preparation, stack selection and subsequent product implementation, multi-agent review/testing, and private commits/pushes. The proposal helps a small-business buyer compare routine supplies and approve an exact PayPal sandbox purchase. Differentiation and demand remain unproven. Earlier idea changes are retained in [two finalists and organizer fit](docs/two-finalists-and-organizer-fit.md).
 
-Selected planning stack, revised after the user's backend question: React + TypeScript + Vite, Python 3.12 + Django 5.2 LTS + Django REST Framework, PostgreSQL, PayPal Orders v2 + JavaScript SDK v6, and local Qwen3-1.7B Q4_K_M through a project-local llama.cpp CPU server. See [backend comparison](docs/stack-review.md). The model must pass the documented laptop feasibility gate before this inference choice is committed to implementation. Runtime/model downloads are in progress; no successful inference is claimed. See [AI feasibility](docs/ai-feasibility.md).
+System design is ready: [detailed architecture](docs/system-design.md), [visual overview](docs/diagrams/system-overview.svg), and [implementation sequence](docs/implementation-plan.md). These specify the database relationships, application API, bounded AI tools, exact approval, PayPal sequence, and recovery states. Future local execution uses loopback web/model services and an isolated project PostgreSQL cluster/private socket; existing shared services stay untouched. Implementation is authorized; the present turn completes design only. Readiness gates precede product features.
+
+Selected planning stack, revised after the user's backend question: React + TypeScript + Vite, Python 3.12 + Django 5.2 LTS + Django REST Framework, PostgreSQL, PayPal Orders v2 + JavaScript SDK v6, and local Qwen3-1.7B Q4_K_M through a project-local llama.cpp CPU server. See [backend comparison](docs/stack-review.md). The model must pass the documented laptop feasibility gate before this inference choice is committed to implementation. Runtime/model provenance is recorded; artifact availability, actual inference and latency remain pending verification. No live download or model process is implied by this status. See [AI feasibility](docs/ai-feasibility.md).
 
 ## Canonical workspace and continuity
 
@@ -31,12 +33,14 @@ docs/PRD.md                Proposed product scope and acceptance criteria
 docs/architecture.md       Selected planning stack, boundaries, and feasibility gates
 docs/system-design.md      Components, data model, APIs, sequence and state diagrams
 docs/implementation-plan.md Ordered milestones and verification gates
+docs/prebuild-audit.md     Canonical API field contract and release checks
+docs/frontend-design.md    Purchasing workspace and interaction design
 docs/diagrams/             Editable SVG and rendered PNG system overview
 docs/progress.md           Evidence, checks, and next actions
 docs/tooling.md            Installed tools and access limits
 docs/sandbox-setup.md      Credential creation and safe API test
-backend/                   Application implementation
-frontend/                  Application implementation
+backend/                   Reserved application directory (placeholder)
+frontend/                  Reserved application directory (placeholder)
 scripts/sandbox_check.py   Sandbox-only OAuth diagnostic
 ```
 

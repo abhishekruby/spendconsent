@@ -1,5 +1,15 @@
 # Progress — project log
 
+## Latest status — 17 October 2026: architecture deliverable consolidated
+
+- Completed the requested architecture-only pass across README, architecture, system design and implementation plan. The 16 October project-completion goal authorizes the existing PRD build; this pass creates no application, database, service or model process. Historical planning-only entries below predate that agreement.
+- Preserved one sample merchant, one offer/SKU per purchase, exact pack quantities, USD and one-time terms. Linked the canonical JSON field/envelope contract in prebuild-audit.md and the frontend design; distinguished request, immutable review and offer versions, including the approval version/digest check. Independent review added a current-review guard at approval/attempt start; replacement revokes older unconsumed approvals even when request_version is unchanged.
+- Selected future project-local PostgreSQL isolation using installed binaries, a private owner-only Unix socket, TCP disabled and a nonsuperuser application role with explicit peer mapping. The shared PostgreSQL service/databases/configuration remain untouched. Documented loopback ports, strict conflict failure and coordinated explicit reassignment; no setup was executed.
+- Corrected the UNKNOWN state diagram: only resolved create uncertainty with no capture ever dispatched can return to awaiting-buyer. An APPROVED read after uncertain capture or a PENDING capture keeps the attempt/stock hold unresolved. PAYMENT_REVIEW blocks replacement on that request until manual resolution; no automatic refund/retry.
+- Retained anonymous unsafe-route CSRF, session ownership, bounded nonfinancial AI tools, short database locks, stock/quote freeze and server-verified paid requirements. Dated official PostgreSQL, PayPal SDK/recovery and Django/DRF checks are linked in system-design.md. The v6 client-ID path remains an integration gate, not authenticated SDK evidence.
+- Verification: 24 Markdown files passed local-link/anchor, code-fence and trailing-whitespace checks; SVG XML parsed; git diff --check passed. Recovery, version and isolation invariants were checked against the source. Existing visual overview retained; changed Mermaid source was inspected without executing a renderer. No secret/private configuration was read, and no runtime, model, application, database or sandbox financial action was performed by this pass. The completed document checkpoint is prepared for independent review and authorized private synchronization.
+- Pending: artifact/runtime verification and actual fixed-case inference, then domain/contract/concurrency implementation and measured usefulness. SDK readiness and an explicitly approved real sandbox financial journey remain unpassed. Offline checks and the earlier OAuth result establish neither model performance nor payment readiness.
+
 ## Latest status — 16 October 2026: detailed system architecture completed
 
 - User requested architecture and system-design planning. Created docs/system-design.md and docs/implementation-plan.md; product implementation remains unapproved.

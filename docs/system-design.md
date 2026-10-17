@@ -1,8 +1,8 @@
 # SpendConsent — system design
 
-Version 1.0 · 16 October 2026 · Architecture deliverable, not an implemented system.
+Version 1.1 · 17 October 2026 · Architecture deliverable, not an implemented system.
 
-Architecture and implementation planning are authorized. The product remains the working proposal in the [PRD](PRD.md); this request does not authorize installing services, implementing product features, or executing sandbox financial actions. The [stack decision](architecture.md) and [build sequence](implementation-plan.md) accompany this design.
+The project-completion goal of 16 October authorizes implementation of the existing [PRD](PRD.md). The present deliverable completes architecture only; no service, application or model is started here. Real sandbox financial actions still require explicit action-time approval; publication, deployment and submission remain unapproved. The [stack decision](architecture.md) and [build sequence](implementation-plan.md) accompany this design.
 
 ## 1. Design in plain language
 
@@ -45,7 +45,21 @@ flowchart LR
 | PayPal client | Fixed sandbox authentication, create/capture after permission, read-back verification | Follow model-supplied URLs, enable Live, or emit raw credentials/responses |
 | PostgreSQL | Durable requests, snapshots, approval ownership, payment attempts and short events | Make the distributed PayPal call atomic with a database transaction |
 
-Local default ports are proposed as Vite 5173, Django 8000, PostgreSQL's existing local socket, and the local llama.cpp model server 11435. Bind web/model services to loopback. Proxy `/api` through Vite so browser API calls share the frontend origin; do not enable broad CORS. Existing PostgreSQL is shared infrastructure: later create an isolated project database/role without changing unrelated databases or server configuration.
+Planned physical layout, all manually started on this laptop:
+
+| Process / state | Local address or location | Access boundary |
+| --- | --- | --- |
+| Vite / browser origin | `http://127.0.0.1:5173` | Loopback only; strict port, proxy `/api` to Django |
+| Django / DRF | `http://127.0.0.1:8000` | One application process; exact allowed Host/Origin and CSRF origin |
+| llama.cpp CPU | `http://127.0.0.1:11435` | Django only; one inference at a time, no financial/private context |
+| PostgreSQL 16 | Private project-owned Unix socket; proposed socket port suffix `55432` | `listen_addresses=''` disables TCP; peer authentication with an explicit local user-to-application-role mapping |
+| Database files / socket / diagnostics | Ignored project-private runtime directories | Owner-only directories; no source/export/log secrets |
+
+Reuse installed PostgreSQL binaries to initialize a separate project-local cluster when Stage 2 begins. Leave the existing shared service, roles, databases and configuration untouched. Django connects as a nonsuperuser application role restricted to the project database/schema, without CREATEDB/CREATEROLE; the cluster bootstrap owner is for local setup only. Use explicit peer rules/mapping for this role, never broad `trust` authentication. Database/test setup and migrations stay inside this cluster. No cluster, role, database or persistent credential is created by this design.
+
+At implementation, verify binary availability, ignored storage paths and each endpoint before startup. A busy port/socket fails visibly: do not kill an existing process, attach to an unidentified service, or let Vite silently choose another port. Select an unused explicit value and update proxy, Host/CSRF origin, model URL and SDK local-origin configuration together; record the selected values in local startup instructions. Avoid a second database or backend fallback. PostgreSQL's socket port suffix disambiguates this cluster even with TCP disabled.
+
+Browser API calls use the Vite origin; no broad CORS. Network egress is restricted to the fixed PayPal sandbox integration and required official SDK assets; model/catalog input never selects a destination. No hosted inference is configured.
 
 Use one application process initially. Only one model inference runs at a time; a process-local semaphore is sufficient for this explicit deployment limit. A second inference request gets a visible busy response, not an unbounded queue. No Redis, task broker, background agent, public tunnel, or paid hosting is needed for the demo. Scaling beyond one process requires revisiting model admission and hosting, not pretending the semaphore is distributed.
 
@@ -96,16 +110,18 @@ erDiagram
 | --- | --- |
 | PurchaseRequest | Server-owned owner UUID, client submission UUID, original text, confirmed constraints JSON, version, workflow status, active inference UUID. Unique `(owner_uuid, client_submission_uuid)` makes request-submit retries return the same request. Edits increment the version; late inference results for older versions are discarded. |
 | Offer | Stable merchant SKU/variant ID, structured declared attributes, pack units, price cents, stock packs, reserved packs, version, one-time terms. Constraints ensure positive pack size and `0 <= reserved <= stock`. Untrusted description text is separate. |
-| ReviewSnapshot | Request FK/version, offer FK/version, immutable normalized payload, SHA-256 digest, quote expiry, creation time. Stores complete pack/individual quantities, line charges, tax, delivery, discount, total, payee and synthetic destination/terms. The browser only selects a server-produced review ID. |
+| ReviewSnapshot | Per-request monotonically increasing review version, request FK/version, offer FK/version, immutable normalized payload, SHA-256 digest, quote expiry, creation time. Stores complete pack/individual quantities, line charges, tax, delivery, discount, total, payee and synthetic destination/terms. The browser only selects a server-produced review ID. |
 | Approval | One-to-one review FK, approved time, expires time, revoked time; ownership follows the review's request and its owner UUID. Expiry is the earlier of quote expiry and five minutes after approval. The human endpoint owns creation; no model tool can create it. |
 | PaymentAttempt | Request FK, one-to-one approval FK, provider order/capture IDs with uniqueness when present, create/capture UUID keys, state, pending operation, frozen quote, stock hold, stop-request flag, sanitized reason, timestamps. One approval can fund only one attempt. |
 | DecisionEvent | Request FK, optional attempt FK, allowlisted type/reason, safe comparison fields, timestamp. No raw HTTP body, token, address, complete prompt, or hidden model reasoning. This is ordinary application history, not independently tamper-proof evidence. |
 
-Apply a conditional unique constraint for one active attempt per request across creating, awaiting-buyer, capturing, verifying and unknown states. A paid request cannot start another attempt; a deliberate new purchase needs a new request. This protects request retries, not semantic duplicates across independently created requests.
+Apply a conditional unique constraint for one active attempt per request across creating, awaiting-buyer, capturing, verifying, unknown and payment-review states. A paid request also cannot start another attempt; a deliberate new purchase needs a new request. Check this under the request lock for every start path. PAYMENT_REVIEW means a capture may have completed with incorrect details; it blocks replacement on that request until explicit manual resolution, without automatic refund/retry. This protects request retries, not semantic duplicates across independently created requests.
 
 Offer version changes represent material product/price/terms edits; reserving stock does not increment that version and invalidate its own review. New quotes use `stock - reserved`; capture validation recognizes the attempt's own reservation rather than requiring the same packs to be unreserved again. Finalizing a verified purchase consumes stock and releases its reservation exactly once within a conditional transaction. Keep unresolved holds intact.
 
 Use database constraints for local uniqueness and simple ranges. Cross-record ownership, snapshot consistency and charge sums require service validation plus locked transitions; a JSON field or digest alone does not enforce them. Approved snapshots are never edited in place, including through admin. Changing any material term creates a new review. Tests must cover every write path; do not advertise a cryptographic purchase mandate.
+
+`PurchaseRequest.version` advances when confirmed requirements change. Each new immutable Review has its own `version` and captures `request_version`; replacing a review increments the review sequence even if the request stayed unchanged. Clarify/create-review `expected_version` checks the request; approve `expected_version` checks that selected Review.version plus `expected_digest`, and also verifies its request_version still matches the request. Offer.version separately identifies merchant facts. Never interchange these counters. Under the request lock, require the selected review to be the current highest review version at both approval and attempt start; matching request_version alone is insufficient when the buyer changed offer selection. Creating a replacement review supersedes older reviews and revokes their unconsumed approvals. Reject review replacement while an active/unknown/PAYMENT_REVIEW attempt exists or the request is paid; resolve the existing attempt first. No extra table is needed.
 
 Build the review digest from a fixed schema with normalized integer quantities/cents, fixed currency/IDs, stable timestamp format, sorted JSON keys and UTF-8 encoding. Include all material fields described in the PRD; exclude mutable operational counters such as stock reservations. Recompute server-side; a caller's digest is only a stale-review check, never authorization.
 
@@ -132,7 +148,7 @@ sequenceDiagram
     participant DB as PostgreSQL
     participant PP as PayPal sandbox
     Buyer->>UI: Select offer and inspect exact review
-    UI->>App: Approve review ID and expected version
+    UI->>App: Approve review ID, Review.version and digest
     App->>DB: Validate ownership, current quote, expiry; record approval
     App-->>UI: Approval ID and validity
     Buyer->>UI: Start this sandbox purchase
@@ -176,13 +192,13 @@ stateDiagram-v2
     VERIFYING --> PAID: Trusted completed capture matches review
     VERIFYING --> PAYMENT_REVIEW: Captured details mismatch
     VERIFYING --> UNKNOWN: Insufficient trusted evidence
-    UNKNOWN --> AWAITING_BUYER: Read-back proves uncaptured existing order
+    UNKNOWN --> AWAITING_BUYER: Create resolved; no capture ever dispatched
     UNKNOWN --> PAID: Verified matching completed payment
     UNKNOWN --> PAYMENT_REVIEW: Captured mismatch
     UNKNOWN --> STOPPED: Definitive no-capture outcome
 ```
 
-`UNKNOWN` is a durable state, not a failure synonym. A stale persisted `CREATING`/`CAPTURING` operation after restart is treated as uncertain until resolved. Status reconciliation performs read-only provider requests and never auto-captures or allocates a replacement attempt. Expired or changed approvals still block financial execution if read-back returns an uncaptured order.
+`UNKNOWN` is a durable state, not a failure synonym. A stale persisted `CREATING`/`CAPTURING` operation after restart is treated as uncertain until resolved. Status reconciliation performs read-only provider requests and never auto-captures or allocates a replacement attempt. Persist `pending_operation` as create, capture or verification. A known existing order can resolve create uncertainty only when no capture has ever been dispatched. An `APPROVED`/uncaptured read-back cannot prove a dispatched capture will not complete: keep capture uncertainty and its stock hold until sufficient evidence resolves it. A provider `PENDING` capture is not terminal failure. Expired or changed approvals still block financial execution if read-back returns an uncaptured order.
 
 Use a different persisted UUID per create and capture operation. Repeated requests return the existing attempt or operation status. A pending duplicate must not dispatch another HTTP call. Where a retry is needed, preserve the same operation key and exact payload, require applicable human permission, and verify the provider's supported retention window first. Never rotate the key to “fix” a timeout.
 
@@ -190,9 +206,11 @@ If order creation times out before an order ID is persisted, do not invent a loo
 
 Browser cancellation is a stop request, not proof that PayPal received nothing. If capture is already in flight, show “Checking payment status.” Release stock and allow fresh review only when the service can establish the old attempt cannot be captured through our application and no dispatched capture is unresolved. No automatic refund/cancel-payment API is introduced.
 
-Verify the trusted order ID/linkage, configured payee, currency, approved full amount, returned line/quantity breakdown where available, and completed capture ID/status. Preserve the snapshot-to-payload mapping for fields PayPal does not echo. Missing evidence is not success. A completed mismatching capture enters `PAYMENT_REVIEW`; money may have moved in sandbox, so do not call it safely blocked or automatically refund it. “Paid” confirms payment only, not delivery, quality, or merchant honesty.
+Verify the trusted order ID/linkage, configured payee, currency, approved full amount, returned line/quantity breakdown where available, and completed capture ID/status. Preserve the snapshot-to-payload mapping for fields PayPal does not echo. Missing evidence is not success. A completed mismatching capture enters `PAYMENT_REVIEW`; money may have moved in sandbox, so do not call it safely blocked, allocate a replacement attempt on that request, or automatically refund it. “Paid” confirms payment only, not delivery, quality, or merchant honesty.
 
 ## 8. Application API
+
+The [stable API contract](prebuild-audit.md#stable-api-contract-for-backendfrontend-agreement) is authoritative for JSON fields, typed constraints, envelopes and mutation bodies. This section owns route/authority behavior; [frontend design](frontend-design.md#shared-json-contract) consumes that contract. All use snake_case, opaque UUIDs, integer USD cents and UTC timestamps.
 
 Every object lookup is scoped to the owning session. All POSTs require Django CSRF and validated input. Unexpected fields, caller-supplied totals, payment destinations and unrelated provider IDs are rejected. Bootstrap the session and a masked CSRF token through `/api/session` without exposing the session key. Because this prototype uses anonymous buyer sessions, explicitly enforce Django CSRF checks on unsafe DRF views: DRF SessionAuthentication alone does not enforce CSRF for anonymous requests. This is a required boundary, not a reason to add a custom login system. See [DRF's session-authentication guidance](https://www.django-rest-framework.org/api-guide/authentication/#sessionauthentication).
 
@@ -203,8 +221,8 @@ Every object lookup is scoped to the owning session. All POSTs require Django CS
 | GET `/api/requests/{id}` | Current version, candidates, status and safe events | Local read |
 | POST `/api/requests/{id}/clarify` | Expected version and constraint edits → recomparison | Reject editing while financial operation is unresolved |
 | POST `/api/requests/{id}/reviews` | Candidate ID and expected request version → fresh immutable review | Recalculate from current facts |
-| POST `/api/reviews/{id}/approve` | Expected review digest/version → exact approval | Direct human UI only |
-| POST `/api/approvals/{id}/attempts` | Approval ID → existing/new attempt and provider order ID | Explicit permission; one approval/attempt |
+| POST `/api/reviews/{id}/approve` | Expected Review.version and expected_digest → exact approval | Direct human UI only |
+| POST `/api/approvals/{id}/attempts` | Empty object; approval from URL → existing/new attempt and provider order ID | Explicit permission; one approval/attempt |
 | POST `/api/attempts/{id}/capture` | Existing local attempt ID → verified or unresolved outcome | Explicit permission + buyer approval + final gate |
 | POST `/api/attempts/{id}/stop` | Stop request → safe stopped or still pending | No provider financial mutation |
 | POST `/api/attempts/{id}/reconcile` | Local attempt ID → refreshed trusted status | Provider reads only; state may be persisted |
@@ -222,11 +240,11 @@ Use native controls, keyboard access, labels, focus handling, status announcemen
 
 Use only PayPal one-time wallet checkout and `CAPTURE` intent. No vault, subscription, recurring agreement, authorization/escrow flow, or third-party payouts. Fixed sandbox REST/SDK hosts are allowlisted. Redirects cannot change HTTP destinations. A synthetic fixed delivery destination is server-owned and excluded from prompts/history; reject changed checkout destination or charges before capture.
 
-**SDK correction:** the current [v6 authentication section](https://developer.paypal.com/sdk/js/set-up/) recommends `clientId` for standard checkout, while later examples still use tokens. Plan for the client-ID path, validate against the [official sample](https://github.com/paypal-examples/v6-web-sdk-sample-integration), and defer the earlier token endpoint unless needed. Client ID is browser-safe configuration; keep its actual value out of source/chat/logs. Client secret and ordinary REST tokens stay server-side. No actual credential was read for this review.
+**SDK correction:** the current [v6 authentication section](https://developer.paypal.com/sdk/js/set-up/) recommends `clientId` for standard checkout, while later examples still use tokens. Plan for the client-ID path, validate against the [official sample](https://github.com/paypal-examples/v6-web-sdk-sample-integration), and defer the earlier token endpoint unless needed. Client ID is browser-safe configuration; keep its actual value out of source/chat/logs. Client secret and ordinary REST tokens stay server-side. The planned sandbox script is `https://www.sandbox.paypal.com/web-sdk/v6/core`; the v6 start adapter resolves `{orderId: existingAttempt.provider_order_id}` from our stored attempt, rather than constructing a new provider order. Validate this against the selected supported SDK during integration. No actual credential was read for this review.
 
 ## 10. Operational and security limits
 
-- Use existing local services, one isolated project database and one limited model. Keep application/model startup manual and reproducible; no daemon installed by this design.
+- Use installed binaries, one isolated project-local PostgreSQL cluster/database and one limited model; leave the existing shared PostgreSQL service untouched. Keep application/model startup manual and reproducible; no daemon installed by this design.
 - Validate session ownership, CSRF, Host/Origin and state on every write. Loopback operation does not replace those checks. Other malicious local software or a compromised operating system is outside this prototype's protection claims.
 - Allow only fixed model and PayPal destinations; no merchant text becomes instructions or executable HTML. Test injection fixtures, but do not claim universal resistance.
 - Persist only the minimal safe decision events, retry IDs and provider object IDs needed for recovery. No payment bodies, tokens, customer PII, or raw model transcripts in logs. Data deletion/DB reset is a separate explicit action, not an automatic demo cleanup.
@@ -236,6 +254,10 @@ Use only PayPal one-time wallet checkout and `CAPTURE` intent. No vault, subscri
 
 ## 11. Design review and release blockers
 
-Before implementation, confirm the bounded product/build scope. Then follow the [implementation plan](implementation-plan.md). Block the financial journey for any missing approval, state race, mismatched request/payee/amount, unverified provider state, duplicate operation, wrong-session access, or unsupported SDK/idempotency behavior. Do not broaden the scope to hide a failed model/usefulness test.
+Scope/build agreement is recorded; preserve one merchant, one SKU per purchase, USD and one-time terms. Model, SDK and financial gates remain unpassed. Follow the [implementation plan](implementation-plan.md). Block the financial journey for any missing approval, state race, mismatched request/payee/amount, unverified provider state, duplicate operation, wrong-session access, or unsupported SDK/idempotency behavior. Do not broaden the scope to hide a failed model/usefulness test.
 
-Primary technical references checked 16 October: [Django transactions](https://docs.djangoproject.com/en/5.2/topics/db/transactions/), [row locking](https://docs.djangoproject.com/en/5.2/ref/models/querysets/#select-for-update), [constraints](https://docs.djangoproject.com/en/5.2/ref/models/constraints/), [CSRF](https://docs.djangoproject.com/en/5.2/ref/csrf/), [PayPal Orders v2 schema](https://developer.paypal.com/api/orders/v2/schema.json), and the SDK/idempotency/Ollama links above. The proposed application tables, endpoints, limits and state machine are our design decisions, not vendor guarantees.
+Primary technical references checked 16 October: [Django transactions](https://docs.djangoproject.com/en/5.2/topics/db/transactions/), [row locking](https://docs.djangoproject.com/en/5.2/ref/models/querysets/#select-for-update), [constraints](https://docs.djangoproject.com/en/5.2/ref/models/constraints/), [CSRF](https://docs.djangoproject.com/en/5.2/ref/csrf/), [PayPal Orders v2 schema](https://developer.paypal.com/api/orders/v2/schema.json), and the SDK/idempotency/llama.cpp links above. The proposed application tables, endpoints, limits and state machine are our design decisions, not vendor guarantees.
+
+Physical isolation references rechecked 17 October 2026: PostgreSQL 16 [initdb and authentication defaults](https://www.postgresql.org/docs/16/app-initdb.html) and [connection/socket configuration](https://www.postgresql.org/docs/16/runtime-config-connection.html). Private socket isolation and the application-role policy above are project design decisions; setup is pending.
+
+Recovery/SDK/CSRF sources rechecked 17 October 2026: [Orders read by provider order ID](https://developer.paypal.com/api/orders/v2/orders-get), [operation-specific idempotency](https://developer.paypal.com/api/rest/reference/idempotency/), [SDK v6 setup](https://developer.paypal.com/sdk/js/set-up/), [Django CSRF](https://docs.djangoproject.com/en/5.2/ref/csrf/) and [DRF SessionAuthentication](https://www.django-rest-framework.org/api-guide/authentication/#sessionauthentication). Django validates supplied Origin headers; absence of Origin over HTTP is not a CSRF bypass or proof of human intent. Require valid CSRF on every anonymous unsafe route and reject cross-origin requests; no generic CORS exception.
