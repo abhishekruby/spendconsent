@@ -77,14 +77,21 @@ Request status: `NEEDS_CLARIFICATION`, `COMPARING`, `READY`, `NO_MATCH`, `MODEL_
 Candidate: id, offer_id, sku, name, specification, pack_units,
   packs, individual_units, currency, subtotal_cents, shipping_cents,
   tax_cents, discount_cents, total_cents, reasons, evidence
-Review: id, version, request_version, digest, created_at, expires_at,
+Review: id, version, request_version, quote_version, digest, created_at, expires_at,
   merchant, item, shipping, terms, currency,
-  subtotal_cents, shipping_cents, tax_cents, discount_cents, total_cents
+  subtotal_cents, shipping_cents, tax_cents, discount_cents, total_cents, evidence
 Approval: id, review_id, approved_at, expires_at, status
 Attempt: id, state, pending_operation, reason_code, created_at, updated_at,
   provider_order_id, capture_id, total_cents, currency, allowed_actions
 Event: id, type, reason_code, message, created_at
+Evidence: {offer_id, offer_version, source: "sample_catalog", summary}
+ToolCall: {name, status: "completed" | "error", elapsed_ms}
+Action: "open_paypal" | "capture" | "check_status" | "stop"
 ```
+
+`Candidate.evidence` and `Review.evidence` are arrays of `Evidence` with sanitized plain-text summaries of trusted catalog facts; review evidence is frozen. `offer_version` and `Review.quote_version` are integer material `Offer.version` values. Quote version is separate from the review sequence and request version; display it with `Review.created_at` (quote snapshot time), `expires_at`, and evidence references. Stock reservation changes do not change the material quote version.
+
+`model.tool_calls` is a measured array of `ToolCall` bounded to six entries, with names limited to `search_catalog`, `get_offer`, `compare_quotes` and nonnegative integer `elapsed_ms`. Never expose arguments, raw tool responses or reasoning. `Attempt.reason_code` and `Event.reason_code` are an allowlisted safe string or `null`; `Attempt.allowed_actions` is an array of the finite `Action` values.
 
 Agreed nested Review shape:
 
@@ -97,18 +104,33 @@ terms: {one_time: true, description}
 
 Specification is a plain display string; structured attributes and configured payee binding remain authoritative server-side data. Merchant ID is the sample merchant's stable ID, not a browser-provided payment destination. Shipping is a synthetic configured reference. One-time terms must be validated before eligibility.
 
-The agreed constraints shape is `{category, quantity, budget_cents, currency, one_time, attributes:{...}}`. The backend validates nested attributes by category: `width_cm` and `height_cm` for cloth, `capacity_l` for bags, `volume_ml` for bottles, and `paper_size` for notebooks. Currency is USD and one-time terms must be true. The catalog remains bounded to 12–20 sample SKUs. The frontend presents these nested attributes as plainly labeled editable fields; the backend freezes the trusted normalized constraints. Unknown required values or unsupported requirements need clarification or rejection, never invented defaults or silently discarded fields.
+The agreed constraints shape is `{category, quantity, budget_cents, currency, one_time, attributes:{...}}`. The exact `category` enum is `cloth`, `bag`, `bottle`, `notebook`. The backend validates nested attributes by category: `width_cm` and `height_cm` for `cloth`, `capacity_l` for `bag`, `volume_ml` for `bottle`, and `paper_size` for `notebook`. Currency is USD and one-time terms must be true. The catalog remains bounded to 12–20 sample SKUs. The frontend presents these nested attributes as plainly labeled editable fields; the backend freezes the trusted normalized constraints. Unknown required values or unsupported requirements need clarification or rejection, never invented defaults or silently discarded fields.
 
 The server returns the full normalized review from trusted merchant facts; the browser does not reconstruct it from candidate/model prose. Review exposes only the synthetic shipping label/reference needed for the decision. Unit price is calculated for display with declared rounding, rather than storing rounded per-unit money.
 
 | Mutation | Body / successful response |
 | --- | --- |
-| `/requests/{id}/reviews` | `{expected_version, candidate_id}` → updated request envelope |
-| `/reviews/{id}/approve` | `{expected_version, expected_digest}` → updated request envelope |
+| `/requests/{id}/reviews` | `{expected_version, candidate_id}` with `PurchaseRequest.version` → updated request envelope |
+| `/reviews/{id}/approve` | `{expected_version, expected_digest}` with `Review.version` → updated request envelope |
 | `/approvals/{id}/attempts` | `{}` → `{attempt}` |
 | `/attempts/{id}/capture`, `/stop`, `/reconcile` | `{}` → `{attempt}` |
 
-Attempt states: `CREATING`, `AWAITING_BUYER`, `CAPTURING`, `VERIFYING`, `UNKNOWN`, `PAID`, `STOPPED`, `PAYMENT_REVIEW`. Pending/unknown responses expose `allowed_actions: ["check_status", "stop"]` as appropriate; every endpoint independently enforces permission. SDK adapters obtain only the existing returned order ID; capture accepts no browser order/payee/amount. A duplicate in-progress mutation returns 202 with the same attempt, never a newly allocated purchase.
+Clarify also checks `PurchaseRequest.version`; approval separately checks `Review.request_version` still matches the current request. The backend requires the selected review to be the current highest review version at approval and attempt start. A replacement supersedes older reviews and revokes unconsumed approvals; it is rejected while an active, unknown or `PAYMENT_REVIEW` attempt exists or the request is paid. A duplicate in-progress mutation returns 202 with the same attempt, never a newly allocated purchase.
+
+### Action authority and SDK handoff
+
+Render only server-permitted `allowed_actions` and gate financial controls on `capabilities.financial_actions_enabled`; that flag is not action-time human approval. Every endpoint independently checks its authority and current state.
+
+| Attempt state | Controls |
+| --- | --- |
+| `AWAITING_BUYER` | `open_paypal`, `capture`, `check_status`, `stop`; financial capability false removes `open_paypal` and `capture`. Capture still requires buyer approval and final server review checks. |
+| `CREATING`, `CAPTURING`, `VERIFYING`, `UNKNOWN` | `check_status`, `stop` as appropriate. Stop never undoes a dispatched operation or releases an uncertain hold; explain that status is being checked. |
+| `PAYMENT_REVIEW` | `check_status` only; manual resolution. No replacement or automatic refund. |
+| `PAID`, `STOPPED` | `allowed_actions: []`; no financial controls. |
+
+`open_paypal` opens the existing `attempt.provider_order_id` and never creates an attempt/order. The SDK adapter must match the approval callback order ID to that stored order before posting `{}` to `/api/attempts/{id}/capture`; on mismatch it stops. Capture accepts no caller order/payee/amount. The backend independently reads the trusted provider order and revalidates buyer approval, linkage and the exact current review before capture.
+
+Fresh review is derived from `STOPPED` plus the request/review-replacement guard; `fresh_review` is not an allowed action enum value. The backend rechecks that guard. Unknown attempts never offer a replacement purchase, and status reconciliation never captures.
 
 Error envelope: `{error: {code, message, fields?, retryable}, request_id?, attempt?}`. Review expiry/change returns 410/409. Handle malformed/non-JSON errors and CSRF/network failures safely. An HTTP error during a payment operation retains the attempt and prompts checking its status; it never proves no payment occurred. `MODEL_BUSY` may offer bounded request retry. An uncertain financial action offers status reconciliation only. No financial POST is automatically retried on mount, refresh, polling or reconnect.
 

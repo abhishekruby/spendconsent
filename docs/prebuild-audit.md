@@ -60,7 +60,7 @@ Use direct JSON objects, snake_case, opaque UUIDs, integer `*_cents`, `currency:
 
 Create request input: `{text, client_submission_id, constraints?}`. A repeated submission UUID with different content is a conflict, not a silent new request or rewrite. The model run may be synchronous initially; 90 seconds is the maximum permitted deadline, not the expected UX. A full model queue/background broker is unnecessary for one concurrent local run.
 
-Constraints agreed 17 October: `{category, quantity, budget_cents, currency, one_time, attributes:{...}}`. Category-specific attributes stay nested: `width_cm`/`height_cm` for cloth, `capacity_l` for bags, `volume_ml` for bottles, and `paper_size` for notebooks. Validate USD and `one_time:true`; preserve the bounded 12–20-SKU catalog. Frontend fields edit nested attributes plainly; the backend validates and freezes the trusted normalized constraints. Unknown required values or unsupported requirements must be clarified or rejected, never invented or silently discarded.
+Constraints agreed 17 October: `{category, quantity, budget_cents, currency, one_time, attributes:{...}}`. The exact `category` enum is `cloth`, `bag`, `bottle`, `notebook`. Category-specific attributes stay nested: `width_cm`/`height_cm` for `cloth`, `capacity_l` for `bag`, `volume_ml` for `bottle`, and `paper_size` for `notebook`. Validate USD and `one_time:true`; preserve the bounded 12–20-SKU catalog. Frontend fields edit nested attributes plainly; the backend validates and freezes the trusted normalized constraints. Unknown required values or unsupported requirements must be clarified or rejected, never invented or silently discarded.
 
 Request response:
 
@@ -79,15 +79,22 @@ Use a bounded `status` enum such as `NEEDS_CLARIFICATION`, `COMPARING`, `READY`,
 Candidate: id, offer_id, sku, name, specification, pack_units,
   packs, individual_units, currency, subtotal_cents, shipping_cents,
   tax_cents, discount_cents, total_cents, reasons, evidence
-Review: id, version, request_version, digest, created_at, expires_at,
+Review: id, version, request_version, quote_version, digest, created_at, expires_at,
   merchant, item, shipping, terms, currency,
-  subtotal_cents, shipping_cents, tax_cents, discount_cents, total_cents
+  subtotal_cents, shipping_cents, tax_cents, discount_cents, total_cents, evidence
 Approval: id, review_id, approved_at, expires_at, status
 Attempt: id, state, pending_operation, reason_code, created_at, updated_at,
   provider_order_id, capture_id, total_cents, currency,
-  allowed_actions: ["check_status", "stop"]
+  allowed_actions: Action[]
 Event: id, type, reason_code, message, created_at
+Evidence: {offer_id, offer_version, source: "sample_catalog", summary}
+ToolCall: {name, status: "completed" | "error", elapsed_ms}
+Action: "open_paypal" | "capture" | "check_status" | "stop"
 ```
+
+`Candidate.evidence` and `Review.evidence` are arrays of `Evidence`. References identify the trusted offer and its integer material `offer_version`; `summary` is a sanitized plain-text description of the supporting catalog facts. Review evidence is frozen with its snapshot. `Review.quote_version` is the selected material `Offer.version`, distinct from `Review.version` and `Review.request_version`. Display quote version, `created_at` as the quote snapshot time, `expires_at`, and evidence references to satisfy PRD R4. Reservation counters do not change the quote version.
+
+`model.tool_calls` is an array of `ToolCall`, bounded by the six-invocation tool-loop limit. Names come only from `search_catalog`, `get_offer`, `compare_quotes`; `elapsed_ms` is a measured nonnegative integer. Expose only these sanitized outcome/timing fields, never tool arguments, raw responses, prompts or private reasoning. `Attempt.reason_code` and `Event.reason_code` are an allowlisted safe string or `null`.
 
 Review nested objects use these fields:
 
@@ -107,18 +114,31 @@ Existing design routes stay unchanged. Mutation input conventions:
 
 | Endpoint | Minimal body |
 | --- | --- |
-| `/requests/{id}/clarify` | `expected_version`, validated `constraints` edits |
-| `/requests/{id}/reviews` | `expected_version`, `candidate_id` |
-| `/reviews/{id}/approve` | `expected_version`, `expected_digest` |
-| `/approvals/{id}/attempts` | No caller order, payee or amount; server resolves approval from URL |
-| `/attempts/{id}/capture` | No caller order, payee or amount; server resolves attempt from URL |
+| `/requests/{id}/clarify` | `{expected_version, constraints}`; version is `PurchaseRequest.version` |
+| `/requests/{id}/reviews` | `{expected_version, candidate_id}`; version is `PurchaseRequest.version` |
+| `/reviews/{id}/approve` | `{expected_version, expected_digest}`; version is the selected `Review.version` |
+| `/approvals/{id}/attempts` | `{}`; no caller order, payee or amount; server resolves approval from URL |
+| `/attempts/{id}/capture` | `{}`; no caller order, payee or amount; server resolves attempt from URL |
 | `/attempts/{id}/stop`, `/reconcile` | Empty object; direct action, no model-generated state |
 
-Return the updated request envelope after clarify/review/approve, and `{attempt}` after financial/status mutations. An SDK adapter obtains only the existing `attempt.provider_order_id`; it never supplies a new unrelated provider ID to capture. Duplicate in-progress mutations return 202 with the same attempt and pending state. A resolved idempotent repeat may return 200. Expired/changed review returns 410/409 respectively without silently approving its replacement.
+Return the updated request envelope after clarify/review/approve, and `{attempt}` after financial/status mutations. Approval additionally verifies `Review.request_version` matches the current request. Under the request lock, the selected review must be the current highest review version at approval and attempt start. A replacement review supersedes older reviews and revokes unconsumed approvals; reject replacement while an active, unknown or `PAYMENT_REVIEW` attempt exists or the request is paid. Duplicate in-progress mutations return 202 with the same attempt and pending state. A resolved idempotent repeat may return 200. Expired/changed review returns 410/409 respectively without silently approving its replacement.
 
 Error shape: `{error: {code, message, fields?, retryable}, request_id?, attempt?}`. A request ID here is the domain request, not a credential. Browser errors must handle non-JSON 403/network failures without assuming no payment. JSON CSRF errors are preferable. Use code-specific next actions: `REVIEW_CHANGED` → review; `MODEL_BUSY` → bounded retry; uncertain payment → check existing attempt only. No stack trace or provider raw payload is returned.
 
-`allowed_actions` simplifies UI behavior, but every endpoint independently checks permissions/state. The frontend never grants itself financial authority because a button is enabled. Date expiry is enforced against server time, even if the browser countdown is stale.
+### Action authority and SDK handoff
+
+`allowed_actions` contains only the finite `Action` values above. The server returns currently permitted actions; the frontend also gates financial controls on `capabilities.financial_actions_enabled`. That capability defaults false and is not itself action-time human approval. Every endpoint independently checks ownership, permissions, state and server-time expiry.
+
+| Attempt state | Permitted actions |
+| --- | --- |
+| `AWAITING_BUYER` | `open_paypal`, `capture`, `check_status`, `stop`; remove `open_paypal` and `capture` when financial capability is false. Final buyer-approval/review checks still gate capture. |
+| `CREATING`, `CAPTURING`, `VERIFYING`, `UNKNOWN` | `check_status`, `stop` as appropriate; stopping requests reconciliation and never undoes a dispatched operation or releases an uncertain hold. |
+| `PAYMENT_REVIEW` | `check_status` only; resolution is manual. No replacement purchase or automatic refund. |
+| `PAID`, `STOPPED` | No financial actions; `allowed_actions: []`. |
+
+`open_paypal` opens checkout for the existing `attempt.provider_order_id`; it never creates an attempt or order. Before sending `POST /api/attempts/{id}/capture` with `{}`, the browser adapter checks that the SDK approval callback's order ID matches that existing order. A mismatch stops the adapter. The backend trusts neither that callback nor browser state: it independently reads the stored provider order and validates buyer approval, linkage and the exact current review before dispatching capture.
+
+No financial POST runs automatically on mount, refresh, polling, reconnect or a status response. Status reconciliation never captures or allocates a replacement for an unknown attempt. `fresh_review` is not an action enum value: show a fresh-review control only after `STOPPED` and the request/review-replacement guard establishes it is safe; the backend rechecks that guard when creating the review.
 
 ## Staged test strategy
 
