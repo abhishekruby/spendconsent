@@ -163,7 +163,9 @@ def probe(case):
             "offer_id": {"type": ["string", "null"]}},
             "required": ["status", "offer_id"], "additionalProperties": False}
         final = chat({"messages": messages, "response_format": {
-            "type": "json_schema", "schema": schema}}, timeout=remaining_timeout(deadline))
+            "type": "json_schema", "json_schema": {
+                "name": "purchase_decision", "schema": schema}}},
+            timeout=remaining_timeout(deadline))
         remaining_timeout(deadline)
         if final.get("tool_calls"):
             raise ValueError("unexpected_final_tool_call")
@@ -205,6 +207,32 @@ def self_test():
             continue
         raise AssertionError("invalid arguments accepted")
     from unittest.mock import patch
+    from contextlib import contextmanager
+    from io import BytesIO
+    requests = []
+
+    @contextmanager
+    def capture_open(self, request, timeout):
+        body = json.loads(request.data)
+        requests.append(body)
+        if "tools" in body:
+            message = {"role": "assistant", "content": None, "tool_calls": [{
+                "id": "offline", "type": "function", "function": {
+                    "name": "search_catalog", "arguments": json.dumps(CASES[0][2])}}]}
+        else:
+            message = {"role": "assistant", "content": json.dumps({
+                "status": "READY", "offer_id": "B"})}
+        yield BytesIO(json.dumps({"choices": [{"message": message}]}).encode())
+
+    with patch.object(urllib.request.OpenerDirector, "open", capture_open):
+        assert probe(CASES[0])["passed"]
+    assert len(requests) == 2 and "tools" not in requests[1]
+    response_format = requests[1]["response_format"]
+    assert response_format["type"] == "json_schema" and "schema" not in response_format
+    assert response_format["json_schema"]["name"] == "purchase_decision"
+    schema = response_format["json_schema"]["schema"]
+    assert set(schema["properties"]) == {"status", "offer_id"}
+    assert schema["required"] == ["status", "offer_id"] and not schema["additionalProperties"]
     for final_fields, elapsed, expected_error in (
         ({}, 1, None),
         ({"tool_calls": [{"function": {"name": "unexpected_tool"}}]},
