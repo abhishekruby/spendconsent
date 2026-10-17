@@ -1,0 +1,55 @@
+{
+  "purpose": "Post-baseline diagnostic only; not part of 20-case score",
+  "probe_sha256": "07834176c7d76b5a54e70a70255de3d000723270773bd7352fffdff128211e2d",
+  "case_result": {
+    "case": "standard",
+    "expected_status": "READY",
+    "expected_offer_id": "B",
+    "passed": false,
+    "arguments": {
+      "item": "microfiber cloths",
+      "size_cm": 40,
+      "quantity": 40,
+      "budget_cents": 600,
+      "currency": "USD",
+      "one_time": true
+    },
+    "arguments_correct": false,
+    "tool_result": {
+      "status": "NO_MATCH",
+      "eligible": []
+    },
+    "tool_calls": 1,
+    "error": "invalid_decision_schema",
+    "elapsed_seconds": 14.436
+  },
+  "response_shapes": [
+    {
+      "stage": "tool_selection",
+      "message_keys": [
+        "content",
+        "role",
+        "tool_calls"
+      ],
+      "tool_call_count": 1
+    },
+    {
+      "stage": "final_decision",
+      "message_keys": [
+        "content",
+        "role"
+      ],
+      "tool_call_count": 0,
+      "response_format_keys": [
+        "schema",
+        "type"
+      ],
+      "json_root_type": "dict",
+      "json_root_keys": [
+        "eligible",
+        "status"
+      ],
+      "status": "NO_MATCH"
+    }
+  ]
+}

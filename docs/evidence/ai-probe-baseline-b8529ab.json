@@ -1,0 +1,507 @@
+{
+  "model": "qwen3-1.7b-q4_k_m",
+  "endpoint": "http://127.0.0.1:11435/v1/chat/completions",
+  "synthetic_cases": true,
+  "payment_calls": 0,
+  "results": [
+    {
+      "repetition": 1,
+      "case": "standard",
+      "expected_status": "READY",
+      "expected_offer_id": "B",
+      "passed": false,
+      "arguments": {
+        "item": "microfiber cloths",
+        "size_cm": 40,
+        "quantity": 40,
+        "budget_cents": 600,
+        "currency": "USD",
+        "one_time": true
+      },
+      "arguments_correct": false,
+      "tool_result": {
+        "status": "NO_MATCH",
+        "eligible": []
+      },
+      "tool_calls": 1,
+      "error": "invalid_decision_schema",
+      "elapsed_seconds": 8.567
+    },
+    {
+      "repetition": 1,
+      "case": "twenty",
+      "expected_status": "READY",
+      "expected_offer_id": "B",
+      "passed": false,
+      "arguments": {
+        "item": "microfiber cloths",
+        "size_cm": 40,
+        "quantity": 20,
+        "budget_cents": 2500,
+        "currency": "USD",
+        "one_time": true
+      },
+      "arguments_correct": true,
+      "tool_result": {
+        "status": "READY",
+        "eligible": [
+          {
+            "offer_id": "B",
+            "packs": 1,
+            "individual_units": 20,
+            "total_cents": 2090,
+            "currency": "USD"
+          }
+        ]
+      },
+      "tool_calls": 1,
+      "error": "invalid_decision_schema",
+      "elapsed_seconds": 13.183
+    },
+    {
+      "repetition": 1,
+      "case": "thirty",
+      "expected_status": "READY",
+      "expected_offer_id": "A",
+      "passed": false,
+      "arguments": {
+        "item": "microfiber cloths",
+        "size_cm": 40,
+        "quantity": 30,
+        "budget_cents": 4000,
+        "currency": "USD",
+        "one_time": true
+      },
+      "arguments_correct": true,
+      "tool_result": {
+        "status": "READY",
+        "eligible": [
+          {
+            "offer_id": "A",
+            "packs": 3,
+            "individual_units": 30,
+            "total_cents": 3770,
+            "currency": "USD"
+          }
+        ]
+      },
+      "tool_calls": 1,
+      "error": "invalid_decision_schema",
+      "elapsed_seconds": 14.654
+    },
+    {
+      "repetition": 1,
+      "case": "small_size",
+      "expected_status": "READY",
+      "expected_offer_id": "C",
+      "passed": false,
+      "arguments": {
+        "item": "microfiber cloths",
+        "size_cm": 30,
+        "quantity": 4,
+        "budget_cents": 450,
+        "currency": "USD",
+        "one_time": true
+      },
+      "arguments_correct": false,
+      "tool_result": {
+        "status": "NO_MATCH",
+        "eligible": []
+      },
+      "tool_calls": 1,
+      "error": "invalid_decision_schema",
+      "elapsed_seconds": 11.091
+    },
+    {
+      "repetition": 1,
+      "case": "budget",
+      "expected_status": "NO_MATCH",
+      "expected_offer_id": null,
+      "passed": false,
+      "arguments": {
+        "item": "microfiber cloths",
+        "size_cm": 40,
+        "quantity": 40,
+        "budget_cents": 2000,
+        "currency": "USD",
+        "one_time": true
+      },
+      "arguments_correct": true,
+      "tool_result": {
+        "status": "NO_MATCH",
+        "eligible": []
+      },
+      "tool_calls": 1,
+      "error": "invalid_decision_schema",
+      "elapsed_seconds": 10.957
+    },
+    {
+      "repetition": 1,
+      "case": "pack_divisibility",
+      "expected_status": "NO_MATCH",
+      "expected_offer_id": null,
+      "passed": false,
+      "arguments": {
+        "item": "microfiber cloths",
+        "size_cm": 40,
+        "quantity": 15,
+        "budget_cents": 600,
+        "currency": "USD",
+        "one_time": true
+      },
+      "arguments_correct": false,
+      "tool_result": {
+        "status": "NO_MATCH",
+        "eligible": []
+      },
+      "tool_calls": 1,
+      "error": "invalid_decision_schema",
+      "elapsed_seconds": 12.181
+    },
+    {
+      "repetition": 1,
+      "case": "missing_quantity",
+      "expected_status": "NEEDS_CLARIFICATION",
+      "expected_offer_id": null,
+      "passed": false,
+      "arguments": {
+        "item": "microfiber cloths",
+        "size_cm": 40,
+        "quantity": 1,
+        "budget_cents": 600,
+        "currency": "USD",
+        "one_time": true
+      },
+      "arguments_correct": false,
+      "tool_result": {
+        "status": "NO_MATCH",
+        "eligible": []
+      },
+      "tool_calls": 1,
+      "error": "invalid_decision_schema",
+      "elapsed_seconds": 12.254
+    },
+    {
+      "repetition": 1,
+      "case": "missing_size",
+      "expected_status": "NEEDS_CLARIFICATION",
+      "expected_offer_id": null,
+      "passed": false,
+      "arguments": {
+        "item": "microfiber cloths",
+        "size_cm": 40,
+        "quantity": 4,
+        "budget_cents": 600,
+        "currency": "USD",
+        "one_time": true
+      },
+      "arguments_correct": false,
+      "tool_result": {
+        "status": "NO_MATCH",
+        "eligible": []
+      },
+      "tool_calls": 1,
+      "error": "invalid_decision_schema",
+      "elapsed_seconds": 12.318
+    },
+    {
+      "repetition": 1,
+      "case": "unsupported_currency",
+      "expected_status": "NO_MATCH",
+      "expected_offer_id": null,
+      "passed": false,
+      "arguments": {
+        "item": "microfiber cloths",
+        "size_cm": 40,
+        "quantity": 40,
+        "budget_cents": 5900,
+        "currency": "EUR",
+        "one_time": true
+      },
+      "arguments_correct": false,
+      "tool_result": {
+        "status": "NO_MATCH",
+        "eligible": []
+      },
+      "tool_calls": 1,
+      "error": "invalid_decision_schema",
+      "elapsed_seconds": 12.083
+    },
+    {
+      "repetition": 1,
+      "case": "unknown_item",
+      "expected_status": "NO_MATCH",
+      "expected_offer_id": null,
+      "passed": false,
+      "arguments": {
+        "item": "nitrile gloves",
+        "size_cm": 40,
+        "quantity": 40,
+        "budget_cents": 600,
+        "currency": "USD",
+        "one_time": true
+      },
+      "arguments_correct": false,
+      "tool_result": {
+        "status": "NO_MATCH",
+        "eligible": []
+      },
+      "tool_calls": 1,
+      "error": "invalid_decision_schema",
+      "elapsed_seconds": 11.261
+    },
+    {
+      "repetition": 2,
+      "case": "standard",
+      "expected_status": "READY",
+      "expected_offer_id": "B",
+      "passed": false,
+      "arguments": {
+        "item": "microfiber cloths",
+        "size_cm": 40,
+        "quantity": 40,
+        "budget_cents": 600,
+        "currency": "USD",
+        "one_time": true
+      },
+      "arguments_correct": false,
+      "tool_result": {
+        "status": "NO_MATCH",
+        "eligible": []
+      },
+      "tool_calls": 1,
+      "error": "invalid_decision_schema",
+      "elapsed_seconds": 12.211
+    },
+    {
+      "repetition": 2,
+      "case": "twenty",
+      "expected_status": "READY",
+      "expected_offer_id": "B",
+      "passed": false,
+      "arguments": {
+        "item": "microfiber cloths",
+        "size_cm": 40,
+        "quantity": 20,
+        "budget_cents": 2500,
+        "currency": "USD",
+        "one_time": true
+      },
+      "arguments_correct": true,
+      "tool_result": {
+        "status": "READY",
+        "eligible": [
+          {
+            "offer_id": "B",
+            "packs": 1,
+            "individual_units": 20,
+            "total_cents": 2090,
+            "currency": "USD"
+          }
+        ]
+      },
+      "tool_calls": 1,
+      "error": "invalid_decision_schema",
+      "elapsed_seconds": 16.395
+    },
+    {
+      "repetition": 2,
+      "case": "thirty",
+      "expected_status": "READY",
+      "expected_offer_id": "A",
+      "passed": false,
+      "arguments": {
+        "item": "microfiber cloths",
+        "size_cm": 40,
+        "quantity": 30,
+        "budget_cents": 4000,
+        "currency": "USD",
+        "one_time": true
+      },
+      "arguments_correct": true,
+      "tool_result": {
+        "status": "READY",
+        "eligible": [
+          {
+            "offer_id": "A",
+            "packs": 3,
+            "individual_units": 30,
+            "total_cents": 3770,
+            "currency": "USD"
+          }
+        ]
+      },
+      "tool_calls": 1,
+      "error": "invalid_decision_schema",
+      "elapsed_seconds": 16.612
+    },
+    {
+      "repetition": 2,
+      "case": "small_size",
+      "expected_status": "READY",
+      "expected_offer_id": "C",
+      "passed": false,
+      "arguments": {
+        "item": "microfiber cloths",
+        "size_cm": 30,
+        "quantity": 4,
+        "budget_cents": 450,
+        "currency": "USD",
+        "one_time": true
+      },
+      "arguments_correct": false,
+      "tool_result": {
+        "status": "NO_MATCH",
+        "eligible": []
+      },
+      "tool_calls": 1,
+      "error": "invalid_decision_schema",
+      "elapsed_seconds": 13.343
+    },
+    {
+      "repetition": 2,
+      "case": "budget",
+      "expected_status": "NO_MATCH",
+      "expected_offer_id": null,
+      "passed": false,
+      "arguments": {
+        "item": "microfiber cloths",
+        "size_cm": 40,
+        "quantity": 40,
+        "budget_cents": 2000,
+        "currency": "USD",
+        "one_time": true
+      },
+      "arguments_correct": true,
+      "tool_result": {
+        "status": "NO_MATCH",
+        "eligible": []
+      },
+      "tool_calls": 1,
+      "error": "invalid_decision_schema",
+      "elapsed_seconds": 12.455
+    },
+    {
+      "repetition": 2,
+      "case": "pack_divisibility",
+      "expected_status": "NO_MATCH",
+      "expected_offer_id": null,
+      "passed": false,
+      "arguments": {
+        "item": "microfiber cloths",
+        "size_cm": 40,
+        "quantity": 15,
+        "budget_cents": 600,
+        "currency": "USD",
+        "one_time": true
+      },
+      "arguments_correct": false,
+      "tool_result": {
+        "status": "NO_MATCH",
+        "eligible": []
+      },
+      "tool_calls": 1,
+      "error": "invalid_decision_schema",
+      "elapsed_seconds": 13.702
+    },
+    {
+      "repetition": 2,
+      "case": "missing_quantity",
+      "expected_status": "NEEDS_CLARIFICATION",
+      "expected_offer_id": null,
+      "passed": false,
+      "arguments": {
+        "item": "microfiber cloths",
+        "size_cm": 40,
+        "quantity": 1,
+        "budget_cents": 600,
+        "currency": "USD",
+        "one_time": true
+      },
+      "arguments_correct": false,
+      "tool_result": {
+        "status": "NO_MATCH",
+        "eligible": []
+      },
+      "tool_calls": 1,
+      "error": "invalid_decision_schema",
+      "elapsed_seconds": 13.772
+    },
+    {
+      "repetition": 2,
+      "case": "missing_size",
+      "expected_status": "NEEDS_CLARIFICATION",
+      "expected_offer_id": null,
+      "passed": false,
+      "arguments": {
+        "item": "microfiber cloths",
+        "size_cm": 40,
+        "quantity": 4,
+        "budget_cents": 600,
+        "currency": "USD",
+        "one_time": true
+      },
+      "arguments_correct": false,
+      "tool_result": {
+        "status": "NO_MATCH",
+        "eligible": []
+      },
+      "tool_calls": 1,
+      "error": "invalid_decision_schema",
+      "elapsed_seconds": 13.557
+    },
+    {
+      "repetition": 2,
+      "case": "unsupported_currency",
+      "expected_status": "NO_MATCH",
+      "expected_offer_id": null,
+      "passed": false,
+      "arguments": {
+        "item": "microfiber cloths",
+        "size_cm": 40,
+        "quantity": 40,
+        "budget_cents": 5900,
+        "currency": "EUR",
+        "one_time": true
+      },
+      "arguments_correct": false,
+      "tool_result": {
+        "status": "NO_MATCH",
+        "eligible": []
+      },
+      "tool_calls": 1,
+      "error": "invalid_decision_schema",
+      "elapsed_seconds": 13.083
+    },
+    {
+      "repetition": 2,
+      "case": "unknown_item",
+      "expected_status": "NO_MATCH",
+      "expected_offer_id": null,
+      "passed": false,
+      "arguments": {
+        "item": "nitrile gloves",
+        "size_cm": 40,
+        "quantity": 40,
+        "budget_cents": 600,
+        "currency": "USD",
+        "one_time": true
+      },
+      "arguments_correct": false,
+      "tool_result": {
+        "status": "NO_MATCH",
+        "eligible": []
+      },
+      "tool_calls": 1,
+      "error": "invalid_decision_schema",
+      "elapsed_seconds": 14.466
+    }
+  ],
+  "summary": {
+    "passed": 0,
+    "total": 20,
+    "first_request_seconds": 8.567,
+    "warm_median_seconds": 13.083,
+    "maximum_seconds": 16.612
+  }
+}

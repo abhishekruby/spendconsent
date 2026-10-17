@@ -1,6 +1,6 @@
 # Local AI feasibility
 
-16 October 2026. Readiness experiment for the authorized SpendConsent build. Fictional catalog/request fixtures only; no PayPal call, payment, credential, customer data or hosted inference.
+17 October 2026. Readiness experiment for the authorized SpendConsent build. Fictional catalog/request fixtures only; no PayPal call, payment, credential, customer data or hosted inference.
 
 ## Runtime decision and provenance
 
@@ -30,4 +30,33 @@ Gate: at least 18/20 correct grounded outcomes, warm median full two-call latenc
 
 ## Execution status
 
-Download and evaluation are in progress. No model accuracy or latency gate is claimed passed yet. Actual results, identity verification and runnable server commands will be added after the experiment completes.
+The complete model SHA-256, runtime archive SHA-256 and corrected probe SHA-256 above were verified locally before the first inference. Runtime `--version` reports `0.7.0-dev (build 11696, commit ceefd16da)`. The original Qwen tokenizer metadata's `chat_template` exactly matches `.ai-cache/qwen3.jinja`, SHA-256 `a55ee1b1660128b7098723e0abcd92caa0788061051c62d51cbe87d9cf1974d8`.
+
+The baseline runs from commit `b8529ab`, with the corrected frozen probe and original template, using this manually started process:
+
+```bash
+.runtime/llama-b11696/llama-server \
+  --model .ai-cache/qwen3-1.7b-q4_k_m.gguf --alias qwen3-1.7b-q4_k_m \
+  --host 127.0.0.1 --port 11435 --threads 4 --threads-batch 4 \
+  --ctx-size 4096 --parallel 1 --cache-ram 0 --device none --gpu-layers 0 \
+  --jinja --chat-template-file .ai-cache/qwen3.jinja --reasoning off \
+  --chat-template-kwargs '{"enable_thinking":false}' \
+  --offline --log-disable --no-webui
+python3 scripts/ai_probe.py --run
+```
+
+The redundant `enable_thinking` template flag is retained here to reproduce the actual invocation; the runtime warns it is deprecated in favor of `--reasoning off`. The server's health endpoint returned HTTP 200 with `{"status":"ok"}` and the listener was verified as `127.0.0.1:11435`. It was ready when first checked at approximately four seconds of process age; startup was not measured with a precise timer. No global service was created.
+
+The first actual 20-case baseline is complete: **0/20 passed**. First request: **8.567 seconds**; warm median: **13.083 seconds**; maximum: **16.612 seconds**. All final responses failed the exact decision schema. Independently, only **6/20** extracted argument objects matched the frozen expectations: several dollar budgets were ten times too small, and “under 60 euros” became 5900 cents rather than the expected 6000. The accuracy gate failed; fast incorrect answers do not establish feasibility.
+
+Every result remains in [ai-probe.json](evidence/ai-probe.json), with an unchanged [baseline archive](evidence/ai-probe-baseline-b8529ab.json). Both have SHA-256 `05cf4b7b80064d320da5f75b7cdadec4a0e0adfa5f05b152fedf4daba2802abd`. The server's observed peak resident set was 2,595,504 KiB (approximately 2.48 GiB); this is not a full application memory benchmark.
+
+Post-baseline investigation found a protocol bug: the pinned server implementation reads `response_format.json_schema.schema` for `type=json_schema`, while its README shows an incompatible outer `schema` example. The baseline sent that README form, so the server constrained output only to an arbitrary object. See the [exact runtime source](https://github.com/ggml-org/llama.cpp/blob/ceefd16daa2093730bf3340315fa2b84b286ddbc/tools/server/server-common.cpp). A [single post-baseline diagnostic replay](evidence/ai-probe-diagnostic-b8529ab.json) preserved only sanitized shape information: the final object had `eligible` and `status` keys, no `offer_id`, and no additional tool call. Its standard-case budget was again incorrectly extracted as 600 cents. This diagnostic is excluded from the 20-case score.
+
+The protocol-only correction nests the unchanged decision schema at `response_format.json_schema.schema`, names it `purchase_decision`, and adds an offline capture of the actual outgoing HTTP body. That check verifies the nested schema and absent final-request tools; existing extra-tool/deadline regression checks remain. Revised probe SHA-256: `5fe929c65b241354d0d2f1435b1495ca153b0cce06621dc8781f903d0e4e364d`. Prompts, ten inputs, expected constraints/decisions, schema contents and runtime configuration are unchanged. Independent review passed the diff and offline checks before script-only commit `f8fef57b63e9199b075402634a09b0f0266e7005`. Its separately retained 20-case rerun is in progress:
+
+```bash
+python3 scripts/ai_probe.py --run --output docs/evidence/ai-probe-protocol-f8fef57.json
+```
+
+This correction cannot erase the independently observed constraint-extraction failures. No model gate or later implementation stage is passed.
