@@ -114,7 +114,8 @@ def chat(payload, timeout=90):
             "max_tokens": 350, "stream": False, "reasoning_effort": "none", **payload}
     request = urllib.request.Request(ENDPOINT, json.dumps(body).encode(),
                                      {"Content-Type": "application/json"})
-    # Fixed loopback destination, no proxy/redirects, bounded response and deadline.
+    # Fixed loopback destination, no proxy/redirects and bounded response.
+    # ponytail: socket inactivity timeout; use a worker if hard cancellation is needed.
     class NoRedirect(urllib.request.HTTPRedirectHandler):
         def redirect_request(self, *args):
             return None
@@ -163,6 +164,9 @@ def probe(case):
             "required": ["status", "offer_id"], "additionalProperties": False}
         final = chat({"messages": messages, "response_format": {
             "type": "json_schema", "schema": schema}}, timeout=remaining_timeout(deadline))
+        remaining_timeout(deadline)
+        if final.get("tool_calls"):
+            raise ValueError("unexpected_final_tool_call")
         decision = json.loads(final["content"])
         if set(decision) != {"status", "offer_id"}:
             raise ValueError("invalid_decision_schema")
@@ -200,7 +204,29 @@ def self_test():
         except ValueError:
             continue
         raise AssertionError("invalid arguments accepted")
-    print("Offline schema/tool checks passed; no inference or network.")
+    from unittest.mock import patch
+    for final_fields, elapsed, expected_error in (
+        ({}, 1, None),
+        ({"tool_calls": [{"function": {"name": "unexpected_tool"}}]},
+         1, "unexpected_final_tool_call"),
+        ({}, 91, "overall_model_deadline"),
+    ):
+        now = [0]
+
+        def fake_chat(payload, timeout):
+            if "tools" in payload:
+                return {"role": "assistant", "content": None, "tool_calls": [{
+                    "id": "offline", "type": "function", "function": {
+                        "name": "search_catalog", "arguments": json.dumps(CASES[0][2])}}]}
+            now[0] = elapsed
+            return {"content": json.dumps({"status": "READY", "offer_id": "B"}),
+                    **final_fields}
+
+        with patch.dict(globals(), chat=fake_chat), patch.object(time, "monotonic", lambda: now[0]):
+            result = probe(CASES[0])
+        assert result["passed"] is (expected_error is None)
+        assert result.get("error") == expected_error
+    print("Offline schema/tool/deadline checks passed; no inference or network.")
 
 
 def main():
