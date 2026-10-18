@@ -1,0 +1,215 @@
+{
+  "model": "qwen3-1.7b-q4_k_m",
+  "endpoint": "http://127.0.0.1:11435/v1/chat/completions",
+  "synthetic_cases": true,
+  "payment_calls": 0,
+  "holdout": true,
+  "probe_sha256": "dccee6af4b3330a27116f0e323eb3d4a0c6cb3ade9c29e698e896291d71602bc",
+  "holdout_sha256": "ed64334974077189e6f380e9523f5290a371a465af7b7497b04fc1aaf17f8594",
+  "results": [
+    {
+      "repetition": 1,
+      "case": "sixty_words",
+      "expected_status": "READY",
+      "expected_offer_id": "B",
+      "passed": false,
+      "error": "HTTPError",
+      "elapsed_seconds": 0.091
+    },
+    {
+      "repetition": 1,
+      "case": "eighty",
+      "expected_status": "READY",
+      "expected_offer_id": "B",
+      "passed": false,
+      "error": "HTTPError",
+      "elapsed_seconds": 0.145
+    },
+    {
+      "repetition": 1,
+      "case": "boundary_exact",
+      "expected_status": "READY",
+      "expected_offer_id": "A",
+      "passed": false,
+      "error": "HTTPError",
+      "elapsed_seconds": 0.242
+    },
+    {
+      "repetition": 1,
+      "case": "boundary_low",
+      "expected_status": "NO_MATCH",
+      "expected_offer_id": null,
+      "passed": false,
+      "error": "HTTPError",
+      "elapsed_seconds": 0.226
+    },
+    {
+      "repetition": 1,
+      "case": "fifty",
+      "expected_status": "READY",
+      "expected_offer_id": "A",
+      "passed": false,
+      "error": "HTTPError",
+      "elapsed_seconds": 0.102
+    },
+    {
+      "repetition": 1,
+      "case": "small_twenty",
+      "expected_status": "READY",
+      "expected_offer_id": "C",
+      "passed": false,
+      "error": "HTTPError",
+      "elapsed_seconds": 0.122
+    },
+    {
+      "repetition": 1,
+      "case": "missing_budget",
+      "expected_status": "NEEDS_CLARIFICATION",
+      "expected_offer_id": null,
+      "passed": false,
+      "error": "HTTPError",
+      "elapsed_seconds": 0.116
+    },
+    {
+      "repetition": 1,
+      "case": "missing_terms",
+      "expected_status": "NEEDS_CLARIFICATION",
+      "expected_offer_id": null,
+      "passed": false,
+      "error": "HTTPError",
+      "elapsed_seconds": 0.214
+    },
+    {
+      "repetition": 1,
+      "case": "recurring",
+      "expected_status": "NO_MATCH",
+      "expected_offer_id": null,
+      "passed": false,
+      "error": "HTTPError",
+      "elapsed_seconds": 0.127
+    },
+    {
+      "repetition": 1,
+      "case": "euro",
+      "expected_status": "NO_MATCH",
+      "expected_offer_id": null,
+      "passed": false,
+      "error": "HTTPError",
+      "elapsed_seconds": 0.141
+    },
+    {
+      "repetition": 2,
+      "case": "sixty_words",
+      "expected_status": "READY",
+      "expected_offer_id": "B",
+      "passed": false,
+      "error": "HTTPError",
+      "elapsed_seconds": 0.163
+    },
+    {
+      "repetition": 2,
+      "case": "eighty",
+      "expected_status": "READY",
+      "expected_offer_id": "B",
+      "passed": false,
+      "error": "HTTPError",
+      "elapsed_seconds": 0.157
+    },
+    {
+      "repetition": 2,
+      "case": "boundary_exact",
+      "expected_status": "READY",
+      "expected_offer_id": "A",
+      "passed": false,
+      "error": "HTTPError",
+      "elapsed_seconds": 0.106
+    },
+    {
+      "repetition": 2,
+      "case": "boundary_low",
+      "expected_status": "NO_MATCH",
+      "expected_offer_id": null,
+      "passed": false,
+      "error": "HTTPError",
+      "elapsed_seconds": 0.163
+    },
+    {
+      "repetition": 2,
+      "case": "fifty",
+      "expected_status": "READY",
+      "expected_offer_id": "A",
+      "passed": false,
+      "error": "HTTPError",
+      "elapsed_seconds": 0.117
+    },
+    {
+      "repetition": 2,
+      "case": "small_twenty",
+      "expected_status": "READY",
+      "expected_offer_id": "C",
+      "passed": false,
+      "error": "HTTPError",
+      "elapsed_seconds": 0.131
+    },
+    {
+      "repetition": 2,
+      "case": "missing_budget",
+      "expected_status": "NEEDS_CLARIFICATION",
+      "expected_offer_id": null,
+      "passed": false,
+      "error": "HTTPError",
+      "elapsed_seconds": 0.139
+    },
+    {
+      "repetition": 2,
+      "case": "missing_terms",
+      "expected_status": "NEEDS_CLARIFICATION",
+      "expected_offer_id": null,
+      "passed": false,
+      "error": "HTTPError",
+      "elapsed_seconds": 0.171
+    },
+    {
+      "repetition": 2,
+      "case": "recurring",
+      "expected_status": "NO_MATCH",
+      "expected_offer_id": null,
+      "passed": false,
+      "error": "HTTPError",
+      "elapsed_seconds": 0.13
+    },
+    {
+      "repetition": 2,
+      "case": "euro",
+      "expected_status": "NO_MATCH",
+      "expected_offer_id": null,
+      "passed": true,
+      "arguments": {
+        "item": "microfiber cloths",
+        "size_cm": 40,
+        "quantity": 20,
+        "budget_cents": 2500,
+        "currency": "EUR",
+        "one_time": true
+      },
+      "arguments_correct": true,
+      "tool_result": {
+        "status": "NO_MATCH",
+        "eligible": []
+      },
+      "tool_calls": 1,
+      "decision": {
+        "status": "NO_MATCH",
+        "offer_id": null
+      },
+      "elapsed_seconds": 37.066
+    }
+  ],
+  "summary": {
+    "passed": 1,
+    "total": 20,
+    "first_request_seconds": 0.091,
+    "warm_median_seconds": 0.141,
+    "maximum_seconds": 37.066
+  }
+}

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Frozen synthetic holdouts; --self-test is offline, --run uses local real AI.
+"""Previously measured synthetic regressions; --run uses local real AI.
 
 Expected constraints/results are scoring data only, never model context.
 Keep every failed row and timing. No payments or raw model responses.
@@ -10,10 +10,10 @@ import json
 from pathlib import Path
 import statistics
 
-from ai_probe import ENDPOINT, MODEL, constraints, probe, search_catalog
+from ai_probe import ENDPOINT, MODEL, constraints, experiment_configuration, probe, search_catalog
 
 
-# Frozen after the general prompt revision, before any revised-prompt inference.
+# Originally frozen before prompt-only inference; now measured regression cases.
 CASES = [
     ("sixty_words", "I need sixty microfiber cloths, each 40 by 40 cm, at most eighty US dollars including tax and delivery, one-time only.", constraints(quantity=60, budget_cents=8000), "READY", "B"),
     ("eighty", "Find exactly 80 microfiber cloths, each 40 by 40 cm, with a maximum budget of $90 USD including tax and delivery. One-time purchase only.", constraints(quantity=80, budget_cents=9000), "READY", "B"),
@@ -44,6 +44,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--self-test", action="store_true")
     parser.add_argument("--run", action="store_true")
+    parser.add_argument("--thinking-extraction", action="store_true",
+                        help="Enable bounded thinking for extraction; these cases are now regressions.")
     parser.add_argument("--output", type=Path, default=Path("docs/evidence/ai-holdout.json"))
     args = parser.parse_args()
     if args.self_test:
@@ -54,7 +56,8 @@ def main():
         parser.error("choose a new holdout output; existing evidence and baseline paths are protected")
     source = Path(__file__).resolve()
     report = {"model": MODEL, "endpoint": ENDPOINT, "synthetic_cases": True,
-              "payment_calls": 0, "holdout": True,
+              "payment_calls": 0, "holdout": False, "regression": True,
+              "configuration": experiment_configuration(args.thinking_extraction),
               "probe_sha256": hashlib.sha256(source.with_name("ai_probe.py").read_bytes()).hexdigest(),
               "holdout_sha256": hashlib.sha256(source.read_bytes()).hexdigest(),
               "results": []}
@@ -63,7 +66,8 @@ def main():
         output.write(json.dumps(report, indent=2) + "\n")
     for repetition in (1, 2):
         for case in CASES:
-            result = {"repetition": repetition, **probe(case)}
+            result = {"repetition": repetition,
+                      **probe(case, thinking_extraction=args.thinking_extraction)}
             report["results"].append(result)
             args.output.write_text(json.dumps(report, indent=2) + "\n")
             print(case[0], repetition, result["passed"], result["elapsed_seconds"],

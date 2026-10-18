@@ -6,6 +6,7 @@ Only sanitized synthetic arguments, decisions and timings are saved, never
 private configuration, chain of thought, credentials or full model responses.
 """
 import argparse
+import hashlib
 import json
 from pathlib import Path
 import statistics
@@ -14,6 +15,11 @@ import urllib.request
 
 ENDPOINT = "http://127.0.0.1:11435/v1/chat/completions"
 MODEL = "qwen3-1.7b-q4_k_m"
+THINKING_EXTRACTION = {
+    "chat_template_kwargs": {"enable_thinking": True},
+    "reasoning_effort": "low", "reasoning_format": "deepseek",
+    "reasoning_budget_tokens": 256, "max_tokens": 1024,
+}
 FIELDS = ("item", "size_cm", "quantity", "budget_cents", "currency", "one_time")
 PROPERTIES = {
     "item": {"type": ["string", "null"]},
@@ -130,11 +136,15 @@ def chat(payload, timeout=90):
     if len(raw) > 2_000_000:
         raise ValueError("model_response_too_large")
     result = json.loads(raw)
-    message = result["choices"][0]["message"]
-    if result["choices"][0].get("finish_reason") == "length":
+    choice = result["choices"][0]
+    # Drop reasoning and arbitrary provider fields before returning or recording anything.
+    message = {key: choice["message"][key] for key in ("role", "content", "tool_calls")
+               if key in choice["message"]}
+    truncated = choice.get("finish_reason") == "length"
+    del raw, result, choice
+    if truncated:
         raise ValueError("model_output_truncated")
-    # Do not retain hidden reasoning or arbitrary extra model response fields.
-    return {key: message[key] for key in ("role", "content", "tool_calls") if key in message}
+    return message
 
 
 def remaining_timeout(deadline):
@@ -144,7 +154,16 @@ def remaining_timeout(deadline):
     return remaining
 
 
-def probe(case):
+def experiment_configuration(thinking_extraction):
+    return {"thinking_extraction": thinking_extraction,
+            "extraction": {"temperature": 0, "max_tokens": 350, "reasoning_effort": "none",
+                           **(THINKING_EXTRACTION if thinking_extraction else {})},
+            "final": {"temperature": 0, "max_tokens": 350, "reasoning_effort": "none"},
+            "runtime_source_commit": "ceefd16daa2093730bf3340315fa2b84b286ddbc",
+            "reasoning_content_retained": False}
+
+
+def probe(case, thinking_extraction=False):
     name, text, expected_arguments, expected_status, expected_offer = case
     started = time.monotonic()
     deadline = started + 90
@@ -152,7 +171,8 @@ def probe(case):
               "expected_offer_id": expected_offer, "passed": False}
     messages = [{"role": "system", "content": SYSTEM}, {"role": "user", "content": text}]
     try:
-        message = chat({"messages": messages, "tools": [TOOL], "tool_choice": "auto"},
+        message = chat({"messages": messages, "tools": [TOOL], "tool_choice": "auto",
+                        **(THINKING_EXTRACTION if thinking_extraction else {})},
                        timeout=remaining_timeout(deadline))
         calls = message.get("tool_calls", [])
         if len(calls) != 1 or calls[0]["function"]["name"] != "search_catalog":
@@ -227,17 +247,47 @@ def self_test():
         else:
             message = {"role": "assistant", "content": json.dumps({
                 "status": "READY", "offer_id": "B"})}
+        message["reasoning_content"] = "offline_reasoning_marker"
         yield BytesIO(json.dumps({"choices": [{"message": message}]}).encode())
 
     with patch.object(urllib.request.OpenerDirector, "open", capture_open):
-        assert probe(CASES[0])["passed"]
-    assert len(requests) == 2 and "tools" not in requests[1]
+        for thinking in (False, True):
+            requests.clear()
+            result = probe(CASES[0], thinking_extraction=thinking)
+            assert result["passed"] and len(requests) == 2
+            assert "offline_reasoning_marker" not in json.dumps(result)
+            assert "offline_reasoning_marker" not in json.dumps(requests[1])
+            assert requests[0]["max_tokens"] == (1024 if thinking else 350)
+            assert requests[0]["reasoning_effort"] == ("low" if thinking else "none")
+            for key, value in THINKING_EXTRACTION.items():
+                if thinking:
+                    assert requests[0][key] == value
+                elif key not in ("max_tokens", "reasoning_effort"):
+                    assert key not in requests[0]
+                if key not in ("max_tokens", "reasoning_effort"):
+                    assert key not in requests[1]
+            assert requests[1]["max_tokens"] == 350
+            assert requests[1]["reasoning_effort"] == "none"
+    assert "tools" not in requests[1]
     response_format = requests[1]["response_format"]
     assert response_format["type"] == "json_schema" and "schema" not in response_format
     assert response_format["json_schema"]["name"] == "purchase_decision"
     schema = response_format["json_schema"]["schema"]
     assert set(schema["properties"]) == {"status", "offer_id"}
     assert schema["required"] == ["status", "offer_id"] and not schema["additionalProperties"]
+
+    @contextmanager
+    def truncated_open(self, request, timeout):
+        yield BytesIO(json.dumps({"choices": [{"finish_reason": "length",
+            "message": {"content": "{}", "reasoning_content": "offline_reasoning_marker"}}]}).encode())
+
+    with patch.object(urllib.request.OpenerDirector, "open", truncated_open):
+        try:
+            chat({"messages": []})
+        except ValueError as error:
+            assert str(error) == "model_output_truncated"
+        else:
+            raise AssertionError("truncated model output accepted")
     for final_fields, elapsed, expected_error in (
         ({}, 1, None),
         ({"tool_calls": [{"function": {"name": "unexpected_tool"}}]},
@@ -266,6 +316,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--self-test", action="store_true")
     parser.add_argument("--run", action="store_true")
+    parser.add_argument("--thinking-extraction", action="store_true",
+                        help="Enable bounded thinking for the first extraction call only.")
     parser.add_argument("--output", type=Path, default=Path("docs/evidence/ai-probe.json"))
     args = parser.parse_args()
     if args.self_test:
@@ -273,10 +325,13 @@ def main():
     if args.run:
         args.output.parent.mkdir(parents=True, exist_ok=True)
         report = {"model": MODEL, "endpoint": ENDPOINT,
-                  "synthetic_cases": True, "payment_calls": 0, "results": []}
+                  "synthetic_cases": True, "payment_calls": 0,
+                  "probe_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+                  "configuration": experiment_configuration(args.thinking_extraction), "results": []}
         for repetition in (1, 2):
             for case in CASES:
-                result = {"repetition": repetition, **probe(case)}
+                result = {"repetition": repetition,
+                          **probe(case, thinking_extraction=args.thinking_extraction)}
                 report["results"].append(result)
                 args.output.write_text(json.dumps(report, indent=2) + "\n")
                 print(case[0], repetition, result["passed"], result["elapsed_seconds"],
