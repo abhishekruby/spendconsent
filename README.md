@@ -1,14 +1,16 @@
 # PayPal AI Hackathon 2026 — Project Lab
 
-A dedicated local workspace for research, sandbox verification, and product planning. Setup is complete; sandbox OAuth authentication passed with HTTP 200 on 13 October 2026. **Current direction: SpendConsent; implementation authorized by the active project-completion goal on 16 October 2026.** No frontend or backend application has been implemented.
+A dedicated local workspace for building SpendConsent. **The deterministic backend foundation is implemented and independently verified as of 18 October 2026:** 24 real-PostgreSQL tests pass. Actual AI quality remains below its gate; the API reports `MODEL_UNAVAILABLE`, all three readiness/financial capabilities are false, and no PayPal client or payment execution is implemented. The frontend is in progress. Implementation is authorized by the project-completion goal of 16 October; the full project is incomplete.
 
-Latest architecture consolidation, 17 October: [system design](docs/system-design.md), [implementation gates](docs/implementation-plan.md), [stable API contract](docs/prebuild-audit.md#stable-api-contract-for-backendfrontend-agreement), and [frontend design](docs/frontend-design.md).
+Backend setup and checks: [backend foundation](backend/README.md). Current evidence and blockers: [progress](docs/progress.md). Sandbox OAuth authentication passed with HTTP 200 on 13 October 2026; that establishes authentication only.
+
+Architecture consolidation, 17 October: [system design](docs/system-design.md), [implementation gates](docs/implementation-plan.md), [stable API contract](docs/prebuild-audit.md#stable-api-contract-for-backendfrontend-agreement), and [frontend design](docs/frontend-design.md).
 
 Product deliverables, 16 October: [research and target users](docs/research-and-users.md), [PRD](docs/PRD.md), and [selected stack and architecture](docs/architecture.md). The user authorized research, PRD preparation, stack selection and subsequent product implementation, multi-agent review/testing, and private commits/pushes. The proposal helps a small-business buyer compare routine supplies and approve an exact PayPal sandbox purchase. Differentiation and demand remain unproven. Earlier idea changes are retained in [two finalists and organizer fit](docs/two-finalists-and-organizer-fit.md).
 
-System design is ready: [detailed architecture](docs/system-design.md), [visual overview](docs/diagrams/system-overview.svg), and [implementation sequence](docs/implementation-plan.md). These specify the database relationships, application API, bounded AI tools, exact approval, PayPal sequence, and recovery states. Future local execution uses loopback web/model services and an isolated project PostgreSQL cluster/private socket; existing shared services stay untouched. Implementation is authorized; the present turn completes design only. Readiness gates precede product features.
+System design is ready: [detailed architecture](docs/system-design.md), [visual overview](docs/diagrams/system-overview.svg), and [implementation sequence](docs/implementation-plan.md). These specify the database relationships, application API, bounded AI tools, exact approval, PayPal sequence, and recovery states. Local backend execution uses loopback HTTP and an isolated project PostgreSQL cluster/private peer-authenticated socket; existing shared services stay untouched. Deterministic catalog, session/CSRF, immutable review and direct approval work proceeded alongside model evaluation under the [recorded scheduling revision](docs/implementation-plan.md#scheduling-revision--17-october-2026). Actual AI integration and payment release gates remain outstanding.
 
-Selected planning stack, revised after the user's backend question: React + TypeScript + Vite, Python 3.12 + Django 5.2 LTS + Django REST Framework, PostgreSQL, PayPal Orders v2 + JavaScript SDK v6, and local Qwen3-1.7B Q4_K_M through a project-local llama.cpp CPU server. See [backend comparison](docs/stack-review.md). The model must pass the documented laptop feasibility gate before this inference choice is committed to implementation. Runtime/model provenance is recorded; artifact availability, actual inference and latency remain pending verification. No live download or model process is implied by this status. See [AI feasibility](docs/ai-feasibility.md).
+Selected stack, revised after the user's backend question: React + TypeScript + Vite, Python 3.12 + Django 5.2 LTS + Django REST Framework, PostgreSQL, PayPal Orders v2 + JavaScript SDK v6, and local Qwen3-1.7B Q4_K_M through a project-local llama.cpp CPU server. See [backend comparison](docs/stack-review.md). The backend environment pins Django 5.2.18 and DRF 3.18.3; dependency hashes/licenses are recorded in backend/. Runtime/model provenance and actual inference are verified, but the latest primary prompt experiment passed only 12/20 against the unchanged 18/20 accuracy target. The original 0/20 baseline and 6/20 protocol run are preserved. No integrated actual-AI adapter is ready. See [AI feasibility](docs/ai-feasibility.md).
 
 ## Canonical workspace and continuity
 
@@ -39,8 +41,9 @@ docs/diagrams/             Editable SVG and rendered PNG system overview
 docs/progress.md           Evidence, checks, and next actions
 docs/tooling.md            Installed tools and access limits
 docs/sandbox-setup.md      Credential creation and safe API test
-backend/                   Reserved application directory (placeholder)
-frontend/                  Reserved application directory (placeholder)
+backend/                   Verified deterministic Django/DRF foundation and setup
+frontend/                  React/Vite implementation in progress
+scripts/local_postgres.py  Isolated project PostgreSQL startup and self-check
 scripts/sandbox_check.py   Sandbox-only OAuth diagnostic
 ```
 
@@ -63,8 +66,8 @@ The private `.env` was filled by the user and copied locally with owner-only per
 
 1. Sandbox credential setup and authenticated OAuth response are verified; retain sandbox-only operation.
 2. Review the current [PRD](docs/PRD.md), including the target user, competitor overlap, and single-merchant limitation.
-3. Build agreement is recorded; verify the model gate before building product features.
-4. Check the selected local model's actual speed/reliability and dependency compatibility. Published licensing and zero hosted-inference cost do not establish laptop feasibility.
-5. Build the smallest approved PayPal + AI flow; request explicit approval before actual sandbox financial actions, then improve reliability, accessibility, and presentation.
+3. The deterministic backend foundation is verified; continue frontend work and actual-AI investigation while preserving the full PRD scope.
+4. Pass the unchanged actual-AI gate: at least 18/20 grounded correct outcomes and warm median under 60 seconds. Preserve failures and separately measure unseen cases.
+5. Integrate the smallest approved PayPal + actual-AI flow and test state/recovery with labeled fakes; obtain explicit approval before actual sandbox financial actions. Usability, usefulness and release evidence remain required.
 
 The competition source links and detailed status are in the docs. Private GitHub repository creation/synchronization is authorized for this setup. Public visibility, deployment, and submission remain separate approval steps. An MIT license for original repository material is included.

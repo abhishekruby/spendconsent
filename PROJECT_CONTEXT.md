@@ -1,6 +1,6 @@
 # Project context — start here after AGENTS.md
 
-Updated: 16 October 2026. This is a task-focused handoff, not a verbatim transcript or an instruction to expose private conversations.
+Updated: 18 October 2026. This is a task-focused handoff, not a verbatim transcript or an instruction to expose private conversations.
 
 ## Identity and location
 
@@ -31,7 +31,7 @@ The main unresolved business question is whether comparison plus review saves en
 
 **Completed/authorized:** local lab setup; PayPal login assistance; approved sandbox app creation; OAuth-only test; official rules/resources and competitor research; public-evidence screening; target users; PRD; stack selection; this canonical folder and context; private GitHub repository creation and initial synchronization; saved local project registration and moving the setup chat into it.
 
-**Current planning stack, revised 16 October after the user's Django/PostgreSQL question:** React + TypeScript + Vite; Python 3.12 + Django 5.2 LTS + Django REST Framework; PostgreSQL; PayPal Orders v2 + JavaScript SDK v6; one local Qwen3-1.7B Q4_K_M tool loop through the project-local llama.cpp CPU server on loopback port 11435. The readiness runtime supersedes the original Ollama daemon plan to avoid unnecessary GPU-library downloads; model feasibility remains unpassed. Use current supported patch versions and compatible dependencies when implementation begins. FastAPI/SQLite was the previous minimal-demo plan, now superseded. Do not run two application backends or retain two databases for the same feature.
+**Current stack, revised 16 October after the user's Django/PostgreSQL question:** React + TypeScript + Vite; Python 3.12 + Django 5.2 LTS + Django REST Framework; PostgreSQL; PayPal Orders v2 + JavaScript SDK v6; one local Qwen3-1.7B Q4_K_M tool loop through the project-local llama.cpp CPU server on loopback port 11435. The readiness runtime supersedes the original Ollama daemon plan to avoid unnecessary GPU-library downloads; model feasibility remains unpassed. The project-local `.venv` now pins Django 5.2.18, DRF 3.18.3 and psycopg 3.3.6 with dependency hashes/licenses recorded in backend/. FastAPI/SQLite was the previous minimal-demo plan, now superseded. Do not run two application backends or retain two databases for the same feature.
 
 **Build authorization, 16 October:** the user explicitly set an active goal to complete the existing SpendConsent project, authorized multiple agents and team-lead execution, iterative build/review/fix/testing/audit, and commits/private GitHub pushes for completed tasks. This is agreement to implement the current PRD; it is not blanket permission for money movement or public release. Preserve the existing small single-merchant/one-SKU scope until evidence warrants a recorded change.
 
@@ -41,13 +41,15 @@ The main unresolved business question is whether comparison plus review saves en
 
 ## What actually works today
 
-- Documents and placeholder backend/frontend directories exist; there is no application yet.
+- The deterministic backend foundation is implemented: 16 fictional SKUs across cloth/bag/bottle/notebook, exact pack/cents arithmetic, sessions and anonymous CSRF, owned requests, immutable current reviews, direct approval and expiry/revocation guards. Independent review passed 24 real-PostgreSQL tests, Django checks, migration-drift/dependency checks and helper self-test. See backend/README.md.
+- Actual AI is unavailable through the application: normal create/clarify saves the request and returns HTTP 503 MODEL_UNAVAILABLE; no successful AI response is faked. All three capabilities (ai_ready, paypal_ready, financial_actions_enabled) are false. No PayPal client, dispatch, capture or recovery execution exists yet. Frontend implementation is in progress, not complete.
+- Runtime/model provenance and actual local inference are verified. Preserved primary results are baseline 0/20, protocol correction 6/20 and latest prompt revision 12/20. The unchanged >=18/20 accuracy and warm median <60-second gate is failed; held-out evaluation and integrated application performance remain pending.
 - Dedicated PayPal sandbox app: **AI Hackathon 2026 Project Lab**. PayPal rejected a label containing “PayPal,” so the dashboard name differs from the workspace name.
 - The user saved sandbox credentials privately. `.env` is owner-readable/writable only and ignored by Git. Never display or stage it.
 - OAuth check passed on 13 October 2026: HTTP 200, bearer token lifetime 32400 seconds; token discarded. This proves authentication only.
 - `scripts/sandbox_check.py --self-test` is a dependency-free offline diagnostic. It does not prove Orders access, SDK setup, payment execution, or AI performance.
-- Node 22.14.0, Python 3.12.3, Git, uv, and GitHub CLI are available. Local PostgreSQL 16.15 answers readiness checks; no project database/role has been created. Do not inspect or change unrelated client databases or server-wide configuration.
-- Laptop: i5-1035G1, 7.4 GiB RAM, MX250 with 2 GiB VRAM. Ollama was not on PATH. A local model is a cost-controlled candidate with an unpassed speed/reliability gate, not a benchmarked solution.
+- Node 22.14.0, Python 3.12.3, Git, uv, and GitHub CLI are available. The project-local PostgreSQL 16 cluster is initialized with TCP disabled, an owner-only private peer-authenticated Unix socket and a limited spendconsent_app role (no superuser/CREATEDB/CREATEROLE). The existing shared service and unrelated databases/configuration remain untouched.
+- Laptop: i5-1035G1, 7.4 GiB RAM, MX250 with 2 GiB VRAM. Ollama was not on PATH. The local CPU model is measured on synthetic probes but remains below its accuracy gate; a passing full-application memory/latency benchmark is not established.
 
 ## Organizer requirements and resources
 
@@ -71,4 +73,4 @@ Printing assistance and workshop leftovers were rejected because of close existi
 5. `docs/research-and-users.md` and `docs/stack-review.md` — evidence and tradeoffs.
 6. `docs/project-setup.md` and the latest section of `docs/progress.md` — verified setup and remaining work.
 
-Build agreement is recorded; first verify local model feasibility with read-only sample tasks. Then build comparison/review and test permission/payment state with local fakes. Only after explicit action-time approval should a real sandbox financial journey run. Report measured results, preserve failed cases, and update this context when decisions change.
+Build agreement is recorded; deterministic backend work proceeded alongside read-only AI evaluation under the scheduling revision in docs/implementation-plan.md. Continue frontend and bounded actual-AI work without relaxing the failed quality gate, then test payment state with labeled local fakes. Only after explicit action-time approval should a real sandbox financial journey run. Report measured results, preserve failed cases, and update this context when decisions change.
