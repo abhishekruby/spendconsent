@@ -1,6 +1,6 @@
 # Local AI feasibility
 
-18 October 2026. Readiness experiment for the authorized SpendConsent build. Fictional catalog/request fixtures only; no PayPal call, payment, credential, customer data or hosted inference.
+19 October 2026. Readiness experiment for the authorized SpendConsent build. Fictional catalog/request fixtures only; no PayPal call, payment, credential, customer data or hosted inference.
 
 ## Runtime decision and provenance
 
@@ -75,10 +75,42 @@ After explicitly observing health HTTP 200, the separately authorized [whole-sui
 
 The retry kept the unchanged frozen inputs, answers, prompt, runtime configuration and scoring; no individual case was selected or patched, and the failed startup attempt remains visible. The primary score is still **12/20**, and the readiness-confirmed held-out score is **16/20**; neither satisfies 18/20. These remain separate experiments, not a pooled or best-of-case pass. No regex correction, normalization of incorrect model outputs, or thinking configuration was introduced. No model gate or later implementation stage is passed by these experiments. Further inference changes need a separately reviewed checkpoint and clearly labeled new measurements; the already measured held-out set is now a regression set, not fresh unseen evidence.
 
-## Next controlled configuration — not yet run
+## Controlled extraction-thinking configuration
 
 The optional `--thinking-extraction` flag is prepared in both probe entry points. Only the first extraction request overrides `chat_template_kwargs={"enable_thinking":true}`, `reasoning_effort="low"`, `reasoning_format="deepseek"`, `reasoning_budget_tokens=256` and `max_tokens=1024`. The final decision request retains `reasoning_effort="none"` and `max_tokens=350`; the 90-second total deadline, schemas, tool definition, prompts, inputs, expected answers and scoring remain unchanged. Per-request controls were checked against the [immutable runtime implementation](https://github.com/ggml-org/llama.cpp/blob/ceefd16daa2093730bf3340315fa2b84b286ddbc/tools/server/server-common.cpp). `reasoning_effort="none"` would force extraction thinking off, so that first request explicitly uses `low`.
 
 Candidate source SHA-256: `scripts/ai_probe.py` = `50d663ca72cfdbe96babd6ade085b0a3ad842eebf7be2ff19b79251f0830255e`; `scripts/ai_holdout.py` = `7e67dfb885067ffeb16b1ca28a43220d1822bc01e34be9341f8dc9ef6ee50300`. Reports now record the flag, actual request configuration, source hashes and pinned runtime commit. Previously measured held-out cases are labeled regressions rather than fresh unseen evidence. The response parser immediately retains only role/content/tool calls and drops raw response/other fields, including `reasoning_content`; hidden reasoning is never logged, sent back or written to evidence.
 
-Offline request-capture checks pass for both flag modes: only extraction gets the overrides, final requests stay unchanged, a synthetic reasoning marker disappears before the next request/evidence, and truncated responses fail. Existing late-final and extra-tool regression checks still pass. These are offline checks, not a successful thinking measurement. Independent review and private commit must precede any actual new primary/regression runs; the default 40-cloth case must also work correctly before approving integration. No thinking inference or AI gate pass is claimed.
+Offline request-capture checks pass for both flag modes: only extraction gets the overrides, final requests stay unchanged, a synthetic reasoning marker disappears before the next request/evidence, and truncated responses fail. Existing late-final and extra-tool regression checks still pass. Independent review and private commit `87b2f757119abc5838bf3d076869bdd345209b87` preceded actual runs. The resulting evidence is below; offline checks alone did not establish model quality.
+
+### Completed thinking measurements
+
+| Separate suite | Correct / total | First request | Warm median | Maximum | Report SHA-256 |
+| --- | --- | --- | --- | --- | --- |
+| [Primary](evidence/ai-probe-thinking-87b2f757.json) | 14/20 | 41.275 s | 26.707 s | 46.827 s | `6fba5165f156e1670f857009009702a0063d368a12031fe07006ee71820354b2` |
+| [Previously measured regression](evidence/ai-regression-thinking-87b2f757.json) | 16/20 | 61.306 s | 33.487 s | 61.306 s | `6fcd35d9e390f5bce9491e757240a643aada950d5c1311bdda6c219915366c13` |
+
+Both primary standard-case repetitions passed with READY/B. The six primary failures were currency mismatches in the missing-quantity case, missing-size mismatches, and budget mismatches in the unsupported-currency case, each repeated twice. All primary final statuses matched the actual tool status. Regression failures were two missing/invalid native-tool selections in `boundary_exact` and two incorrect one-time interpretations in `missing_terms`. Missing tool-call arguments are not counted as six separate field errors. Both accuracy gates remain failed; warm latency passing does not compensate for incorrect outcomes.
+
+External restarts removed the earlier server processes. Each suite started only after an explicit health HTTP 200, with unchanged artifact/template/runtime hashes and original CPU/context configuration. Primary used a fresh model process PID 277090; regression used a separate fresh process PID 207212. First-request values exclude model startup and are not a cold-system benchmark. Hardware was confirmed as i5-1035G1 / eight logical CPUs / 7,794,312 KiB RAM; other laptop work and memory pressure were not isolated. Neither completed suite was rerun, and no source/prompt/case tuning occurred during them. Reasoning bodies remain absent from evidence.
+
+On 19 October, after verifying ownership, executable, working directory, model argument and port of PID 207212, sent SIGTERM only to that project process and confirmed exit/port release. Available memory increased from 2,693,864 to 3,504,416 KiB; free swap increased from 2,838,992 to 4,093,136 of 5,994,300 KiB. No shared process or service was changed. These snapshots do not establish larger-model fit.
+
+## Next bounded local trial — prepared, not downloaded or run
+
+Optional `--model-profile qwen3-4b` selects a non-thinking configuration for the official [Qwen3-4B Q4_K_M artifact](https://huggingface.co/Qwen/Qwen3-4B-GGUF/blob/bc640142c66e1fdd12af0bd68f40445458f3869b/Qwen3-4B-Q4_K_M.gguf): pinned revision `bc640142c66e1fdd12af0bd68f40445458f3869b`, exactly 2,497,280,256 bytes, SHA-256 `7485fe6f11af29433bc51cab58009521f205840f5b4ae3a32fa7f92e8534fdf5`, [Apache-2.0 license](https://huggingface.co/Qwen/Qwen3-4B-GGUF/blob/bc640142c66e1fdd12af0bd68f40445458f3869b/LICENSE). The original tokenizer template has the same `a55ee1b1660128b7098723e0abcd92caa0788061051c62d51cbe87d9cf1974d8` digest. No conversion, quantizer, new library, hosted inference or billing is required. Artifact retrieval and actual fit remain pending authorization/verification.
+
+Both calls use temperature 0.7, top_p 0.8, top_k 20, min_p 0 and presence_penalty 1.5; reasoning remains `none`, with 350 output tokens and the original overall deadline. The [official model card](https://huggingface.co/Qwen/Qwen3-4B#best-practices) recommends the first four non-thinking values; 1.5 is its suggested repetition-control value, not a universal default. It also warns against greedy decoding in thinking mode. Our preserved 1.7B results used temperature zero, so they characterize those frozen configurations, not the model's maximum possible capability. The proposed trial changes model, sampling and batch shape together; it cannot isolate model-size effects.
+
+Planned startup after a verified local artifact, with only one model loaded:
+
+```bash
+.runtime/llama-b11696/llama-server \
+  --model .ai-cache/qwen3-4b-q4_k_m.gguf --alias qwen3-4b-q4_k_m \
+  --host 127.0.0.1 --port 11435 --threads 4 --threads-batch 4 \
+  --ctx-size 4096 --parallel 1 --cache-ram 0 --batch-size 128 --ubatch-size 128 \
+  --device none --gpu-layers 0 --jinja --chat-template-file .ai-cache/qwen3.jinja \
+  --reasoning off --offline --log-disable --no-webui
+```
+
+Available RAM after releasing 1.7B is only about 3.34 GiB; 4B runtime buffers and swap behavior must be measured before claiming feasibility. The two profiles cannot run together. The original default 1.7B profile and its thinking option are retained unchanged; combining 4B with the thinking flag is rejected. Candidate script hashes: `ai_probe.py` = `5c1e4d8e17f9925324b670f09d42ffbf7ec4a083349344b266f4b93e07bf5127`; `ai_holdout.py` = `84020ea90437877046ad4271a571c75d785d6b3734e3f6663829e32c2ee322d9`. Offline captured-request tests verify both calls' exact 4B sampling/model parameters, unchanged default requests, and existing privacy/truncation/deadline/tool guards. Frozen prompts, cases, expected results, schemas and scoring remain unchanged. Independent review and private commit precede any artifact download or actual new run; explicit health HTTP 200 remains mandatory. No AI integration gate is passed.

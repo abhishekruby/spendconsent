@@ -10,7 +10,7 @@ import json
 from pathlib import Path
 import statistics
 
-from ai_probe import ENDPOINT, MODEL, constraints, experiment_configuration, probe, search_catalog
+from ai_probe import ENDPOINT, MODEL, MODEL_PROFILES, constraints, experiment_configuration, probe, search_catalog
 
 
 # Originally frozen before prompt-only inference; now measured regression cases.
@@ -46,8 +46,11 @@ def main():
     parser.add_argument("--run", action="store_true")
     parser.add_argument("--thinking-extraction", action="store_true",
                         help="Enable bounded thinking for extraction; these cases are now regressions.")
+    parser.add_argument("--model-profile", choices=MODEL_PROFILES, default="qwen3-1.7b")
     parser.add_argument("--output", type=Path, default=Path("docs/evidence/ai-holdout.json"))
     args = parser.parse_args()
+    if args.thinking_extraction and args.model_profile != "qwen3-1.7b":
+        parser.error("the 4B trial is non-thinking; do not combine profiles")
     if args.self_test:
         self_test()
     if not args.run:
@@ -55,9 +58,9 @@ def main():
     if args.output.exists() or args.output.name.startswith("ai-probe"):
         parser.error("choose a new holdout output; existing evidence and baseline paths are protected")
     source = Path(__file__).resolve()
-    report = {"model": MODEL, "endpoint": ENDPOINT, "synthetic_cases": True,
+    report = {"model": MODEL_PROFILES[args.model_profile].get("model", MODEL), "endpoint": ENDPOINT, "synthetic_cases": True,
               "payment_calls": 0, "holdout": False, "regression": True,
-              "configuration": experiment_configuration(args.thinking_extraction),
+              "configuration": experiment_configuration(args.thinking_extraction, args.model_profile),
               "probe_sha256": hashlib.sha256(source.with_name("ai_probe.py").read_bytes()).hexdigest(),
               "holdout_sha256": hashlib.sha256(source.read_bytes()).hexdigest(),
               "results": []}
@@ -67,7 +70,8 @@ def main():
     for repetition in (1, 2):
         for case in CASES:
             result = {"repetition": repetition,
-                      **probe(case, thinking_extraction=args.thinking_extraction)}
+                      **probe(case, thinking_extraction=args.thinking_extraction,
+                              model_profile=args.model_profile)}
             report["results"].append(result)
             args.output.write_text(json.dumps(report, indent=2) + "\n")
             print(case[0], repetition, result["passed"], result["elapsed_seconds"],

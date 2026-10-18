@@ -15,6 +15,20 @@ import urllib.request
 
 ENDPOINT = "http://127.0.0.1:11435/v1/chat/completions"
 MODEL = "qwen3-1.7b-q4_k_m"
+MODEL_PROFILES = {
+    "qwen3-1.7b": {},
+    "qwen3-4b": {"model": "qwen3-4b-q4_k_m", "temperature": 0.7,
+                  "top_p": 0.8, "top_k": 20, "min_p": 0,
+                  "presence_penalty": 1.5},
+}
+MODEL_4B_PROVENANCE = {
+    "repository": "Qwen/Qwen3-4B-GGUF",
+    "revision": "bc640142c66e1fdd12af0bd68f40445458f3869b",
+    "file": "Qwen3-4B-Q4_K_M.gguf", "bytes": 2497280256,
+    "sha256": "7485fe6f11af29433bc51cab58009521f205840f5b4ae3a32fa7f92e8534fdf5",
+    "license": "Apache-2.0",
+    "template_sha256": "a55ee1b1660128b7098723e0abcd92caa0788061051c62d51cbe87d9cf1974d8",
+}
 THINKING_EXTRACTION = {
     "chat_template_kwargs": {"enable_thinking": True},
     "reasoning_effort": "low", "reasoning_format": "deepseek",
@@ -154,16 +168,23 @@ def remaining_timeout(deadline):
     return remaining
 
 
-def experiment_configuration(thinking_extraction):
+def experiment_configuration(thinking_extraction, model_profile="qwen3-1.7b"):
+    profile = MODEL_PROFILES[model_profile]
     return {"thinking_extraction": thinking_extraction,
+            "model_profile": model_profile,
+            **({"model_artifact": MODEL_4B_PROVENANCE} if model_profile == "qwen3-4b" else {}),
             "extraction": {"temperature": 0, "max_tokens": 350, "reasoning_effort": "none",
+                           **profile,
                            **(THINKING_EXTRACTION if thinking_extraction else {})},
-            "final": {"temperature": 0, "max_tokens": 350, "reasoning_effort": "none"},
+            "final": {"temperature": 0, "max_tokens": 350, "reasoning_effort": "none", **profile},
             "runtime_source_commit": "ceefd16daa2093730bf3340315fa2b84b286ddbc",
             "reasoning_content_retained": False}
 
 
-def probe(case, thinking_extraction=False):
+def probe(case, thinking_extraction=False, model_profile="qwen3-1.7b"):
+    if thinking_extraction and model_profile != "qwen3-1.7b":
+        raise ValueError("thinking_not_supported_for_profile")
+    profile = MODEL_PROFILES[model_profile]
     name, text, expected_arguments, expected_status, expected_offer = case
     started = time.monotonic()
     deadline = started + 90
@@ -172,6 +193,7 @@ def probe(case, thinking_extraction=False):
     messages = [{"role": "system", "content": SYSTEM}, {"role": "user", "content": text}]
     try:
         message = chat({"messages": messages, "tools": [TOOL], "tool_choice": "auto",
+                        **profile,
                         **(THINKING_EXTRACTION if thinking_extraction else {})},
                        timeout=remaining_timeout(deadline))
         calls = message.get("tool_calls", [])
@@ -187,7 +209,7 @@ def probe(case, thinking_extraction=False):
             "status": {"type": "string", "enum": ["READY", "NO_MATCH", "NEEDS_CLARIFICATION"]},
             "offer_id": {"type": ["string", "null"]}},
             "required": ["status", "offer_id"], "additionalProperties": False}
-        final = chat({"messages": messages, "response_format": {
+        final = chat({"messages": messages, **profile, "response_format": {
             "type": "json_schema", "json_schema": {
                 "name": "purchase_decision", "schema": schema}}},
             timeout=remaining_timeout(deadline))
@@ -251,10 +273,18 @@ def self_test():
         yield BytesIO(json.dumps({"choices": [{"message": message}]}).encode())
 
     with patch.object(urllib.request.OpenerDirector, "open", capture_open):
-        for thinking in (False, True):
+        for model_profile, thinking in (("qwen3-1.7b", False), ("qwen3-1.7b", True),
+                                        ("qwen3-4b", False)):
             requests.clear()
-            result = probe(CASES[0], thinking_extraction=thinking)
+            result = probe(CASES[0], thinking_extraction=thinking, model_profile=model_profile)
             assert result["passed"] and len(requests) == 2
+            for body in requests:
+                for key, value in MODEL_PROFILES[model_profile].items():
+                    assert body[key] == value
+                if model_profile == "qwen3-1.7b":
+                    assert body["model"] == MODEL
+                    assert body["temperature"] == 0
+                    assert not {"top_p", "top_k", "min_p", "presence_penalty"} & body.keys()
             assert "offline_reasoning_marker" not in json.dumps(result)
             assert "offline_reasoning_marker" not in json.dumps(requests[1])
             assert requests[0]["max_tokens"] == (1024 if thinking else 350)
@@ -275,6 +305,12 @@ def self_test():
     schema = response_format["json_schema"]["schema"]
     assert set(schema["properties"]) == {"status", "offer_id"}
     assert schema["required"] == ["status", "offer_id"] and not schema["additionalProperties"]
+    try:
+        probe(CASES[0], thinking_extraction=True, model_profile="qwen3-4b")
+    except ValueError as error:
+        assert str(error) == "thinking_not_supported_for_profile"
+    else:
+        raise AssertionError("unreviewed combined profile accepted")
 
     @contextmanager
     def truncated_open(self, request, timeout):
@@ -318,20 +354,25 @@ def main():
     parser.add_argument("--run", action="store_true")
     parser.add_argument("--thinking-extraction", action="store_true",
                         help="Enable bounded thinking for the first extraction call only.")
+    parser.add_argument("--model-profile", choices=MODEL_PROFILES, default="qwen3-1.7b")
     parser.add_argument("--output", type=Path, default=Path("docs/evidence/ai-probe.json"))
     args = parser.parse_args()
+    if args.thinking_extraction and args.model_profile != "qwen3-1.7b":
+        parser.error("the 4B trial is non-thinking; do not combine profiles")
     if args.self_test:
         self_test()
     if args.run:
         args.output.parent.mkdir(parents=True, exist_ok=True)
-        report = {"model": MODEL, "endpoint": ENDPOINT,
+        report = {"model": MODEL_PROFILES[args.model_profile].get("model", MODEL), "endpoint": ENDPOINT,
                   "synthetic_cases": True, "payment_calls": 0,
                   "probe_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
-                  "configuration": experiment_configuration(args.thinking_extraction), "results": []}
+                  "configuration": experiment_configuration(args.thinking_extraction, args.model_profile),
+                  "results": []}
         for repetition in (1, 2):
             for case in CASES:
                 result = {"repetition": repetition,
-                          **probe(case, thinking_extraction=args.thinking_extraction)}
+                          **probe(case, thinking_extraction=args.thinking_extraction,
+                                  model_profile=args.model_profile)}
                 report["results"].append(result)
                 args.output.write_text(json.dumps(report, indent=2) + "\n")
                 print(case[0], repetition, result["passed"], result["elapsed_seconds"],
