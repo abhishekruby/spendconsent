@@ -101,7 +101,10 @@ class PaymentAttempt(models.Model):
     create_key = models.UUIDField(default=uuid.uuid4, unique=True)
     capture_key = models.UUIDField(default=uuid.uuid4, unique=True)
     snapshot = models.JSONField()
+    create_payload = models.JSONField(default=dict)
+    capture_payload = models.JSONField(default=dict)
     stock_hold_packs = models.PositiveIntegerField(default=0)
+    create_dispatched_at = models.DateTimeField(null=True)
     capture_dispatched_at = models.DateTimeField(null=True)
     stop_requested = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -109,7 +112,7 @@ class PaymentAttempt(models.Model):
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=["request"], condition=Q(state__in=ACTIVE_STATES), name="one_active_attempt_per_request"),
+            models.UniqueConstraint(fields=["request"], condition=Q(state__in=(*ACTIVE_STATES, "PAID")), name="one_active_attempt_per_request"),
             models.CheckConstraint(condition=Q(state__in=ATTEMPT_STATES), name="valid_attempt_state"),
             models.CheckConstraint(condition=Q(pending_operation__isnull=True) | Q(pending_operation__in=("create", "capture", "verification")), name="valid_pending_operation"),
         ]

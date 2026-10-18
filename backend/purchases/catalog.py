@@ -46,8 +46,8 @@ def quote(offer, constraints, own_hold=0):
             "packs": packs, "individual_units": packs * offer.pack_units}, reasons
 
 
-def candidate(offer, constraints):
-    amounts, reasons = quote(offer, constraints)
+def candidate(offer, constraints, own_hold=0):
+    amounts, reasons = quote(offer, constraints, own_hold=own_hold)
     if reasons:
         return None, reasons
     spec = specification(offer)

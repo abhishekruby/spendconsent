@@ -1,11 +1,11 @@
 # Local backend foundation
 
-This implements the deterministic SpendConsent authority foundation. Actual AI
+This implements the deterministic SpendConsent authority and checkout-domain foundation. Actual AI
 comparison is unavailable: normal create/clarify calls save the request and return
 HTTP 503 `MODEL_UNAVAILABLE` with its `request_id`. GET reconstructs the saved
 canonical request envelope. There is no canned successful AI response. Every
-financial capability is false; no PayPal client, financial call or private `.env`
-loading exists in this milestone. The application server is not started by setup.
+financial capability is false; no PayPal client, actual financial HTTP call or private `.env`
+loading exists in this milestone. The checkout domain is exercised only by injected test-local provider fakes. The application server is not started by setup.
 
 Run these commands from the repository root with the installed Python 3.12, uv and
 PostgreSQL 16 binaries. Installation downloads free open-source Python packages;
@@ -65,8 +65,41 @@ The foundation tests cover catalog totals, constraints, session/CSRF/ownership,
 retry conflicts, immutable/current review, approval expiry/revocation, changed
 facts, edit blocking for unresolved/paid attempts and three real row-lock races.
 They call deterministic comparison directly only in clearly named test setup.
-They do not establish real inference, provider dispatch, capture/recovery, stock
-competition under payment, browser accessibility, usefulness or release readiness.
+The complete suite now contains 46 real-PostgreSQL checks: the original 24 plus
+22 checkout-domain checks, with no provider HTTP. These do not establish real
+inference, actual PayPal dispatch/capture/read-back, provider-specific idempotency,
+browser accessibility, usefulness or release readiness.
+
+`purchases/checkout.py` contains `start`, `capture`, `reconcile` and `stop` domain
+functions. The first three require an explicit injected provider with
+`create_order(payload, key)`, `capture_order(order_id, payload, key)` and
+`get_order(order_id)`. The only implementation is a fake inside the test file.
+There is no runtime provider loader, mock-payment endpoint or capability switch.
+Create/capture/reconciliation API routes retain their visible disabled responses.
+The future real adapter must independently verify provider facts and preserve the
+approved snapshot-to-payload mapping; the normalized test contract is not a claim
+that these internal objects are supported PayPal REST payloads.
+
+Checkout transactions reserve available packs and persist unique operation keys,
+exact payload and state before dispatch. Independent PostgreSQL connections prove
+request/approval/offer rows are unlocked during every simulated provider call.
+Capture reads provider approval first, then revalidates the current immutable
+review and five-minute approval under locks immediately before claiming dispatch.
+Its own reservation counts toward availability. The sent quote stays immutable
+even if future catalog facts change after that claim.
+
+Repeated or crash-persisted operations never automatically resend. An unknown
+create without an order ID requires manual resolution, rather than an invented
+lookup. An APPROVED order cannot resolve an uncertain capture; PENDING retains its
+hold. Completed mismatches enter PAYMENT_REVIEW and block replacement. Stopping
+uncertain work cannot undo it or release stock. Verified matching completion
+consumes/releases stock exactly once. Cancellation, stock competition, timeout,
+crash, mismatch and duplicate-dispatch cases use test-local fakes only.
+
+Migrations 0004/0005 add payload/dispatch persistence, paid-request uniqueness and
+an immutable-attempt database trigger. Apply the reviewed migrations before
+starting updated backend code. They add schema only and do not reset application
+requests/catalog data. Tests apply them only to the dedicated test database.
 
 Direct dependency versions were checked against primary release metadata on
 17 October 2026. All installed transitive versions are hash-locked in

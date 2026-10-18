@@ -140,13 +140,13 @@ def create_review(owner, pk, expected_version, candidate_id):
     return review
 
 
-def validate_review(request, review, offer, now):
+def validate_review(request, review, offer, now, own_hold=0):
     current = request.reviews.order_by("-version").values_list("id", flat=True).first()
     if current != review.id or review.request_version != request.version:
         raise DomainError("REVIEW_CHANGED", "This review was superseded. Inspect the current review.", request_id=request.id)
     if now >= review.expires_at:
         raise DomainError("REVIEW_EXPIRED", "This quote expired. Prepare a fresh review.", 410, request.id)
-    result, reasons = catalog.candidate(offer, request.constraints)
+    result, reasons = catalog.candidate(offer, request.constraints, own_hold=own_hold)
     if reasons or offer.version != review.quote_version or catalog.digest(review.snapshot) != review.digest:
         raise DomainError("REVIEW_CHANGED", "Material offer facts changed. Prepare a fresh review.", request_id=request.id)
     current_payload = snapshot(request, offer, result, review.version, review.created_at, review.expires_at)
