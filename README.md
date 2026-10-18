@@ -1,8 +1,8 @@
 # PayPal AI Hackathon 2026 — Project Lab
 
-A dedicated local workspace for building SpendConsent. **The deterministic backend foundation is implemented and independently verified as of 18 October 2026:** 24 real-PostgreSQL tests pass. Actual AI quality remains below its gate; the API reports `MODEL_UNAVAILABLE`, all three readiness/financial capabilities are false, and no PayPal client or payment execution is implemented. The frontend is in progress. Implementation is authorized by the project-completion goal of 16 October; the full project is incomplete.
+A dedicated local workspace for building SpendConsent. **As of 19 October 2026, the deterministic authority and checkout domain pass 46 independently reviewed real-PostgreSQL tests using injected provider fakes.** The frontend passes eight Node test groups and its production build; actual browser checks cover saved requests, confirmed requirements, refresh recovery, mobile layout and focus. Actual AI quality remains below its gate: the application reports `MODEL_UNAVAILABLE`, and all three readiness/financial capabilities remain false. Real PayPal adapter work is in progress and unverified; SDK checkout and an actual sandbox purchase remain outstanding. Implementation is authorized by the project-completion goal of 16 October; the full project is incomplete.
 
-Backend setup and checks: [backend foundation](backend/README.md). Current evidence and blockers: [progress](docs/progress.md). Sandbox OAuth authentication passed with HTTP 200 on 13 October 2026; that establishes authentication only.
+Backend setup and limits: [backend foundation](backend/README.md). Browser evidence and limits: [frontend checkpoint](docs/frontend-checkpoint.md). Current evidence and blockers: [progress](docs/progress.md). Sandbox OAuth authentication passed with HTTP 200 on 13 October 2026; that establishes authentication only.
 
 Architecture consolidation, 17 October: [system design](docs/system-design.md), [implementation gates](docs/implementation-plan.md), [stable API contract](docs/prebuild-audit.md#stable-api-contract-for-backendfrontend-agreement), and [frontend design](docs/frontend-design.md).
 
@@ -10,7 +10,7 @@ Product deliverables, 16 October: [research and target users](docs/research-and-
 
 System design is ready: [detailed architecture](docs/system-design.md), [visual overview](docs/diagrams/system-overview.svg), and [implementation sequence](docs/implementation-plan.md). These specify the database relationships, application API, bounded AI tools, exact approval, PayPal sequence, and recovery states. Local backend execution uses loopback HTTP and an isolated project PostgreSQL cluster/private peer-authenticated socket; existing shared services stay untouched. Deterministic catalog, session/CSRF, immutable review and direct approval work proceeded alongside model evaluation under the [recorded scheduling revision](docs/implementation-plan.md#scheduling-revision--17-october-2026). Actual AI integration and payment release gates remain outstanding.
 
-Selected stack, revised after the user's backend question: React + TypeScript + Vite, Python 3.12 + Django 5.2 LTS + Django REST Framework, PostgreSQL, PayPal Orders v2 + JavaScript SDK v6, and local Qwen3-1.7B Q4_K_M through a project-local llama.cpp CPU server. See [backend comparison](docs/stack-review.md). The backend environment pins Django 5.2.18 and DRF 3.18.3; dependency hashes/licenses are recorded in backend/. Runtime/model provenance and actual inference are verified, but the latest primary prompt experiment passed only 12/20 against the unchanged 18/20 accuracy target. The original 0/20 baseline and 6/20 protocol run are preserved. No integrated actual-AI adapter is ready. See [AI feasibility](docs/ai-feasibility.md).
+Selected stack, revised after the user's backend question: React + TypeScript + Vite, Python 3.12 + Django 5.2 LTS + Django REST Framework, PostgreSQL, PayPal Orders v2 + JavaScript SDK v6, and local Qwen through a project-local llama.cpp CPU server. See [backend comparison](docs/stack-review.md). The backend environment pins Django 5.2.18 and DRF 3.18.3; dependency hashes/licenses are recorded in backend/. Verified Qwen3-1.7B inference remains below the unchanged 18/20 accuracy target: the latest extraction-thinking primary scored 14/20 and the separately measured regression scored 16/20. Earlier failed results remain preserved. The optional non-thinking Qwen3-4B profile was reviewed and privately committed as `95779a7` before download/inference; its download is now authorized and in progress, with artifact verification, fit and measured outcomes pending. No integrated actual-AI adapter is ready. See [AI feasibility](docs/ai-feasibility.md).
 
 ## Canonical workspace and continuity
 
@@ -37,12 +37,13 @@ docs/system-design.md      Components, data model, APIs, sequence and state diag
 docs/implementation-plan.md Ordered milestones and verification gates
 docs/prebuild-audit.md     Canonical API field contract and release checks
 docs/frontend-design.md    Purchasing workspace and interaction design
+docs/frontend-checkpoint.md Verified browser checks and remaining UI/integration gaps
 docs/diagrams/             Editable SVG and rendered PNG system overview
 docs/progress.md           Evidence, checks, and next actions
 docs/tooling.md            Installed tools and access limits
 docs/sandbox-setup.md      Credential creation and safe API test
-backend/                   Verified deterministic Django/DRF foundation and setup
-frontend/                  React/Vite implementation in progress
+backend/                   Verified deterministic authority/checkout domain and setup
+frontend/                  Session-bound React/Vite workspace; integration gates remain
 scripts/local_postgres.py  Isolated project PostgreSQL startup and self-check
 scripts/sandbox_check.py   Sandbox-only OAuth diagnostic
 ```
@@ -66,7 +67,7 @@ The private `.env` was filled by the user and copied locally with owner-only per
 
 1. Sandbox credential setup and authenticated OAuth response are verified; retain sandbox-only operation.
 2. Review the current [PRD](docs/PRD.md), including the target user, competitor overlap, and single-merchant limitation.
-3. The deterministic backend foundation is verified; continue frontend work and actual-AI investigation while preserving the full PRD scope.
+3. The deterministic checkout domain and partial frontend checkpoint are verified; continue real adapter, actual-AI and browser integration work while preserving the full PRD scope.
 4. Pass the unchanged actual-AI gate: at least 18/20 grounded correct outcomes and warm median under 60 seconds. Preserve failures and separately measure unseen cases.
 5. Integrate the smallest approved PayPal + actual-AI flow and test state/recovery with labeled fakes; obtain explicit approval before actual sandbox financial actions. Usability, usefulness and release evidence remain required.
 
