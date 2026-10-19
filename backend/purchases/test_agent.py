@@ -26,9 +26,10 @@ TEXT = "Exactly 40 microfiber cloths, 40 by 40 cm, maximum $60 delivered includi
 def arguments(constraints=None, **changes):
     value = deepcopy(CONSTRAINTS if constraints is None else constraints)
     value = {key: value.get(key) for key in agent._FIELDS}
-    value["attributes"] = value["attributes"] or {}
     value["unsupported_requirements"] = []
-    return {**value, **changes}
+    value.update(changes)
+    value["attributes"] = {**dict.fromkeys(agent._ATTRIBUTE_NAMES), **(value["attributes"] or {})}
+    return value
 
 
 def native_call(value):
@@ -103,6 +104,12 @@ class AgentTests(TransactionTestCase):
                 self.assertIsNone(result["clarification"])
                 self.assertEqual(len(fake.bodies), 2)
                 self.assertEqual(fake.bodies[0]["tools"], [agent.TOOL])
+                schema = fake.bodies[0]["tools"][0]["function"]["parameters"]["properties"]["attributes"]
+                self.assertEqual(set(schema["required"]), {"width_cm", "height_cm", "capacity_l", "volume_ml", "paper_size"})
+                self.assertEqual(set(schema["properties"]), set(schema["required"]))
+                self.assertFalse(schema["additionalProperties"])
+                self.assertEqual({key: item for key, item in fake.value["attributes"].items() if item is not None}, attributes)
+                self.assertTrue(all("null" in item["type"] for item in schema["properties"].values()))
                 self.assertEqual(fake.bodies[1]["response_format"]["json_schema"]["schema"], agent.FINAL_SCHEMA)
                 self.assertNotIn("tools", fake.bodies[1])
                 self.assertNotIn("private_reasoning_marker", json.dumps(fake.bodies))
@@ -146,6 +153,27 @@ class AgentTests(TransactionTestCase):
         self.assertEqual(partial["constraints"]["quantity"], 40)
         self.assertEqual(partial["constraints"]["attributes"], {"width_cm": 40, "height_cm": 30})
         self.assertEqual(partial["status"], "NO_MATCH")
+
+    def test_complete_attribute_protocol_preserves_unknowns_and_dimension_order(self):
+        with self.http(arguments(attributes={"width_cm": 35})):
+            result = agent.compare("Exactly 40 microfiber cloths, width 35 cm, at most $60 delivered, one-time only.")
+        self.assertEqual(result["status"], "NEEDS_CLARIFICATION")
+        self.assertEqual(result["constraints"]["attributes"], {"width_cm": 35})
+        self.assertEqual(result["clarification"]["missing_fields"], ["attributes.height_cm"])
+        self.assertFalse(result["candidates"])
+        with self.http(arguments(attributes={"width_cm": 35, "height_cm": 45})):
+            result = agent.compare("Exactly 40 microfiber cloths, 35 by 45 cm, at most $60 delivered, one-time only.")
+        self.assertEqual(result["constraints"]["attributes"], {"width_cm": 35, "height_cm": 45})
+        self.assertEqual(result["status"], "NO_MATCH")
+        for key in agent._ATTRIBUTE_NAMES:
+            value = arguments()
+            del value["attributes"][key]
+            with self.subTest(missing_attribute=key), self.http(value) as fake, patch.object(agent, "_search") as search:
+                with self.assertRaises(agent.AgentError) as caught:
+                    agent.compare(TEXT)
+                self.assertEqual(caught.exception.code, "MODEL_ERROR")
+                self.assertEqual(len(fake.bodies), 1)
+                search.assert_not_called()
 
     def test_unsupported_intent_is_explained_and_never_stored_as_fake_supported_fields(self):
         for changes, absent in (({"currency": "EUR"}, "currency"), ({"one_time": False}, "one_time"),

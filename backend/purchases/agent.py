@@ -39,8 +39,8 @@ TOOL = {"type": "function", "function": {
         "budget_cents": {"type": ["integer", "null"], "description": "Full delivered budget in integer cents: $12.34 = 1234; unknown = null."},
         "currency": {"type": ["string", "null"], "description": "Actual requested currency; $ means USD; euros means EUR. Never convert currencies."},
         "one_time": {"type": ["boolean", "null"], "description": "True only if buyer requires one-time terms; false for recurring; null when unspecified."},
-        "attributes": {"type": "object", "properties": _ATTRIBUTE_SCHEMA, "additionalProperties": False,
-                       "description": "Only stated dimensions: cloth width_cm/height_cm; bag capacity_l; bottle volume_ml; notebook paper_size. Unknown values null or absent."},
+        "attributes": {"type": "object", "properties": _ATTRIBUTE_SCHEMA, "required": sorted(_ATTRIBUTE_NAMES), "additionalProperties": False,
+                       "description": "Include every key: cloth width_cm/height_cm; bag capacity_l; bottle volume_ml; notebook paper_size. Unknown or inapplicable values must be null."},
         "unsupported_requirements": {"type": "array", "items": {"type": "string"}, "maxItems": 8,
                                      "description": "Every other must-have (brand, color, material, certification, delivery date, etc.). Empty only when none stated."}},
         "required": list(_FIELDS), "additionalProperties": False}}}
@@ -50,6 +50,9 @@ FINAL_SCHEMA = {"type": "object", "properties": {
     "required": ["status", "offer_id"], "additionalProperties": False}
 SYSTEM = """You are SpendConsent, a read-only purchasing assistant. Call search_catalog
 exactly once using only the buyer's stated requirements; missing facts stay null.
+Include every attribute key, using null for unknown or inapplicable values.
+For cloth dimensions, preserve both stated dimensions in order as width_cm and
+height_cm. Never infer an unstated dimension from another dimension.
 The confirmed_constraints object is human authority: preserve every confirmed
 value. Never substitute another item, currency, size, quantity, budget or terms.
 The fictional catalog supports microfiber cloth dimensions, waste bag capacity,
@@ -184,7 +187,7 @@ def _arguments(value):
     if value["one_time"] is not None and type(value["one_time"]) is not bool:
         raise AgentError()
     attributes = value["attributes"]
-    if not isinstance(attributes, dict) or set(attributes) - _ATTRIBUTE_NAMES:
+    if not isinstance(attributes, dict) or set(attributes) != _ATTRIBUTE_NAMES:
         raise AgentError()
     for key, item in attributes.items():
         if item is None:
