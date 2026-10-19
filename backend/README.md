@@ -4,8 +4,11 @@ This implements the deterministic SpendConsent authority and checkout-domain fou
 comparison is unavailable: normal create/clarify calls save the request and return
 HTTP 503 `MODEL_UNAVAILABLE` with its `request_id`. GET reconstructs the saved
 canonical request envelope. There is no canned successful AI response. Every
-financial capability is false; no PayPal client, actual financial HTTP call or private `.env`
-loading exists in this milestone. The checkout domain is exercised only by injected test-local provider fakes. The application server is not started by setup.
+financial capability is false. A sandbox-only REST adapter is implemented and independently
+reviewed, but remains unwired: there is no runtime client loader or private `.env`
+loading. Domain tests use injected provider fakes; adapter tests mock the actual
+urllib opener and forbid HTTPS connections. No actual PayPal HTTP or financial
+operation was used for this checkpoint. The application server is not started by setup.
 
 Run these commands from the repository root with the installed Python 3.12, uv and
 PostgreSQL 16 binaries. Installation downloads free open-source Python packages;
@@ -65,20 +68,32 @@ The foundation tests cover catalog totals, constraints, session/CSRF/ownership,
 retry conflicts, immutable/current review, approval expiry/revocation, changed
 facts, edit blocking for unresolved/paid attempts and three real row-lock races.
 They call deterministic comparison directly only in clearly named test setup.
-The complete suite now contains 46 real-PostgreSQL checks: the original 24 plus
-22 checkout-domain checks, with no provider HTTP. These do not establish real
-inference, actual PayPal dispatch/capture/read-back, provider-specific idempotency,
-browser accessibility, usefulness or release readiness.
+The complete suite now contains 56 real-PostgreSQL checks: the original 24,
+22 checkout-domain checks and 10 adapter checks using mocked HTTP. Independent
+verification passed all 56 in 17.333 seconds. These do not establish real inference,
+actual PayPal dispatch/capture/read-back, provider-specific idempotency, browser
+accessibility, usefulness or release readiness.
 
 `purchases/checkout.py` contains `start`, `capture`, `reconcile` and `stop` domain
 functions. The first three require an explicit injected provider with
 `create_order(payload, key)`, `capture_order(order_id, payload, key)` and
-`get_order(order_id)`. The only implementation is a fake inside the test file.
-There is no runtime provider loader, mock-payment endpoint or capability switch.
-Create/capture/reconciliation API routes retain their visible disabled responses.
-The future real adapter must independently verify provider facts and preserve the
-approved snapshot-to-payload mapping; the normalized test contract is not a claim
-that these internal objects are supported PayPal REST payloads.
+`get_order(order_id)`. `purchases/paypal.py` provides the unwired sandbox adapter;
+test-local fakes exercise the domain separately. There is no runtime provider
+loader, mock-payment endpoint or capability switch. Create/capture/reconciliation
+API routes retain their visible disabled responses.
+
+The adapter maps immutable persisted attempts to one USD purchase unit with exact
+pack quantities, charges, merchant binding, review digest and a fully reviewed
+fixed fictional destination. It permits only the fixed sandbox HTTPS origin,
+verifies TLS, disables redirects/proxies, bounds responses/socket operations, keeps
+tokens in memory and never retries a POST. Capture responses alone cannot establish
+PAID; checkout performs an independent order GET. Read-back must match order,
+payee, reference/digest, amount/breakdown, item and shipping facts before the
+expected purchase is attached as verified domain evidence. Missing required fields
+remain UNKNOWN; completed mismatches reach PAYMENT_REVIEW with their hold intact.
+Actual sandbox field echoing, including shipping options, remains unverified.
+Old generic destination labels and unconfigured payees cannot reach HTTP. See
+[adapter mapping, evidence limits and remaining gates](../docs/paypal-integration.md).
 
 Checkout transactions reserve available packs and persist unique operation keys,
 exact payload and state before dispatch. Independent PostgreSQL connections prove

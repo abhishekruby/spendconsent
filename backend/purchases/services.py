@@ -10,7 +10,7 @@ from .serializers import Constraints
 
 MERCHANT = {"id": "sample-merchant", "name": "Fictional Supply Merchant"}
 SHIPPING = {"option_id": "fixture-standard", "label": "Synthetic standard delivery",
-            "destination_ref": "sample-business", "destination_label": "Fictional business destination"}
+            "destination_ref": "sample-business", "destination_label": "Fictional sample only — SpendConsent Demo Business, 100 Fictional Supply Lane, San Jose, CA 95131, US"}
 TERMS = {"one_time": True, "description": "One-time purchase. Fictional catalog; no real goods or fulfillment."}
 # An unconfigured fixture binding cannot authorize a PayPal payment. Real configuration
 # changes this binding and requires a new review before financial integration.

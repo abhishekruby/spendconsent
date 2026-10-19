@@ -1,8 +1,8 @@
 # PayPal AI Hackathon 2026 — Project Lab
 
-A dedicated local workspace for building SpendConsent. **As of 19 October 2026, the deterministic authority and checkout domain pass 46 independently reviewed real-PostgreSQL tests using injected provider fakes.** The frontend passes eight Node test groups and its production build; actual browser checks cover saved requests, confirmed requirements, refresh recovery, mobile layout and focus. Actual AI quality remains below its gate: the application reports `MODEL_UNAVAILABLE`, and all three readiness/financial capabilities remain false. Real PayPal adapter work is in progress and unverified; SDK checkout and an actual sandbox purchase remain outstanding. Implementation is authorized by the project-completion goal of 16 October; the full project is incomplete.
+A dedicated local workspace for building SpendConsent. **As of 19 October 2026, the deterministic authority, checkout domain and unwired sandbox REST adapter pass 56 independently reviewed real-PostgreSQL tests using provider fakes and mocked HTTP.** The frontend passes eight Node test groups and its production build; actual browser checks cover saved requests, confirmed requirements, refresh recovery, mobile layout and focus. Actual AI quality remains below its gate: the application reports `MODEL_UNAVAILABLE`, and all three readiness/financial capabilities remain false. The adapter is implemented and reviewed; actual PayPal order/capture/read-back, SDK checkout and a sandbox purchase remain unverified. Implementation is authorized by the project-completion goal of 16 October; the full project is incomplete.
 
-Backend setup and limits: [backend foundation](backend/README.md). Browser evidence and limits: [frontend checkpoint](docs/frontend-checkpoint.md). Current evidence and blockers: [progress](docs/progress.md). Sandbox OAuth authentication passed with HTTP 200 on 13 October 2026; that establishes authentication only.
+Backend setup and limits: [backend foundation](backend/README.md). Adapter mapping and limits: [unwired sandbox checkpoint](docs/paypal-integration.md). Browser evidence and limits: [frontend checkpoint](docs/frontend-checkpoint.md). Current evidence and blockers: [progress](docs/progress.md). Sandbox OAuth authentication passed with HTTP 200 on 13 October 2026; that establishes authentication only.
 
 Architecture consolidation, 17 October: [system design](docs/system-design.md), [implementation gates](docs/implementation-plan.md), [stable API contract](docs/prebuild-audit.md#stable-api-contract-for-backendfrontend-agreement), and [frontend design](docs/frontend-design.md).
 
@@ -67,7 +67,7 @@ The private `.env` was filled by the user and copied locally with owner-only per
 
 1. Sandbox credential setup and authenticated OAuth response are verified; retain sandbox-only operation.
 2. Review the current [PRD](docs/PRD.md), including the target user, competitor overlap, and single-merchant limitation.
-3. The deterministic checkout domain and partial frontend checkpoint are verified; continue real adapter, actual-AI and browser integration work while preserving the full PRD scope.
+3. The deterministic checkout domain, unwired sandbox adapter and partial frontend checkpoint are verified with the stated fake/test limits; continue actual-AI and reviewed runtime/SDK/browser integration work while preserving the full PRD scope.
 4. Pass the unchanged actual-AI gate: at least 18/20 grounded correct outcomes and warm median under 60 seconds. Preserve failures and separately measure unseen cases.
 5. Integrate the smallest approved PayPal + actual-AI flow and test state/recovery with labeled fakes; obtain explicit approval before actual sandbox financial actions. Usability, usefulness and release evidence remain required.
 
