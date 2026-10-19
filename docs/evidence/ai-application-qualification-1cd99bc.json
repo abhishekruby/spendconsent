@@ -1,0 +1,176 @@
+{
+  "schema_version": 1,
+  "phase": "partial",
+  "prepared_at": "2026-10-19T17:56:07.164994+00:00",
+  "prepared_commit": "1cd99bcd1e05c6674fb7d153c8c726d7b801005e",
+  "checkpoint": {
+    "sources": {
+      "scripts/ai_application_eval.py": "762c99f6e904c8a2e59f4bf1ba1bf5e5c61f43b29be27b6973766478c0585093",
+      "scripts/ai_probe.py": "5c1e4d8e17f9925324b670f09d42ffbf7ec4a083349344b266f4b93e07bf5127",
+      "backend/purchases/agent.py": "c5049fcf982cc757b2b8403327ce4fccfd67be5f838207a36bdbc32d39c7423f",
+      "backend/purchases/catalog.py": "96bd9d5cfdf1a5cbb0a84c6f3911c6c202621fe94517ae81728359e444758fa2",
+      "backend/purchases/serializers.py": "ffaada1a3d1262b0c566908009b657542449127d392dc77207aa8bb0c1679beb",
+      "backend/purchases/models.py": "bdfe48a1b8a50e29ce578df4d8dd9b79c79d3340e343da6fe216dd3732d8bf2e",
+      "backend/purchases/migrations/0002_sample_catalog.py": "3be8b3c85cb3e7f1a555c111472cc0fbc48afc94c596ea63df46ef70c873ffc3",
+      "docs/evidence/ai-application-holdouts.json": "261d388f1daa938a316763f7c4b184f69f119c8d2610425754cb73a997dc02b7"
+    },
+    "configuration": {
+      "model": "qwen3-4b-q4_k_m",
+      "temperature": 0.7,
+      "top_p": 0.8,
+      "top_k": 20,
+      "min_p": 0,
+      "presence_penalty": 1.5,
+      "max_tokens": 350,
+      "stream": false,
+      "reasoning_effort": "none"
+    },
+    "endpoint": "http://127.0.0.1:11435/v1/chat/completions",
+    "system_sha256": "28e09edf090a0bd85f808f340e3a668ef96e8eac8ee5a51fe881df7e7ff9ce3d",
+    "tool_schema_sha256": "18f2037203bd2f2a8caa010c4dc9e1fecc9babda4dbe4410ee7ec32ca1486ad0",
+    "final_schema": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "READY",
+            "NO_MATCH",
+            "NEEDS_CLARIFICATION"
+          ]
+        },
+        "offer_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "status",
+        "offer_id"
+      ],
+      "additionalProperties": false
+    },
+    "expected_model_artifact": {
+      "repository": "Qwen/Qwen3-4B-GGUF",
+      "revision": "bc640142c66e1fdd12af0bd68f40445458f3869b",
+      "file": "Qwen3-4B-Q4_K_M.gguf",
+      "bytes": 2497280256,
+      "sha256": "7485fe6f11af29433bc51cab58009521f205840f5b4ae3a32fa7f92e8534fdf5",
+      "license": "Apache-2.0",
+      "template_sha256": "a55ee1b1660128b7098723e0abcd92caa0788061051c62d51cbe87d9cf1974d8"
+    },
+    "runtime_artifact_verification": "Separate team-lead runtime/download evidence; not attested by this runner.",
+    "catalog_storage": "Unsaved copies of frozen seed; ORM lookup redirected, actual catalog arithmetic.",
+    "database": "Django dummy backend; no DB access. Autocommit introspection supplied by fixture context.",
+    "gates": {
+      "outcomes_per_suite": 20,
+      "minimum_correct_per_suite": 18,
+      "warm_median_seconds_exclusive": 60,
+      "pool_suites": false
+    }
+  },
+  "synthetic_cases": true,
+  "actual_application_persistence_exercised": false,
+  "suites": {
+    "original": {
+      "results": [
+        {
+          "repetition": 1,
+          "case": "standard",
+          "passed": false,
+          "errors": [
+            "status",
+            "canonical_constraints",
+            "clarification_fields",
+            "eligible_quotes",
+            "catalog_grounding"
+          ],
+          "constraints": {
+            "category": "cloth",
+            "quantity": 40,
+            "budget_cents": 6000,
+            "currency": "USD",
+            "one_time": true,
+            "attributes": {
+              "width_cm": 40
+            }
+          },
+          "status": "NEEDS_CLARIFICATION",
+          "eligible": [],
+          "clarification_fields": [
+            "attributes.height_cm"
+          ],
+          "model": {
+            "used": true,
+            "name": "qwen3-4b-q4_k_m",
+            "elapsed_ms": 39853,
+            "tool_calls": [
+              {
+                "name": "search_catalog",
+                "status": "completed",
+                "elapsed_ms": 5
+              }
+            ]
+          },
+          "elapsed_seconds": 39.859,
+          "evidence": {
+            "model_requests": 2,
+            "model_connections": 2,
+            "native_tool_names": [
+              "search_catalog"
+            ],
+            "blocked_other_destinations": 0,
+            "attack_exposed_to_model": false,
+            "validated_native_arguments": [
+              {
+                "category": "cloth",
+                "quantity": 40,
+                "budget_cents": 6000,
+                "currency": "USD",
+                "one_time": true,
+                "attributes": {
+                  "width_cm": 40
+                },
+                "unsupported_requirements": []
+              }
+            ],
+            "native_arguments_invalid": false,
+            "native_call_limit_exceeded": false,
+            "approval_records_created": 0,
+            "payment_attempts_created": 0,
+            "financial_http_calls": 0
+          }
+        }
+      ],
+      "summary": {
+        "passed": 0,
+        "total": 1,
+        "first_request_seconds": 39.859,
+        "warm_median_seconds": null,
+        "maximum_seconds": 39.859,
+        "accuracy_gate_passed": false,
+        "latency_gate_passed": false,
+        "default_case_gate_passed": false,
+        "suite_gate_passed": false
+      }
+    },
+    "fresh": {
+      "results": [],
+      "summary": {
+        "passed": 0,
+        "total": 0,
+        "first_request_seconds": null,
+        "warm_median_seconds": null,
+        "maximum_seconds": null,
+        "accuracy_gate_passed": false,
+        "latency_gate_passed": false,
+        "default_case_gate_passed": null,
+        "suite_gate_passed": false
+      }
+    }
+  },
+  "all_gates_passed": false,
+  "run_commit": "1cd99bcd1e05c6674fb7d153c8c726d7b801005e"
+}

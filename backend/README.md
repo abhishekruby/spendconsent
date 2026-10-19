@@ -10,6 +10,19 @@ loading. Domain tests use injected provider fakes; adapter tests mock the actual
 urllib opener and forbid HTTPS connections. No actual PayPal HTTP or financial
 operation was used for this checkpoint. The application server is not started by setup.
 
+The actual-model adapter and application wiring passed independent review and
+were privately synchronized as `1cd99bc`. They stay off by default: eligibility requires the explicit
+server-side enable setting, an owner-only readiness marker matching the adapter
+source/model, and healthy fixed loopback model transport. No qualification marker
+has been granted. Independent verification passes 79 real-PostgreSQL tests in 26.018 seconds: the prior
+56 plus 16 mocked model-adapter and seven mocked application-wiring checks.
+These tests run no actual inference and prove no model quality or full journey.
+The distinct [application-protocol qualification](../docs/ai-application-evaluation.md)
+uses a dummy database and frozen in-memory catalog. Its separately authorized
+first actual case failed in 39.859 seconds because the model omitted an explicitly
+stated cloth height. The failed 1/40 partial report is preserved; further calls
+stopped because a mandatory default case failed. All fresh cases remain unrun.
+
 Run these commands from the repository root with the installed Python 3.12, uv and
 PostgreSQL 16 binaries. Installation downloads free open-source Python packages;
 it needs internet once and no key, account, card, trial or hosted service.
@@ -68,9 +81,10 @@ The foundation tests cover catalog totals, constraints, session/CSRF/ownership,
 retry conflicts, immutable/current review, approval expiry/revocation, changed
 facts, edit blocking for unresolved/paid attempts and three real row-lock races.
 They call deterministic comparison directly only in clearly named test setup.
-The complete suite now contains 56 real-PostgreSQL checks: the original 24,
-22 checkout-domain checks and 10 adapter checks using mocked HTTP. Independent
-verification passed all 56 in 17.333 seconds. These do not establish real inference,
+The complete suite now contains 79 real-PostgreSQL checks: the original 24,
+22 checkout-domain checks, 10 PayPal adapter checks, 16 model-adapter checks and
+seven application-wiring checks, all using explicit fakes for inference/provider
+HTTP. Independent verification passed all 79 in 26.018 seconds. These do not establish real inference,
 actual PayPal dispatch/capture/read-back, provider-specific idempotency, browser
 accessibility, usefulness or release readiness.
 
@@ -115,6 +129,16 @@ Migrations 0004/0005 add payload/dispatch persistence, paid-request uniqueness a
 an immutable-attempt database trigger. Apply the reviewed migrations before
 starting updated backend code. They add schema only and do not reset application
 requests/catalog data. Tests apply them only to the dedicated test database.
+Reviewed migration 0006 preserves existing human constraints as confirmed
+authority. The team lead applied it to the application database without a reset:
+the one version-3 request retained its exact 40-cloth, 40 × 40 cm, USD 6000-cent,
+one-time requirements, with identical confirmed constraints backfilled. Counts
+remained one request, 16 offers and zero payment attempts. Django/Vite were
+restarted on loopback with AI disabled; qualification runs separately.
+Prepared wiring claims work under short locks, runs model HTTP without database
+transactions, then persists only a matching request-version/claim result. Stale
+claims recover after 95 seconds. Inferred values cannot silently become human
+confirmation during a partial clarification. Normal disabled behavior is retained.
 
 Direct dependency versions were checked against primary release metadata on
 17 October 2026. All installed transitive versions are hash-locked in

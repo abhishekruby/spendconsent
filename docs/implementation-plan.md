@@ -1,6 +1,6 @@
 # Architecture implementation plan
 
-Updated 18 October 2026. Build authorized through the active project-completion goal on 16 October. Scope/build agreement is recorded in PROJECT_CONTEXT.md; measure each gate before claiming it passed. Real sandbox financial calls need separate action-time approval. The [system design](system-design.md) defines behavior and deployment; the [stable API contract](prebuild-audit.md#stable-api-contract-for-backendfrontend-agreement) defines fields/envelopes; the [PRD](PRD.md) defines acceptance targets. The deterministic backend foundation is now authorized to proceed in parallel with the read-only model evaluation, as recorded below; application readiness remains subject to every release gate.
+Updated 19 October 2026. Build authorized through the active project-completion goal on 16 October. Scope/build agreement is recorded in PROJECT_CONTEXT.md; measure each gate before claiming it passed. Real sandbox financial calls need separate action-time approval. The [system design](system-design.md) defines behavior and deployment; the [stable API contract](prebuild-audit.md#stable-api-contract-for-backendfrontend-agreement) defines fields/envelopes; the [PRD](PRD.md) defines acceptance targets. The deterministic backend foundation is now authorized to proceed in parallel with the read-only model evaluation, as recorded below; application readiness remains subject to every release gate.
 
 ## Sequence and exit criteria
 
@@ -46,6 +46,62 @@ Dependency metadata verified against primary PyPI release metadata on 17 October
 
 The team lead authorized deterministic checkout, stock-hold and recovery implementation/testing alongside the failed actual-AI evaluation. Provider behavior is injected only by test-local fakes. Runtime capabilities stay false, and public create/capture endpoints stay disabled; no PayPal HTTP client, credential loading, OAuth or sandbox financial action is authorized by this extension. Stage 4 domain evidence may be collected before Stage 3, but actual AI integration/release still requires the unchanged 18/20 grounded outcomes and warm median under 60 seconds. Real payment integration and its action-time approval, usefulness and all other PRD gates remain unchanged.
 
+## Actual-AI adapter code scheduling extension — 19 October 2026
+
+The team lead authorized parallel implementation and mocked-HTTP verification of an actual local-model application adapter while the separately frozen 4B experiment runs. This initially authorized unwired code preparation only. The subsequent default-off wiring extension below supersedes that wiring restriction; it does not authorize readiness or actual inference. Do not alter the frozen probe, holdout, model process or experiment configuration or run competing inference. Independent code review and unchanged actual-model gates remain prerequisites for runtime enablement. Mocked adapter tests are not actual-AI quality evidence. Financial action-time permission and all other release gates remain unchanged.
+
+The reviewed `purchases.agent.compare` uses one native `search_catalog` call and schema-bound final confirmation, with actual catalog arithmetic and supported partial constraints. Its 16 mocked-HTTP tests cover all four categories, missing/unsupported requirements, confirmed-field authority, currency/budget binding, exact packs/budgets, invented facts, controlled description injection, privacy, concurrent busy behavior and unlocked PostgreSQL rows. Public socket doubles exercise native HTTP parsing and absolute deadlines across headers, body and request writes; no actual inference or network runs in these checks. Only sanitized model name/use, timings and tool outcome metadata may be persisted by application integration.
+
+## Default-off application wiring and qualification preparation — 19 October 2026
+
+The team lead subsequently authorized default-off endpoint/persistence preparation
+in parallel with independent application-protocol qualification. This changes
+scheduling, not scope or release targets. The model remains unavailable until
+reviewed source and actual qualification pass; an explicit enable setting,
+owner-only adapter-source/model-bound marker and fixed-loopback healthy runtime
+are all required. Financial capabilities stay off. No marker is granted here.
+
+Prepared wiring separates human-confirmed from inferred constraints, claims work
+under short locks, performs inference outside transactions and rejects stale
+version/claim results. Migration 0006 was applied to the application database
+without resetting data: the version-3 request and its exact requirements were
+preserved and backfilled as human-confirmed constraints, with one request,
+16 offers and zero payment attempts before and after. Django/Vite were restarted
+on loopback with AI disabled. Independent review passed 79 real-PostgreSQL tests
+in 26.018 seconds: 56 existing checks, 16 mocked model-adapter checks and seven
+mocked application-wiring checks. No actual model quality or browser journey is
+established by these fakes. Reviewed source is privately synchronized as `1cd99bc`.
+
+The [qualification runner](ai-application-evaluation.md) passed its offline
+self-test and independent review, including forced interruption/resumption with
+the attempted failure preserved. After private checkpoint `1cd99bc`, the team lead
+prepared the source/config report, verified the single actual runtime and
+authorized the first case. It failed in 39.859 seconds: extraction preserved
+the global fields and width but omitted the explicitly stated cloth height,
+yielding NEEDS_CLARIFICATION instead of READY. The failed 1/40 partial report is
+preserved and further calls stopped because a mandatory default case failed;
+all fresh cases remain unrun. A general nullable-attribute completeness correction
+is being prepared and must pass independent review/private commit before a new
+experiment; fixtures and earlier results remain unchanged. Original and fresh suites each require
+>=18/20 correct outcomes and warm median <60 seconds, with both original default
+40-cloth cases correct; scores cannot be pooled. It uses frozen synthetic catalog
+copies and a dummy database, so browser/persistence and full request-to-review
+latency still require separate integrated evidence. Preserve failures; do not
+change frozen inputs/expected answers or tune on fresh holdout results. The earlier actual three-offer 4B primary remains failed at
+16/20 (warm median 37.486 seconds), as do the 1.7B experiments.
+
 ## Current stage
 
-Stage 0 scope, contracts and architecture are documented; SDK behavior and artifact/runtime readiness still need their implementation-time checks. Stage 1 actual inference remains unpassed. Offline probe checks are not model results; OAuth success is not payment readiness. Stage 2 may now proceed alongside the frozen read-only AI probe. On 18 October the deterministic backend foundation passed 24 real-PostgreSQL checks, migrations/schema-drift checks and isolated-role verification; independent review passed all 24 tests on 18 October. This includes immutable review and direct approval authority tested through explicit service fixtures, while normal API requests truthfully remain MODEL_ERROR/MODEL_UNAVAILABLE. On the same date, the extended suite passed 46 real-PostgreSQL tests (24 foundation plus 22 test-provider checkout checks) in 33.909 seconds; Independent checkout review reproduced an incomplete-completion preflight bug; the permanent regression failed before the shared uncertainty-classification fix and passes after it. Review of that fix is pending. Stock-hold/dispatch/recovery invariants are now exercised with injected test-only fakes, while normal API payment routes/capabilities remain disabled. Actual model integration, real provider payload/SDK/idempotency verification, real sandbox checkout, usability and usefulness evidence remain outstanding; no later release gate is claimed passed. See [backend setup and limitations](../backend/README.md).
+The 56-check deterministic authority/checkout/unwired PayPal checkpoint is
+independently verified. Prepared actual-model adapter/default-off persistence
+wiring brings the independently verified suite to 79 checks with mocked inference
+at private checkpoint `1cd99bc`. The frontend passes eight Node test groups and its
+production build, with limited actual browser request/refresh/accessibility checks.
+Actual AI accuracy remains below the unchanged gate; the separately authorized
+application-protocol qualification stopped after its first mandatory default case
+failed. The failed partial is preserved and fresh cases remain unrun. Readiness
+remains false and normal API requests return
+MODEL_UNAVAILABLE. Actual runtime/browser integration, PayPal SDK and authenticated
+Orders behavior, explicitly approved sandbox checkout, usefulness and release
+evidence remain outstanding. The full PRD is retained. See [backend setup and
+limitations](../backend/README.md).
