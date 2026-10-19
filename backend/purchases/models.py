@@ -14,6 +14,7 @@ class PurchaseRequest(models.Model):
     submission_digest = models.CharField(max_length=64)
     text = models.TextField()
     constraints = models.JSONField(default=dict)
+    confirmed_constraints = models.JSONField(default=dict)
     version = models.PositiveIntegerField(default=1)
     status = models.CharField(max_length=24, default="MODEL_ERROR")
     active_inference_id = models.UUIDField(null=True)

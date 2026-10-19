@@ -58,44 +58,54 @@ def revoke_unconsumed(request, now):
 
 
 @transaction.atomic
-def submit(owner, data):
+def submit(owner, data, inference_id=None):
     submission_digest = catalog.digest({"text": data["text"], "constraints": data.get("constraints", {})})
     request, created = PurchaseRequest.objects.get_or_create(
         owner_uuid=owner, client_submission_id=data["client_submission_id"],
-        defaults={"text": data["text"], "constraints": data.get("constraints", {}), "submission_digest": submission_digest})
+        defaults={"text": data["text"], "constraints": data.get("constraints", {}),
+                  "confirmed_constraints": data.get("constraints", {}), "submission_digest": submission_digest,
+                  "status": "COMPARING" if inference_id else "MODEL_ERROR", "active_inference_id": inference_id})
     if request.submission_digest != submission_digest:
         raise DomainError("SUBMISSION_CONFLICT", "That submission ID was already used for a different request.", request_id=request.id)
     if created:
         event(request, "REQUESTED", "Purchase request saved.")
-        event(request, "MODEL_ERROR", "Actual AI comparison is unavailable; no comparison was generated.", "MODEL_UNAVAILABLE")
+        comparison_event(request, inference_id)
     return request
 
 
 @transaction.atomic
-def clarify(owner, pk, expected_version, constraints):
+def clarify(owner, pk, expected_version, constraints, inference_id=None):
     request = owned_request(owner, pk, lock=True)
     editable(request)
     request_version(request, expected_version)
-    combined = {**request.constraints, **constraints}
-    changed_category = combined.get("category") != request.constraints.get("category")
+    combined = {**request.confirmed_constraints, **constraints}
+    changed_category = combined.get("category") != request.confirmed_constraints.get("category")
     if changed_category:
         combined["attributes"] = constraints.get("attributes", {})
     elif "attributes" in constraints and isinstance(constraints["attributes"], dict):
-        combined["attributes"] = {**request.constraints.get("attributes", {}), **constraints["attributes"]}
+        combined["attributes"] = {**request.confirmed_constraints.get("attributes", {}), **constraints["attributes"]}
     validator = Constraints(data=combined)
     validator.is_valid(raise_exception=True)
     revoke_unconsumed(request, timezone.now())
     request.constraints = validator.validated_data
+    request.confirmed_constraints = validator.validated_data
     request.version += 1
-    request.status = "MODEL_ERROR"
+    request.status = "COMPARING" if inference_id else "MODEL_ERROR"
     request.candidates = []
     request.excluded = []
     request.model = None
     request.clarification = None
-    request.active_inference_id = None
-    request.save(update_fields=["constraints", "version", "status", "candidates", "excluded", "model", "clarification", "active_inference_id"])
-    event(request, "MODEL_ERROR", "Constraints updated; actual AI comparison is unavailable.", "MODEL_UNAVAILABLE")
+    request.active_inference_id = inference_id
+    request.save(update_fields=["constraints", "confirmed_constraints", "version", "status", "candidates", "excluded", "model", "clarification", "active_inference_id"])
+    comparison_event(request, inference_id)
     return request
+
+
+def comparison_event(request, inference_id):
+    if inference_id:
+        event(request, "COMPARING", "Actual AI comparison started; no purchase is authorized.")
+    else:
+        event(request, "MODEL_ERROR", "Actual AI comparison is unavailable; the request is saved.", "MODEL_UNAVAILABLE")
 
 
 def snapshot(request, offer, result, version, created_at, expires_at):

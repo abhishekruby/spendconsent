@@ -58,6 +58,10 @@ REST_FRAMEWORK = {
     "UNAUTHENTICATED_USER": None,
     "EXCEPTION_HANDLER": "purchases.views.exception_handler",
 }
+# Root may enable only after independent actual-model qualification. A matching
+# private readiness marker is also required; no request can override either gate.
+SPENDCONSENT_AI_ENABLED = os.environ.get("SPENDCONSENT_AI_ENABLED") == "1"
+SPENDCONSENT_AI_READINESS = private / "ai-ready.json"
 # Server logs contain no request bodies, private model/provider responses or local variables.
 LOGGING = {"version": 1, "disable_existing_loggers": False,
            "handlers": {"null": {"class": "logging.NullHandler"}},

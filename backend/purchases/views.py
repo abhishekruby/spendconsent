@@ -9,7 +9,7 @@ from rest_framework.decorators import api_view, authentication_classes
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.views import exception_handler as drf_exception_handler
-from . import serializers, services
+from . import inference, serializers, services
 from .models import Approval, PaymentAttempt, PurchaseRequest
 
 
@@ -133,32 +133,41 @@ def session(request):
     if "owner_uuid" not in request.session:
         request.session["owner_uuid"] = str(uuid.uuid4())
     return Response({"environment": "sandbox", "csrf_token": get_token(request),
-                     "capabilities": {"ai_ready": False, "paypal_ready": False, "financial_actions_enabled": False},
+                     "capabilities": {"ai_ready": inference.ready(), "paypal_ready": False, "financial_actions_enabled": False},
                      "current_request_id": request.session.get("current_request_id"), "paypal": None})
 
 
 @endpoint(["POST"])
 def requests(request):
-    purchase = services.submit(owner(request), validated(serializers.CreateRequest, request))
+    purchase, inference_id = inference.begin_submit(owner(request), validated(serializers.CreateRequest, request))
     request.session["current_request_id"] = str(purchase.id)
     # Django deliberately skips automatic session saving on 5xx. Persist refresh
     # recovery before returning the truthful MODEL_UNAVAILABLE 503 response.
     request.session.save()
+    return comparison_response(inference.compare(owner(request), purchase, inference_id))
+
+
+def comparison_response(purchase):
     if purchase.status == "MODEL_ERROR":
-        raise services.DomainError("MODEL_UNAVAILABLE", "Actual AI comparison is unavailable. Your request was saved; no comparison or payment was made.", 503, purchase.id)
-    return Response(request_data(purchase))
+        latest = purchase.events.filter(type="MODEL_ERROR").order_by("-created_at").first()
+        code = latest.reason_code if latest else "MODEL_ERROR"
+        if code not in ("MODEL_UNAVAILABLE", "MODEL_ERROR", "MODEL_BUSY", "MODEL_TIMEOUT"):
+            code = "MODEL_ERROR"
+        raise services.DomainError(code, "Actual AI comparison did not complete. Your request was saved; confirm requirements to compare again.",
+                                   429 if code == "MODEL_BUSY" else 503, purchase.id, retryable=code == "MODEL_BUSY")
+    return Response(request_data(purchase), status=202 if purchase.status == "COMPARING" else 200)
 
 
 @endpoint(["GET"])
 def request_detail(request, pk):
-    return Response(request_data(services.owned_request(owner(request), pk)))
+    return Response(request_data(inference.recover(owner(request), pk)))
 
 
 @endpoint(["POST"])
 def clarify(request, pk):
     data = validated(serializers.ClarifyRequest, request)
-    purchase = services.clarify(owner(request), pk, **data)
-    raise services.DomainError("MODEL_UNAVAILABLE", "Actual AI comparison is unavailable. Your updated request was saved.", 503, purchase.id)
+    purchase = inference.clarify(owner(request), pk, **data)
+    return comparison_response(purchase)
 
 
 @endpoint(["POST"])
