@@ -1,5 +1,11 @@
 # Progress — project log
 
+## Follow-up — 20 October 2026: compact default passes; fresh setup clarified
+
+- Reviewed source `2f05695` privately pushed; compact native two-call default passed in 72.978s. Remaining 39 outcomes resumed in evaluator `47821` after model process handles disappeared, hashes were reverified and health returned200. The report spans a process break; preserve this limit and every outcome. Gates remain unachieved while running.
+- User privately supplied sandbox seller Merchant ID. Configuration validates without displaying it; financial switch stays off and no purchase consent/action occurred. No authenticated merchant binding is claimed until trusted order read-back.
+- Added current4B pinned artifact/template/license/bootstrap instructions and clarified tested prerequisites, ordinary startup and guarded checkout docs. Exact documented template extraction/hash, overwrite refusal and fixed-IP health check passed; full clean-machine installation remains unverified. Limited actual browser contrast/keyboard/mobile evidence is in the frontend checkpoint.
+
 ## Latest status — 20 October 2026: fresh completion goal resumed; guarded PayPal wiring
 
 - Resumed in the fresh project chat; old chat stays paused. Preserved existing checkout/data and interrupted AI evidence. Hash-verified local model/API/Vite/PostgreSQL restarted without downloads or new services.

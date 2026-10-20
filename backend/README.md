@@ -15,8 +15,10 @@ The sandbox runtime independently requires owner-only configuration and concrete
 human action-time permission. Default startup neither loads private PayPal
 credentials nor makes financial calls. See [runtime boundaries and setup](../docs/paypal-runtime-plan.md).
 
-Run these commands from the repository root with the installed Python 3.12, uv and
-PostgreSQL 16 binaries. Installation downloads free open-source Python packages;
+Tested platform: Ubuntu Linux x86-64, Python 3.12, uv, PostgreSQL 16 binaries at
+`/usr/lib/postgresql/16/bin`, system libpq, and Node 22.14.0/npm 10 for the frontend.
+The PostgreSQL helper intentionally uses that exact binary path. These are
+prerequisites, not an arbitrary fresh-OS installer. Run from the repository root. Installation downloads free open-source Python packages;
 it needs internet once and no key, account, card, trial or hosted service.
 
 ```bash

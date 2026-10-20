@@ -19,7 +19,7 @@ financial consent and no-publication boundaries remain in AGENTS.md.
 ## Verified checkpoint
 
 - Private repository: https://github.com/abhishekruby/paypal-ai-hackathon-2026;
-  visibility reverified PRIVATE today. Private main `a7f7904` pushed and remote SHA verified.
+  visibility reverified PRIVATE today. Private main `2f05695` pushed and remote SHA verified.
 - Django/PostgreSQL exact authority, immutable reviews, approval/reservation,
   dispatch/recovery and default-off sandbox runtime: 91 owner-suite tests passed.
   Independent combined review passed 11 runtime and 26 checkout/race tests plus
@@ -29,37 +29,38 @@ financial consent and no-publication boundaries remain in AGENTS.md.
   production build pass. SDK-load retry now reloads the page, restoring the same
   attempt. Full actual browser AI/payment journey remains unverified.
 - Actual sandbox OAuth returned HTTP 200 today; no financial action occurred.
-  Private `PAYPAL_MERCHANT_ID` is missing; an asynchronous request asks the user
-  to set the existing sandbox seller ID privately in `.env`. No purchase consent
-  has been granted. Runtime/financial flags and AI readiness remain off.
+  User supplied `PAYPAL_MERCHANT_ID` privately; sandbox configuration validation
+  passes without displaying its value. Actual seller binding still needs order
+  read-back. No purchase consent has been granted. Runtime/financial flags and AI readiness remain off.
 - Existing version-3 request, 16 offers and zero attempts preserved. Actual browser
   restores that request. Limited labels/focus/keyboard/mobile checks pass; form
   boundary contrast corrected. Full flow/accessibility/usefulness remain pending.
 
 ## AI evidence and live handles
 
-Pinned local Qwen3-4B Q4_K_M/llama.cpp CPU model, template and runtime hashes
-reverified. Model terminal `38460` on loopback 11435; API `59895` on 8000;
-Vite `23065` on 5173; PostgreSQL started. Resume handles before restarting.
+Pinned Qwen3-4B Q4_K_M, template and llama.cpp hashes reverified after the prior
+process handles disappeared. Model terminal `13779` on 11435, API `88346` on
+8000, Vite `6828` on 5173; PostgreSQL started (PID 185944). Resume live handles
+before restarting. Flags/readiness remain off.
 
-Preserve `docs/evidence/ai-application-qualification-a9fdb54.json`: original 20
-attempts, 14 correct, both defaults correct, warm median 55.6055 s, inherited
-unknown-timing interruption plus a 90-second timeout. It fails; fresh suite unrun.
-Original continuation `75961` is complete. New whole-suite report
-`docs/evidence/ai-application-qualification-a7f7904.json` failed its first default in 90.037 s (correct native arguments, second-call
-timeout). Terminal `61798` was stopped; next original attempt retained as
-interrupted, fresh suite untouched. Health 200 preceded launch. Startup sequencing and shared-workload
-limits are recorded in [AI protocol](docs/ai-application-evaluation.md).
+Preserved failed reports: `ai-application-qualification-a9fdb54.json` (14/20,
+unknown-timing interruption) and `...-a7f7904.json` (default timeout 90.037 s,
+correct native arguments, next attempt interrupted). Fresh cases unrun in both.
+See [AI protocol](docs/ai-application-evaluation.md) for raw evidence and limits.
 
-Independently reviewed prompt clarification distinguishes explicit item counts
-and product identity. A further reviewed optimization keeps both real model
-calls but shortens final-decision context, retaining actual native call/result
-linkage and full facts. Offline self-test and focused adapter/inference checks
-are running in `99308`. Parser/sampling/deadlines/answers/gates unchanged.
-**Next:** commit reviewed compact-context source; prepare a unique report, check
-health 200, run one mandatory default first, then remaining cases only if it
-passes. No readiness marker before both suites pass. Restart API with qualified
-source before integration.
+Reviewed compact-context source `2f05695` keeps both real model calls, actual
+native call/result linkage, full facts and all scoring/deadline gates. Offline
+self-test plus 24 focused adapter/application checks passed. New report
+`docs/evidence/ai-application-qualification-2f05695.json`: first default passed
+72.978 s. Remaining 39 cases are running in terminal `47821`, after explicit
+health HTTP 200. This resumed report spans a model-process break; disclose it.
+**Next:** resume evaluator handle, preserve all outcomes, and assess each suite
+independently. No marker before both pass. Restart API with qualified source
+before actual browser integration.
+
+Fresh artifact/bootstrap instructions are being reviewed; exact documented
+pinned-template extraction/hash and overwrite refusal passed with existing model
+bytes. Full clean-machine setup remains unverified.
 
 ## Remaining delivery
 

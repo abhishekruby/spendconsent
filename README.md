@@ -60,9 +60,10 @@ scripts/sandbox_check.py   Sandbox-only OAuth diagnostic
 
 Read [AGENTS.md](AGENTS.md) first. Open this folder in your preferred editor or coding workspace. This is a local project folder, not a separately provisioned cloud service or background agent.
 
-## First check
+## Optional sandbox authentication
 
-Python 3.12 is already installed. No packages or paid account upgrades are required by the diagnostic.
+Default-off backend/frontend startup needs no PayPal credentials. This optional
+OAuth-only diagnostic uses installed Python 3.12 and needs no paid upgrade.
 
 ```bash
 python3 scripts/sandbox_check.py --self-test
@@ -77,7 +78,7 @@ The private `.env` was filled by the user and copied locally with owner-only per
 
 1. Sandbox credential setup and authenticated OAuth response are verified; retain sandbox-only operation.
 2. Review the current [PRD](docs/PRD.md), including the target user, competitor overlap, and single-merchant limitation.
-3. The deterministic checkout domain, unwired sandbox adapter and partial frontend checkpoint are verified with the stated fake/test limits; continue actual-AI and reviewed runtime/SDK/browser integration work while preserving the full PRD scope.
+3. Guarded checkout runtime and browser SDK wiring are implemented with the stated fake/test limits; continue actual AI qualification and real browser/sandbox verification while preserving the full PRD scope.
 4. Pass the unchanged actual-AI gate: at least 18/20 grounded correct outcomes and warm median under 60 seconds. Preserve failures and separately measure unseen cases.
 5. Integrate the smallest approved PayPal + actual-AI flow and test state/recovery with labeled fakes; obtain explicit approval before actual sandbox financial actions. Usability, usefulness and release evidence remain required.
 

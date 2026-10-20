@@ -2,7 +2,7 @@
 
 This React/TypeScript application uses the actual session-bound Django API. It
 contains no runtime seeded offers, fake model results or fake payment successes.
-The current API saves requests and responds honestly with `MODEL_UNAVAILABLE`;
+Default startup saves requests and responds honestly with `MODEL_UNAVAILABLE`;
 the UI reads the saved request after that response and after browser refresh.
 
 With the project backend listening on `127.0.0.1:8000`:
@@ -12,6 +12,14 @@ cd frontend
 npm ci --ignore-scripts --no-fund --no-audit
 npm test
 npm run build
+npm run dev
+```
+
+On ordinary starts, reuse the existing dependencies (keep the backend running
+separately):
+
+```sh
+cd frontend
 npm run dev
 ```
 
@@ -39,8 +47,8 @@ AI/payment integration evidence.
 Payment capabilities default off. The SDK loads only for a permitted saved
 attempt. Runtime configuration and exact action-time human permission are both
 required before any real order/capture. Review and app approval are direct
-human UI actions. The checkout area explains its unavailable integration.
-Existing attempts render only permitted status/stop actions; bounded automatic
-checks use GET only. A stop cannot undo an already dispatched operation. SDK
-integration and real sandbox financial checks still need the project readiness
-gates and explicit action-time approval.
+human UI actions. Once all gates permit it, the UI starts only the reviewed cart,
+opens its existing order in the SDK, and asks the server to capture/verify it.
+Existing attempts expose only server-permitted actions; bounded automatic checks
+use GET only. A stop cannot undo a dispatched operation. Actual SDK/financial
+compatibility and the complete buyer journey remain unverified.

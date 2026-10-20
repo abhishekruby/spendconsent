@@ -2,6 +2,92 @@
 
 19 October 2026. Readiness experiment for the authorized SpendConsent build. Fictional catalog/request fixtures only; no PayPal call, payment, credential, customer data or hosted inference.
 
+## Current 4B setup — 20 October 2026
+
+The application uses Qwen3-4B Q4_K_M, not the historical 1.7B experiments below.
+Weights are 2,497,280,256 bytes (about 2.50 GB / 2.33 GiB); the CPU archive is
+17,883,307 bytes and extracts to about 45 MiB. Allow additional space for Python,
+Node, PostgreSQL data and download scratch files. Tested on Ubuntu Linux x86-64
+with about 7.6 GiB RAM; memory pressure and other laptop work affect latency.
+Local inference has no API token quota, trial expiry, account, card or hosting
+charge. Initial public downloads need internet; ordinary runs reuse local files.
+Weights/template are Apache-2.0; llama.cpp is MIT. Retain their own notices.
+
+Run this **only for a fresh artifact setup**, from the repository root. If the
+files already exist, verify their hashes and reuse them; do not extract over a
+runtime or replace a template/model used by an active measurement. Downloads use
+fixed official revisions and no hosted inference. Incomplete downloads stay local
+and ignored; no application data or credentials are involved.
+
+```bash
+set -eu
+mkdir -p .runtime .ai-cache
+curl --fail --location --continue-at - --output .runtime/llama-b11696-bin-ubuntu-x64.tar.gz https://github.com/ggml-org/llama.cpp/releases/download/b11696/llama-b11696-bin-ubuntu-x64.tar.gz
+printf '%s  %s\n' 6a04629ca5265eb4c5c7d6edec8d6fa429e7e7da2de1cd5d5e357a492fc8f802 .runtime/llama-b11696-bin-ubuntu-x64.tar.gz | sha256sum --check -
+test ! -e .runtime/llama-b11696
+test ! -L .runtime/llama-b11696
+tar -xzf .runtime/llama-b11696-bin-ubuntu-x64.tar.gz -C .runtime
+printf '%s  %s\n' 6c7e275a5fe0b9f2b3d90dd53d8fd441d653af415350cfc05ca41e45eb18abfb .runtime/llama-b11696/llama-server | sha256sum --check -
+curl --fail --location --output .runtime/llama-LICENSE https://raw.githubusercontent.com/ggml-org/llama.cpp/b11696/LICENSE
+curl --fail --location --continue-at - --output .ai-cache/qwen3-4b-q4_k_m.gguf https://huggingface.co/Qwen/Qwen3-4B-GGUF/resolve/bc640142c66e1fdd12af0bd68f40445458f3869b/Qwen3-4B-Q4_K_M.gguf
+printf '%s  %s\n' 7485fe6f11af29433bc51cab58009521f205840f5b4ae3a32fa7f92e8534fdf5 .ai-cache/qwen3-4b-q4_k_m.gguf | sha256sum --check -
+curl --fail --location --output .ai-cache/qwen3-4b-LICENSE https://huggingface.co/Qwen/Qwen3-4B-GGUF/resolve/bc640142c66e1fdd12af0bd68f40445458f3869b/LICENSE
+curl --fail --location --output .ai-cache/qwen3-tokenizer-config.json https://huggingface.co/Qwen/Qwen3-1.7B/resolve/70d244cc86ccca08cf5af4e1e306ecf908b1ad5e/tokenizer_config.json
+curl --fail --location --output .ai-cache/qwen3-template-LICENSE https://huggingface.co/Qwen/Qwen3-1.7B/resolve/70d244cc86ccca08cf5af4e1e306ecf908b1ad5e/LICENSE
+python3 - <<'PY'
+import hashlib, json
+from pathlib import Path
+template = json.loads(Path('.ai-cache/qwen3-tokenizer-config.json').read_text())['chat_template'].encode()
+assert hashlib.sha256(template).hexdigest() == 'a55ee1b1660128b7098723e0abcd92caa0788061051c62d51cbe87d9cf1974d8'
+with Path('.ai-cache/qwen3.jinja').open('xb') as stream:
+    stream.write(template)
+assert Path('.ai-cache/qwen3-4b-q4_k_m.gguf').stat().st_size == 2497280256
+PY
+```
+
+The template intentionally comes from the pinned original Qwen3 tokenizer,
+shared with the earlier experiment; it is not a 1.7B weight download. On 20 October
+the pinned metadata produced exactly the existing 4,168-byte template/hash above.
+The exclusive `xb` write refuses to overwrite any existing template. The archive
+layout and existing runtime/model/template hashes were verified locally; this
+recipe has not yet been validated as a complete clean-machine install.
+
+Start one model process in its own terminal; reuse an already verified live
+process instead of starting another. Never change these parameters mid-report.
+
+```bash
+.runtime/llama-b11696/llama-server \
+  --model .ai-cache/qwen3-4b-q4_k_m.gguf --alias qwen3-4b-q4_k_m \
+  --host 127.0.0.1 --port 11435 --threads 4 --threads-batch 4 \
+  --ctx-size 4096 --parallel 1 --cache-ram 0 --batch-size 128 --ubatch-size 128 \
+  --device none --gpu-layers 0 --jinja --chat-template-file .ai-cache/qwen3.jinja \
+  --reasoning off --offline --log-disable --no-webui
+```
+
+In another terminal, explicitly check health before actual inference. HTTP 503
+means loading: wait and check again, without starting an evaluation.
+
+```bash
+python3 - <<'PY'
+import http.client, json
+connection = http.client.HTTPConnection('127.0.0.1', 11435, timeout=5)
+try:
+    connection.request('GET', '/health')
+    response = connection.getresponse()
+    raw = response.read(4097)
+    assert response.status == 200 and len(raw) <= 4096 and json.loads(raw) == {'status': 'ok'}
+finally:
+    connection.close()
+print('PASS: model health HTTP 200')
+PY
+```
+
+Then follow the [source-frozen application qualification protocol](ai-application-evaluation.md).
+This setup does not grant an AI readiness marker or financial permission. Passing
+the actual suites and integrated browser checks is still required. Backend and
+frontend startup are documented in their own READMEs; default startup keeps AI
+and payments off. The sections below preserve historical failures and decisions.
+
 ## Runtime decision and provenance
 
 Use the official **llama.cpp b11696 Ubuntu x64 CPU** release instead of Ollama's bundled GPU runtime. The selected 17,883,307-byte archive is much smaller than Ollama v0.40.5's 1,438,684,604-byte Linux bundle. The latter download was deliberately stopped after about 3.8 MB because observed throughput projected several hours. That partial file is ignored, not an installed runtime. No global installer, service or GPU driver was modified.

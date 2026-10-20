@@ -66,3 +66,23 @@ payment journey are not verified by this frontend checkpoint. Financial controls
 remain disabled, and no financial action was performed for these frontend
 checks. Model readiness, backend integration, authorized sandbox verification
 and measured usefulness remain separate project gates.
+
+## Limited browser follow-up — 20 October 2026
+
+Actual restored version-3 request in the default-off `MODEL_ERROR` state only:
+all seven visible inputs had labels; landmarks/status semantics were present.
+Keyboard navigation showed the 3px accent focus outline; Enter on the skip link
+then Tab reached the first control within main. At 390×844 and 320×640 CSS-pixel
+viewports, document content did not overflow horizontally. Visible form/buttons
+were at least 44px high; the checkbox's whole label target was 45px high.
+
+The rendered dark form boundary was only **2.48:1** against its background.
+Changing the shared input/textarea/select border to the existing muted token
+raised it to **8.60:1** (`#b2c5c6` on `#17272a`), verified from actual computed
+styles. The light token pair calculates to **6.54:1** (`#4b6063` on `#fcfdfd`);
+that pair was calculated from source, not a rendered light-theme audit.
+Body/label/status text checked in the dark state exceeded 4.5:1.
+
+This is limited browser/DOM evidence, not a complete WCAG audit or screen-reader
+speech test. Actual AI comparison, review, approval, payment/recovery states,
+SDK popup, 200% zoom and full assistive-technology behavior remain to verify.
