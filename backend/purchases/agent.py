@@ -48,6 +48,9 @@ FINAL_SCHEMA = {"type": "object", "properties": {
     "status": {"type": "string", "enum": ["READY", "NO_MATCH", "NEEDS_CLARIFICATION"]},
     "offer_id": {"type": ["string", "null"]}},
     "required": ["status", "offer_id"], "additionalProperties": False}
+FINAL_SYSTEM = """Return exactly status and offer_id as JSON using only the validated
+catalog result. Copy its status and first eligible offer_id when READY; otherwise
+offer_id is null. No other text."""
 SYSTEM = """You are SpendConsent, a read-only purchasing assistant. Call search_catalog
 exactly once using only the buyer's stated requirements; missing facts stay null.
 Identify the actual requested product before mapping its category; matching
@@ -339,7 +342,11 @@ def compare(text, confirmed=None):
         facts = {"status": result["status"], "eligible": [
             {key: item[key] for key in ("offer_id", "packs", "individual_units", "currency", "total_cents")}
             for item in result["candidates"]]}
-        messages += [message, {"role": "tool", "tool_call_id": call["id"], "content": json.dumps(facts)}]
+        # The decision needs canonical tool facts, not the extraction prompt or
+        # buyer payload. Retain the actual native call/result linkage.
+        messages = [{"role": "system", "content": FINAL_SYSTEM},
+                    {"role": "user", "content": "Summarize the validated catalog result."},
+                    message, {"role": "tool", "tool_call_id": call["id"], "content": json.dumps(facts)}]
         final = _chat({"messages": messages, "response_format": {"type": "json_schema", "json_schema": {
             "name": "purchase_decision", "schema": FINAL_SCHEMA}}}, deadline)
         _remaining(deadline)

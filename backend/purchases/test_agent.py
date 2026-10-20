@@ -112,6 +112,12 @@ class AgentTests(TransactionTestCase):
                 self.assertTrue(all("null" in item["type"] for item in schema["properties"].values()))
                 self.assertEqual(fake.bodies[1]["response_format"]["json_schema"]["schema"], agent.FINAL_SCHEMA)
                 self.assertNotIn("tools", fake.bodies[1])
+                final_messages = fake.bodies[1]["messages"]
+                self.assertEqual(final_messages[0], {"role": "system", "content": agent.FINAL_SYSTEM})
+                self.assertEqual([row["role"] for row in final_messages], ["system", "user", "assistant", "tool"])
+                self.assertEqual(final_messages[2]["tool_calls"][0]["id"], final_messages[3]["tool_call_id"])
+                self.assertNotIn("Synthetic one-time supply request.", json.dumps(final_messages))
+                self.assertNotIn("confirmed_constraints", json.dumps(final_messages))
                 self.assertNotIn("private_reasoning_marker", json.dumps(fake.bodies))
                 for body in fake.bodies:
                     self.assertEqual({key: body[key] for key in agent.PRESET}, agent.PRESET)

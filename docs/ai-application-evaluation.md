@@ -96,3 +96,22 @@ It changes no model, sampling, schema types, parser, arithmetic, deadline, answe
 or score threshold. A newly prepared report must run all original and fresh
 cases independently after explicit health HTTP 200 and a private source commit.
 Neither a prompt review nor an offline self-test grants application readiness.
+
+The `a7f7904` prompt-only trial then failed its first mandatory default in
+**90.037 s** (`MODEL_TIMEOUT`). Its recorded native arguments were exactly
+correct; two actual HTTP connections show the timeout occurred during the final
+model response. The evaluator was stopped before fresh cases: the next original
+attempt is preserved as interrupted with unknown timing. It is a failed trial,
+not evidence of passing extraction quality or speed. At a subsequent point sample
+the model used 2,665,448 KiB RSS plus 475,060 KiB swap; MemAvailable was
+2,249,756 KiB. This point sample cannot establish continuous memory extrema or
+prove the cause of the timeout.
+
+The next independently reviewed optimization keeps both actual model calls and
+the genuine native assistant-call/tool-result linkage. Its final call uses a
+compact decision-specific system instruction and canonical tool facts, omitting
+the extraction instructions and original buyer/confirmed payload. Full facts,
+final schema/equality, native argument validation, model/sampling/deadline and
+all original/fresh gates remain unchanged. The checkpoint also hashes the new
+final system instruction. Start with one measured default; only proceed with
+the remaining suite if that mandatory case succeeds. Performance is unproven.

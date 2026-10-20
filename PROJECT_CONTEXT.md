@@ -19,7 +19,7 @@ financial consent and no-publication boundaries remain in AGENTS.md.
 ## Verified checkpoint
 
 - Private repository: https://github.com/abhishekruby/paypal-ai-hackathon-2026;
-  visibility reverified PRIVATE today. Current source checkpoint pending commit.
+  visibility reverified PRIVATE today. Private main `a7f7904` pushed and remote SHA verified.
 - Django/PostgreSQL exact authority, immutable reviews, approval/reservation,
   dispatch/recovery and default-off sandbox runtime: 91 owner-suite tests passed.
   Independent combined review passed 11 runtime and 26 checkout/race tests plus
@@ -45,14 +45,21 @@ Vite `23065` on 5173; PostgreSQL started. Resume handles before restarting.
 Preserve `docs/evidence/ai-application-qualification-a9fdb54.json`: original 20
 attempts, 14 correct, both defaults correct, warm median 55.6055 s, inherited
 unknown-timing interruption plus a 90-second timeout. It fails; fresh suite unrun.
-Original continuation `75961` is complete. Startup sequencing and shared-workload
+Original continuation `75961` is complete. New whole-suite report
+`docs/evidence/ai-application-qualification-a7f7904.json` failed its first default in 90.037 s (correct native arguments, second-call
+timeout). Terminal `61798` was stopped; next original attempt retained as
+interrupted, fresh suite untouched. Health 200 preceded launch. Startup sequencing and shared-workload
 limits are recorded in [AI protocol](docs/ai-application-evaluation.md).
 
-Independently reviewed prompt-only clarification now distinguishes explicit item
-counts and actual product identity. Offline evaluation self-test and 17 focused
-adapter tests pass. Parser/sampling/deadlines/answers/gates unchanged. **Next:**
-private commit, prepare a unique source-frozen report, explicitly verify health
-HTTP 200, then run all 40 actual outcomes; no readiness marker before passing.
+Independently reviewed prompt clarification distinguishes explicit item counts
+and product identity. A further reviewed optimization keeps both real model
+calls but shortens final-decision context, retaining actual native call/result
+linkage and full facts. Offline self-test and focused adapter/inference checks
+are running in `99308`. Parser/sampling/deadlines/answers/gates unchanged.
+**Next:** commit reviewed compact-context source; prepare a unique report, check
+health 200, run one mandatory default first, then remaining cases only if it
+passes. No readiness marker before both suites pass. Restart API with qualified
+source before integration.
 
 ## Remaining delivery
 

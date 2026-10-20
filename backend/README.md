@@ -1,27 +1,19 @@
 # Local backend foundation
 
-This implements the deterministic SpendConsent authority and checkout-domain foundation. Actual AI
-comparison is unavailable: normal create/clarify calls save the request and return
-HTTP 503 `MODEL_UNAVAILABLE` with its `request_id`. GET reconstructs the saved
-canonical request envelope. There is no canned successful AI response. Every
-financial capability is false. A sandbox-only REST adapter is implemented and independently
-reviewed, but remains unwired: there is no runtime client loader or private `.env`
-loading. Domain tests use injected provider fakes; adapter tests mock the actual
-urllib opener and forbid HTTPS connections. No actual PayPal HTTP or financial
-operation was used for this checkpoint. The application server is not started by setup.
+Local Django/DRF/PostgreSQL authority and default-off actual-model/sandbox runtime.
+Tests use clearly labeled model/provider doubles and never prove actual AI quality
+or real payment. Current evidence and unfinished gates live in
+[PROJECT_CONTEXT.md](../PROJECT_CONTEXT.md).
 
-The actual-model adapter and application wiring passed independent review and
-were privately synchronized as `1cd99bc`. They stay off by default: eligibility requires the explicit
-server-side enable setting, an owner-only readiness marker matching the adapter
-source/model, and healthy fixed loopback model transport. No qualification marker
-has been granted. Independent verification passes 79 real-PostgreSQL tests in 26.018 seconds: the prior
-56 plus 16 mocked model-adapter and seven mocked application-wiring checks.
-These tests run no actual inference and prove no model quality or full journey.
-The distinct [application-protocol qualification](../docs/ai-application-evaluation.md)
-uses a dummy database and frozen in-memory catalog. Its separately authorized
-first actual case failed in 39.859 seconds because the model omitted an explicitly
-stated cloth height. The failed 1/40 partial report is preserved; further calls
-stopped because a mandatory default case failed. All fresh cases remain unrun.
+Actual AI requires an explicit server enable flag, an owner-only readiness marker
+matching the qualified adapter/model, and healthy loopback inference. No marker
+has been granted. The [application qualification protocol](../docs/ai-application-evaluation.md)
+uses frozen in-memory offers with a dummy database; it qualifies model behavior,
+not persistence/browser latency. Preserved failed reports remain evidence.
+
+The sandbox runtime independently requires owner-only configuration and concrete
+human action-time permission. Default startup neither loads private PayPal
+credentials nor makes financial calls. See [runtime boundaries and setup](../docs/paypal-runtime-plan.md).
 
 Run these commands from the repository root with the installed Python 3.12, uv and
 PostgreSQL 16 binaries. Installation downloads free open-source Python packages;

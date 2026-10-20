@@ -58,6 +58,7 @@ def commit():
 def checkpoint():
     return {"sources": {name: sha(name) for name in SOURCES}, "configuration": agent.PRESET,
             "endpoint": agent.ENDPOINT, "system_sha256": hashlib.sha256(agent.SYSTEM.encode()).hexdigest(),
+            "final_system_sha256": hashlib.sha256(agent.FINAL_SYSTEM.encode()).hexdigest(),
             "tool_schema_sha256": hashlib.sha256(json.dumps(agent.TOOL, sort_keys=True).encode()).hexdigest(),
             "final_schema": agent.FINAL_SCHEMA, "expected_model_artifact": ai_probe.MODEL_4B_PROVENANCE,
             "runtime_artifact_verification": "Separate team-lead runtime/download evidence; not attested by this runner.",
