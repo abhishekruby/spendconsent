@@ -225,3 +225,10 @@ checks the literal values against the text and converts in code. Review fixes:
 each number takes the unit written right after it, budgets must be whole cents
 of at least 1, raw sizes may be in a smaller unit. Blind suite `unseen4`
 (`ai-application-unseen-52ad168.json`) by a separate agent; six suites, 120 outcomes.
+
+**4158aba (sources identical to ef89dff): all six suite gates passed.** Original
+20/20 (warm 25.7 s), regression 20/20 (30.8 s), exposed 808472c 18/20 (33.9 s),
+exposed a12decc 18/20 (38.0 s), exposed 168eee7 20/20 (37.3 s), blind 52ad168
+18/20 (36.4 s); maximum 55.3 s. Failures preserved in the report. This qualifies
+the isolated protocol only; browser, persistence, payment and usefulness gates
+remain separate.
