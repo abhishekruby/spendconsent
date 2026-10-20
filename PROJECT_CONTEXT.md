@@ -1,7 +1,8 @@
 # SpendConsent — compact handoff
 
 Updated 21 Oct 2026, 03:30 IST, by Claude Code. Claude and ChatGPT/Codex
-alternate on this repo: read AGENTS.md, then this file. History:
+alternate on this repo: read AGENTS.md, then this file. Latest session summary:
+docs/handoff-codex-2026-10-21.md. History:
 PROJECT_CONTEXT_HISTORY.md, docs/progress.md, docs/ai-application-evaluation.md.
 
 ## Scope and authorization
