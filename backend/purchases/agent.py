@@ -211,6 +211,10 @@ def _arguments(value):
     attributes = value["attributes"]
     if not isinstance(attributes, dict) or set(attributes) != _ATTRIBUTE_NAMES:
         raise AgentError()
+    # The flat grammar lets the model write 0 or "" as an empty placeholder for a
+    # key it means to leave unset. Neither is ever a valid specification.
+    attributes = value["attributes"] = {key: None if item == 0 and type(item) is int or item == "" else item
+                                        for key, item in attributes.items()}
     for key, item in attributes.items():
         if item is None:
             continue

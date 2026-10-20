@@ -206,6 +206,17 @@ class AgentTests(TransactionTestCase):
             result = agent.compare("Buy 5 spray bottles of 0.5 L, $20 maximum, one-time.")
         self.assertEqual(result["constraints"]["attributes"], {"volume_ml": 500})
 
+    def test_empty_attribute_placeholders_mean_unset(self):
+        placeholders = arguments(category="bottle", quantity=7, attributes={
+            "capacity_l": 0, "height_cm": 0, "paper_size": "", "volume_ml": 250, "width_cm": 0})
+        with self.http(placeholders):
+            result = agent.compare("Seven 250 ml spray bottles, at most USD 50.00, one-time.")
+        self.assertEqual(result["constraints"]["attributes"], {"volume_ml": 250})
+        with self.http(arguments(attributes={"width_cm": 0, "height_cm": 40})):
+            result = agent.compare(TEXT)
+        self.assertEqual(result["status"], "NEEDS_CLARIFICATION")
+        self.assertEqual(result["clarification"]["missing_fields"], ["attributes.width_cm"])
+
     def test_complete_attribute_protocol_preserves_unknowns_and_dimension_order(self):
         with self.http(arguments(attributes={"width_cm": 35})):
             result = agent.compare("Exactly 40 microfiber cloths, width 35 cm, at most $60 delivered, one-time only.")
