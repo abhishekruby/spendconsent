@@ -253,6 +253,15 @@ class AnonymousAPITests(TestCase):
         return {"text": "Exactly 40 cloths, 40 by 40 cm, at most $60 delivered. One time.",
                 "client_submission_id": str(uuid.uuid4()), "constraints": deepcopy(CONSTRAINTS)}
 
+    def test_material_offer_change_shows_existing_approval_as_no_longer_valid(self):
+        request = ready_request(self.owner)
+        review = make_review(request)
+        make_approval(review)
+        status = lambda: self.client.get(f"/api/requests/{request.id}").json()["approval"]["status"]
+        self.assertEqual(status(), "APPROVED")
+        call_command("set_offer_price", review.snapshot["item"]["sku"], review.snapshot["subtotal_cents"], stdout=io.StringIO())
+        self.assertEqual(status(), "REVOKED")
+
     def test_bootstrap_and_unavailable_request_persist_refresh_id_without_fake_ai(self):
         initial = self.client.get("/api/session").json()
         self.assertEqual(initial["capabilities"], {"ai_ready": False, "paypal_ready": False, "financial_actions_enabled": False})

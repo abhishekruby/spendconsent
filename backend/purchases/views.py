@@ -10,7 +10,7 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.views import exception_handler as drf_exception_handler
 from . import checkout, inference, runtime_paypal, serializers, services
-from .models import Approval, PaymentAttempt, PurchaseRequest
+from .models import Approval, Offer, PaymentAttempt, PurchaseRequest
 
 
 def error(code, message, status, **extra):
@@ -89,6 +89,11 @@ def validated(schema, request):
 def approval_data(approval):
     now = timezone.now()
     status = "REVOKED" if approval.revoked_at else "EXPIRED" if now >= approval.expires_at else "APPROVED"
+    # A material offer change (price, stock terms...) bumps the quote version. Checkout
+    # already rejects it; show the approval as no longer valid instead of "approved".
+    if status == "APPROVED" and Offer.objects.filter(id=approval.review.offer_id).exclude(
+            version=approval.review.quote_version).exists():
+        status = "REVOKED"
     if hasattr(approval, "attempt"):
         status = "CONSUMED"
     return {"id": str(approval.id), "review_id": str(approval.review_id), "approved_at": approval.approved_at,
