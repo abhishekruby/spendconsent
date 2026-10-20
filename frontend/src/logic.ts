@@ -16,6 +16,8 @@ export function unitCost(cents: number, units: number): string {
 }
 export const pending = (attempt: Attempt | null) => !!attempt && ['CREATING', 'CAPTURING', 'VERIFYING', 'UNKNOWN'].includes(attempt.state);
 export const locksRequest = (request: PurchaseRequest | null) => !!request?.attempt && request.attempt.state !== 'STOPPED';
+// A finished (PAID) or stopped purchase allows a new request; uncertain ones never do.
+export const canStartNew = (request: PurchaseRequest | null) => !request?.attempt || ['STOPPED', 'PAID'].includes(request.attempt.state);
 export function permitted(attempt: Attempt, action: Action, financialEnabled: boolean): boolean {
   if (['PAID', 'STOPPED'].includes(attempt.state)) return false;
   if (attempt.state === 'PAYMENT_REVIEW' && action !== 'check_status') return false;

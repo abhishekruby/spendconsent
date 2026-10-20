@@ -232,3 +232,17 @@ exposed a12decc 18/20 (38.0 s), exposed 168eee7 20/20 (37.3 s), blind 52ad168
 18/20 (36.4 s); maximum 55.3 s. Failures preserved in the report. This qualifies
 the isolated protocol only; browser, persistence, payment and usefulness gates
 remain separate.
+
+## AI round 2 — 21 October 2026
+
+Adapter e069354 + review fixes eaaa3f9 (independent reviews PASS): the final
+call is given `recommended_offer_id` (52ad168-01 had copied a later offer);
+an undecided or negated paper size is asked; a bare size number among several
+written units is asked; an explicitly excluded product ("labels, not
+notebooks") is NO_MATCH. A separate agent authored blind suite `unseen5`
+(`ai-application-unseen-e069354.json`) against frozen e069354; the implementer
+did not read it before inference. Report `92fe770` (seven suites, 140 outcomes):
+**every suite 20/20**; warm medians 20.4, 21.5, 26.1, 27.8, 31.9, 31.9, 28.7 s;
+maximum 44.0 s. Readiness granted with `grant_ai_readiness` (report-checked).
+unseen5 is now exposed. Real-app smoke test after restart: label-sheet request
+NO_MATCH (25.1 s), sample cloth request READY CLOTH-B/CLOTH-A (29.9 s).

@@ -4,7 +4,7 @@ import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { Api, ApiError, safeApiError } from '../.test-build/api.js';
 import { isAttempt, isConstraints, isPurchaseRequest, isSession } from '../.test-build/contract.js';
-import { locksRequest, money, newerAttempt, newerRequest, parseCents, pending, permitted, unitCost } from '../.test-build/logic.js';
+import { canStartNew, locksRequest, money, newerAttempt, newerRequest, parseCents, pending, permitted, unitCost } from '../.test-build/logic.js';
 import { Offer, PaymentStatus, PayPalCheckout, ReviewCard, paymentTransitionNotice } from '../.test-build/App.js';
 
 // Explicit local test fixtures only. The running application has no seeded results.
@@ -55,6 +55,9 @@ test('unknown, mismatched and terminal payment states never enable a fresh finan
   assert.equal(permitted({ ...attempt, state: 'PAID', allowed_actions: ['capture'] }, 'capture', true), false);
   assert.ok(locksRequest({ ...request, attempt }));
   assert.equal(locksRequest({ ...request, attempt: { ...attempt, state: 'STOPPED' } }), false);
+  for (const state of ['STOPPED', 'PAID']) assert.ok(canStartNew({ ...request, attempt: { ...attempt, state } }), state);
+  for (const state of ['UNKNOWN', 'PAYMENT_REVIEW', 'AWAITING_BUYER', 'CAPTURING']) assert.equal(canStartNew({ ...request, attempt: { ...attempt, state } }), false, state);
+  assert.ok(canStartNew(null));
   assert.equal(newerRequest(request, { ...request, version: 3 }).version, 4);
   assert.equal(newerRequest(request, { ...request, review: { ...review, version: 1 } }).review.version, 2);
   const paid = { ...attempt, state: 'PAID', updated_at: '2026-10-18T00:01:00Z' };

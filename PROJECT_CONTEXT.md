@@ -1,6 +1,6 @@
 # SpendConsent — compact handoff
 
-Updated 21 Oct 2026, 02:50 IST, by Claude Code. Claude and ChatGPT/Codex
+Updated 21 Oct 2026, 04:00 IST, by Claude Code. Claude and ChatGPT/Codex
 alternate on this repo: read AGENTS.md, then this file. History:
 PROJECT_CONTEXT_HISTORY.md, docs/progress.md, docs/ai-application-evaluation.md.
 
@@ -41,15 +41,18 @@ Deadline 12 Nov 2026 noon PST (13 Nov 01:30 IST).
   no shipping.options (SHIPPING_OPTIONS_NOT_SUPPORTED), definitive create
   declines, advisory SDK eligibility; `.env` now uses a **US** sandbox business
   account (India one gave UNSUPPORTED_PAYEE_CURRENCY). API runs with AI+PayPal on.
-- **AI round 2 (in progress):** e069354 + review fixes eaaa3f9 (review PASS):
-  final call gets `recommended_offer_id`; undecided/negated paper size, bare
-  size among several units → asked; "labels, not notebooks" → NO_MATCH. New
-  blind suite e069354 (unseen5) by a separate author. Qualification run on
-  92fe770 → `docs/evidence/ai-application-qualification-92fe770.json`, log
-  `.runtime/logs/qualify-92fe770.log` (7 suites, 140 outcomes). **AI readiness
-  is OFF until it passes** (marker bound to agent.py hash). If it fails: keep
-  the report, do not tune on unseen5; fallback = restore agent.py from 4158aba
-  (marker hash matches again).
+- **AI round 2 QUALIFIED:** e069354 + review fixes eaaa3f9 (reviews PASS):
+  `recommended_offer_id` in final call; undecided/negated paper size and bare
+  size among several units → asked; "labels, not notebooks" → NO_MATCH.
+  Report 92fe770: **all 7 suites 20/20 (140/140)**, warm medians 20–32 s, max
+  44 s. Readiness granted via `grant_ai_readiness`; API restarted (AI+PayPal
+  flags); real-app smoke test passed. Blind suite unseen5 (e069354) is now
+  exposed: any further agent.py change needs a NEW blind suite.
+- **Operator commands:** `grant_ai_readiness <report>` (checks report + all
+  hashed backend sources); `authorize_sandbox_purchase` (shows exact cart,
+  person types the total, writes one-time permission; TTY only). Review PASS.
+- README rewritten for judges; Devpost draft in docs/submission-draft.md.
+- UI: a PAID or STOPPED purchase now allows a new request (uncertain still blocks).
 
 ## Live processes (detached; logs in .runtime/logs/)
 
@@ -59,13 +62,10 @@ Project PostgreSQL (`scripts/local_postgres.py --start`), model 127.0.0.1:11435
 
 ## Next actions (in order)
 
-1. Finish AI round 2: read the 92fe770 report; if all 7 gates pass, write
-   `.runtime/backend/ai-ready.json` with the new agent.py hash, restart the API
-   with AI on, record evidence, mark unseen5 exposed.
-2. Recovery checks against the real sandbox (cancel in popup, refresh mid-flow,
+1. Recovery checks against the real sandbox (cancel in popup, refresh mid-flow,
    double click), each with fresh user consent. Leftover attempts b9f38bd9 /
    0db00f4d are documented and cannot capture; left as is.
-3. Usability study (docs/usability-evaluation.md, needs real participants),
+2. Usability study (docs/usability-evaluation.md, needs real participants),
    demo video (docs/demo-script.md), public repo + Devpost — each needs user
    approval. Accessibility spot check (R11) passed 21 Oct; UI duplicate fixed;
    only the current review is shown, so no superseded-review work is needed.

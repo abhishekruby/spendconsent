@@ -1,5 +1,13 @@
 # Progress — project log
 
+## 21 October 2026, 04:00 IST: AI round 2 qualified (140/140)
+
+- Report 92fe770: seven suites (blind unseen5 by a separate author) all 20/20;
+  warm medians 20–32 s. Readiness granted via the new report-checked
+  `grant_ai_readiness`; typed-consent `authorize_sandbox_purchase` added
+  (independent review PASS, fixes applied). Judge README + Devpost draft.
+  UI now allows a new request after PAID/STOPPED. 102 backend + frontend tests pass.
+
 ## 21 October 2026, 02:40 IST: AI round 2, accessibility re-check
 
 - Adapter e069354 + review fixes eaaa3f9 (independent review PASS, no blockers):

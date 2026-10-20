@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { FormEvent, ReactNode } from 'react';
 import { Api, ApiError } from './api.js';
 import type { Attempt, Candidate, Charges, Constraints, Evidence, PurchaseRequest, Review, Session } from './contract.js';
-import { locksRequest, money, newerAttempt, newerRequest, parseCents, pending, permitted, unitCost } from './logic.js';
+import { canStartNew, locksRequest, money, newerAttempt, newerRequest, parseCents, pending, permitted, unitCost } from './logic.js';
 import { PayPalError, preparePayPal } from './paypal.js';
 
 const sample = 'Find exactly 40 microfiber cloths, 40 × 40 cm, under $60 including delivery and tax. One-time purchase only.';
@@ -180,11 +180,11 @@ export function App() {
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!text.trim() || !session || busy || recoveryBlocked || locksRequest(request)) return;
+    if (!text.trim() || !session || busy || recoveryBlocked || requestLocked) return;
     if (submission.current?.text !== text) submission.current = { text, id: crypto.randomUUID() };
     void mutate('/api/requests', { text, client_submission_id: submission.current.id }, session.capabilities.ai_ready ? 'Waiting for actual AI comparison' : 'Saving your request');
   }
-  const requestLocked = locksRequest(request);
+  const requestLocked = locksRequest(request) && !(draftMode && canStartNew(request));
   const title = draftMode || !request ? 'What supplies do you need?' : titles[request.status];
 
   return <>
@@ -204,7 +204,7 @@ export function App() {
           <div className="context-note"><strong>Sample merchant catalog</strong><p>Fictional goods, prices, delivery and tax. One item per cart. USD, one-time purchases.</p></div>
           {request && <section className="request-context"><h2>Current request</h2><p className="request-text">{request.text}</p><p className="muted">Request {idShort(request.id)} · Version {request.version}</p><ConstraintSummary constraints={request.constraints} />
             <button className="secondary" aria-disabled={!!busy} onClick={() => void refresh()}>Reload saved status</button>
-            {!requestLocked && !recoveryBlocked && <button className="text-button" disabled={!!busy} onClick={() => { submission.current = null; setText(''); setDraftMode(true); setError(null); setNotice('Describe a new request. It is saved only when you submit.'); }}>Start a new request</button>}
+            {canStartNew(request) && !recoveryBlocked && <button className="text-button" disabled={!!busy} onClick={() => { submission.current = null; setText(''); setDraftMode(true); setError(null); setNotice('Describe a new request. It is saved only when you submit.'); }}>Start a new request</button>}
           </section>}
           <p className="boundary-note">App approval and PayPal buyer approval are separate. Payment is confirmed only after the server verifies it.</p>
         </aside>
