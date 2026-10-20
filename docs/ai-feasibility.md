@@ -8,7 +8,7 @@ The application uses Qwen3-4B Q4_K_M, not the historical 1.7B experiments below.
 Weights are 2,497,280,256 bytes (about 2.50 GB / 2.33 GiB); the CPU archive is
 17,883,307 bytes and extracts to about 45 MiB. Allow additional space for Python,
 Node, PostgreSQL data and download scratch files. Tested on Ubuntu Linux x86-64
-with about 7.6 GiB RAM; memory pressure and other laptop work affect latency.
+with about 7.4 GiB usable RAM; memory pressure and other laptop work affect latency.
 Local inference has no API token quota, trial expiry, account, card or hosting
 charge. Initial public downloads need internet; ordinary runs reuse local files.
 Weights/template are Apache-2.0; llama.cpp is MIT. Retain their own notices.
@@ -48,9 +48,10 @@ PY
 The template intentionally comes from the pinned original Qwen3 tokenizer,
 shared with the earlier experiment; it is not a 1.7B weight download. On 20 October
 the pinned metadata produced exactly the existing 4,168-byte template/hash above.
-The exclusive `xb` write refuses to overwrite any existing template. The archive
-layout and existing runtime/model/template hashes were verified locally; this
-recipe has not yet been validated as a complete clean-machine install.
+The exclusive `xb` write refuses to overwrite any existing template. The verified archive was freshly extracted in a temporary directory: its binary
+hash matched and `--version` succeeded. Existing model bytes and the exact
+documented template extraction were verified without redownloading the weights.
+This recipe has not yet been validated as a complete clean-machine install.
 
 Start one model process in its own terminal; reuse an already verified live
 process instead of starting another. Never change these parameters mid-report.

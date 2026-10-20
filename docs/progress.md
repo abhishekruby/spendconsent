@@ -303,3 +303,13 @@ The user explicitly authorized implementation of the current SpendConsent PRD, t
 - Independent checkpoint review passed 24 Markdown files' local links/anchors, fences and whitespace, both offline self-tests, the shared 90-second probe deadline, runtime/model metadata, ignore rules, contract consistency and diagram visual QA.
 - The probe SHA-256 is `ea312070eab8a95c04d65db46f30ecc3f383bc5b5af02f855366bac9473504a7`. Runtime/model downloads stay ignored. Actual AI accuracy/latency remains pending; no successful inference or application/payment readiness is claimed.
 - Stage 0 is approved for private synchronization. Next gate: verified actual inference against the fixed repeated fixtures, preserving failures and measured timings.
+
+
+## Compact AI trial preserved — 20 October 2026
+
+Original suite passed 18/20 and timing; fresh failed (7/11 completed, four failures,
+one interrupted). Preserved `docs/evidence/ai-application-qualification-2f05695.json`;
+no readiness or financial action. Merchant configuration validates privately.
+Fresh tracked-source/backend dependencies and isolated PostgreSQL passed all 91
+tests; cached archive/template reproduction verified. Next: reviewed category
+protocol revision, retaining old gates and freezing new unseen cases afterward.

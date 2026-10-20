@@ -19,7 +19,7 @@ financial consent and no-publication boundaries remain in AGENTS.md.
 ## Verified checkpoint
 
 - Private repository: https://github.com/abhishekruby/paypal-ai-hackathon-2026;
-  visibility reverified PRIVATE today. Private main `2f05695` pushed and remote SHA verified.
+  visibility reverified PRIVATE today. Source `2f05695` and docs `721ddae` privately pushed/verified.
 - Django/PostgreSQL exact authority, immutable reviews, approval/reservation,
   dispatch/recovery and default-off sandbox runtime: 91 owner-suite tests passed.
   Independent combined review passed 11 runtime and 26 checkout/race tests plus
@@ -48,23 +48,31 @@ unknown-timing interruption) and `...-a7f7904.json` (default timeout 90.037 s,
 correct native arguments, next attempt interrupted). Fresh cases unrun in both.
 See [AI protocol](docs/ai-application-evaluation.md) for raw evidence and limits.
 
-Reviewed compact-context source `2f05695` keeps both real model calls, actual
-native call/result linkage, full facts and all scoring/deadline gates. Offline
-self-test plus 24 focused adapter/application checks passed. New report
-`docs/evidence/ai-application-qualification-2f05695.json`: first default passed
-72.978 s. Remaining 39 cases are running in terminal `47821`, after explicit
-health HTTP 200. This resumed report spans a model-process break; disclose it.
-**Next:** resume evaluator handle, preserve all outcomes, and assess each suite
-independently. No marker before both pass. Restart API with qualified source
-before actual browser integration.
+Reviewed compact-context source `2f05695` kept both real model calls and all
+gates. Its preserved report passed original 18/20 (warm median 55.952s; both
+defaults correct) but failed fresh: 7/11 completed, four failures, plus one
+interrupted attempt with unknown timing. The evaluator `47821` stopped; do not
+resume it. This report spans a model-process break and shared verification load.
+No readiness marker was granted. Product/attribute schema confusion and misuse
+of missing facts as unsupported extras motivate the next reviewed protocol.
 
-Fresh artifact/bootstrap instructions are being reviewed; exact documented
-pinned-template extraction/hash and overwrite refusal passed with existing model
-bytes. Full clean-machine setup remains unverified.
+**Next:** category-specific nullable tool attributes and closed full product
+labels, mapped to canonical codes only inside catalog search. Preserve all old
+answers/gates as regression suites. After adapter freeze, independently author
+new unseen cases; all three suites must independently pass 18/20, warm <60s,
+with both original defaults correct. No inference before review/private commit.
+
+Fresh artifact docs reviewed. Verified cached archive extraction/runtime version
+and exact pinned template/hash/overwrite refusal. Isolated fresh backend venv
+passes locked install/check/migration drift; a fresh tracked checkout/isolated
+PostgreSQL database passed all 91 backend tests (48.726s); fresh frontend install passes nine
+core groups, SDK offline check and build using installed Node22. Model download
+and complete clean-machine setup remain unverified. One mistaken npm-exec
+installer invocation was stopped; repo locks/global Node are unchanged.
 
 ## Remaining delivery
 
-1. Independently pass original and fresh AI suites: >=18/20 each, warm median
+1. Independently pass original, regression and new unseen AI suites: >=18/20 each, warm median
    <60s, both original defaults correct; preserve every failure.
 2. Actual browser request → comparison → exact review → approval.
 3. Finish real SDK/merchant verification; default off without exact permission.

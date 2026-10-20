@@ -115,3 +115,22 @@ final schema/equality, native argument validation, model/sampling/deadline and
 all original/fresh gates remain unchanged. The checkpoint also hashes the new
 final system instruction. Start with one measured default; only proceed with
 the remaining suite if that mandatory case succeeds. Performance is unproven.
+
+
+### Compact-context trial: original passed, fresh failed (20 October)
+
+`ai-application-qualification-2f05695.json` preserves original 18/20, both
+mandatory defaults correct, warm median 55.952s and maximum 72.978s. The fresh
+suite stopped once its gate was impossible: seven correct among eleven completed
+outcomes, four completed failures and one interrupted attempt with unknown time.
+Its numerical median 58.318s is not a passed latency gate. Two failures were
+argument-validation failures with discarded invalid bodies; their precise cause
+is unknown. Other failures involved an irrelevant bottle capacity field and a
+missing cloth height incorrectly marked as an unsupported extra. Original
+unknown-product cases also failed canonical grounding. All evidence remains.
+
+The run spans a model-process break and concurrent setup/backend checks, so it
+is not an isolated or continuous benchmark. Runtime model/template/binary hashes
+were verified before continuation and health returned HTTP 200. No AI readiness
+marker was granted. The next protocol revision will keep these cases and answers
+as independent regression gates and add unseen cases only after source freeze.
