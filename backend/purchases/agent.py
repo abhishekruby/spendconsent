@@ -27,15 +27,27 @@ _INFERENCE = threading.Lock()
 _FIELDS = ("category", "quantity", "budget_cents", "currency", "one_time",
            "attributes", "unsupported_requirements")
 _ATTRIBUTE_NAMES = {name for names in ATTRIBUTES.values() for name in names}
+# The model copies amounts and sizes exactly as written; code does every unit and
+# cents conversion (the 4B model repeatedly mis-scaled 60.00 USD or 0.5 litre).
+_NATIVE_FIELDS = ("category", "quantity", "budget", "currency", "one_time", "size_unit",
+                  "attributes", "unsupported_requirements")
+_NATIVE_ATTRIBUTES = {"width": "width_cm", "height": "height_cm", "capacity": "capacity_l",
+                      "volume": "volume_ml", "paper_size": "paper_size"}
+_SIZE_UNITS = ("cm", "m", "mm", "l", "ml")
+# Canonical key -> factor from each written unit that measures that dimension.
+_CONVERT = {"width_cm": {"cm": 1, "m": 100, "mm": 0.1}, "height_cm": {"cm": 1, "m": 100, "mm": 0.1},
+            "capacity_l": {"l": 1, "ml": 0.001}, "volume_ml": {"ml": 1, "l": 1000}}
+_DEFAULT_UNIT = {"width_cm": "cm", "height_cm": "cm", "capacity_l": "l", "volume_ml": "ml"}
 _NATIVE_CATEGORIES = {"microfiber cloth": "cloth", "waste bag": "bag", "spray bottle": "bottle",
                       "notebook": "notebook", "unsupported": "unsupported", None: None}
 _ATTRIBUTE_SCHEMA = {
-    key: {"type": ["string" if key == "paper_size" else "integer", "null"]}
-    for key in sorted(_ATTRIBUTE_NAMES)}
+    key: {"type": ["string" if key == "paper_size" else "number", "null"]}
+    for key in sorted(_NATIVE_ATTRIBUTES)}
 _TOOL_PROPERTIES = {
         "category": {"description": "Actual requested product: microfiber cloth, waste bag, spray bottle, notebook, unsupported for any other product, or null if unspecified. Never substitute based on matching dimensions."},
         "quantity": {"type": ["integer", "null"], "description": "Explicit individual-item count only, never packs, dimensions or a price. No stated item count means null, never 1; preserve all digits."},
-        "budget_cents": {"type": ["integer", "null"], "description": "Full delivered budget in integer cents: $12.34 = 1234; unknown = null."},
+        "budget": {"type": ["number", "null"], "description": "Full delivered budget amount exactly as written, never converted: 'USD 59.40' = 59.40, '$60' = 60; unknown = null."},
+        "size_unit": {"type": ["string", "null"], "enum": [*_SIZE_UNITS, None], "description": "Unit the buyer wrote for the size numbers: cm, m, mm, l (litres) or ml; null if no size unit was written."},
         "currency": {"type": ["string", "null"], "description": "Actual requested currency; $ means USD; euros means EUR. Never convert currencies."},
         "one_time": {"type": ["boolean", "null"], "description": "True only if buyer requires one-time terms; false for recurring; null when unspecified."},
         "unsupported_requirements": {"type": "array", "items": {"type": "string"}, "maxItems": 8,
@@ -49,9 +61,9 @@ TOOL = {"type": "function", "function": {
     "parameters": {"type": "object", "properties": {
         **_TOOL_PROPERTIES, "category": {**_TOOL_PROPERTIES["category"], "enum": list(_NATIVE_CATEGORIES)},
         "attributes": {"type": "object", "properties": _ATTRIBUTE_SCHEMA,
-                       "required": sorted(_ATTRIBUTE_NAMES), "additionalProperties": False,
-                       "description": "All five keys. Only the requested product's keys may be non-null; missing values are null. Preserve both stated cloth dimensions in order."}},
-        "required": list(_FIELDS), "additionalProperties": False}}}
+                       "required": sorted(_NATIVE_ATTRIBUTES), "additionalProperties": False,
+                       "description": "All five keys. Copy each stated size number exactly as written, never converted (0.5 litre = volume 0.5 with size_unit l). Only the requested product's keys may be non-null; missing values are null. Cloth: width then height."}},
+        "required": list(_NATIVE_FIELDS), "additionalProperties": False}}}
 FINAL_SCHEMA = {"type": "object", "properties": {
     "status": {"type": "string", "enum": ["READY", "NO_MATCH", "NEEDS_CLARIFICATION"]},
     "offer_id": {"type": ["string", "null"]}},
@@ -66,13 +78,12 @@ any other product, or null if no product is stated. Matching dimensions never
 make an unsupported product supported. Quantity comes only from
 an explicit item count; dimensions, budget and one-time terms do not supply a
 quantity, and missing quantity is null, never 1.
-Include exactly the category's attribute keys: microfiber cloth width_cm and
-height_cm; waste bag capacity_l; spray bottle volume_ml; notebook paper_size;
-unsupported or null category uses {}. Missing applicable values stay null.
-For cloth dimensions, preserve both stated dimensions in order as width_cm and
-height_cm. Never infer an unstated dimension from another dimension.
-Units: width_cm/height_cm in centimetres, capacity_l in litres, volume_ml in
-millilitres (1 litre = 1000 ml). Non-applicable attribute keys stay null.
+Attributes: microfiber cloth width and height; waste bag capacity; spray bottle
+volume; notebook paper_size. Other keys stay null; missing applicable values stay
+null. Preserve both stated cloth dimensions in order as width and height. Never
+infer an unstated dimension from another dimension.
+Copy every number exactly as the buyer wrote it, with its unit in size_unit and
+the budget as written; never convert units or currency amounts yourself.
 The confirmed_constraints object is human authority: preserve every confirmed
 value, expressing its canonical category as the corresponding product label.
 Never substitute another item, currency, size, quantity, budget or terms.
@@ -196,26 +207,32 @@ class _DeadlineConnection(http.client.HTTPConnection):
         super().send(data)
 
 
+def _number(item, maximum):
+    return type(item) in (int, float) and 0 < item <= maximum
+
+
 def _arguments(value):
-    if not isinstance(value, dict) or set(value) != set(_FIELDS):
+    if not isinstance(value, dict) or set(value) != set(_NATIVE_FIELDS):
         raise AgentError()
     if value["category"] is not None and (not isinstance(value["category"], str) or value["category"] not in _NATIVE_CATEGORIES):
         raise AgentError()
     currency = value["currency"]
     if currency is not None and (not isinstance(currency, str) or not currency.strip() or len(currency) > 8):
         raise AgentError()
-    for key, maximum in (("quantity", 10000), ("budget_cents", 1000000)):
-        item = value[key]
-        if item is not None and (type(item) is not int or not 1 <= item <= maximum):
-            raise AgentError()
+    if value["quantity"] is not None and (type(value["quantity"]) is not int or not 1 <= value["quantity"] <= 10000):
+        raise AgentError()
+    if value["budget"] is not None and not _number(value["budget"], 10000):
+        raise AgentError()
+    if value["size_unit"] is not None and value["size_unit"] not in _SIZE_UNITS:
+        raise AgentError()
     if value["one_time"] is not None and type(value["one_time"]) is not bool:
         raise AgentError()
     attributes = value["attributes"]
-    if not isinstance(attributes, dict) or set(attributes) != _ATTRIBUTE_NAMES:
+    if not isinstance(attributes, dict) or set(attributes) != set(_NATIVE_ATTRIBUTES):
         raise AgentError()
     # The flat grammar lets the model write 0 or "" as an empty placeholder for a
     # key it means to leave unset. Neither is ever a valid specification.
-    attributes = value["attributes"] = {key: None if item == 0 and type(item) is int or item == "" else item
+    attributes = value["attributes"] = {key: None if type(item) in (int, float) and item == 0 or item == "" else item
                                         for key, item in attributes.items()}
     for key, item in attributes.items():
         if item is None:
@@ -223,7 +240,7 @@ def _arguments(value):
         if key == "paper_size":
             if not isinstance(item, str) or not 1 <= len(item) <= 20:
                 raise AgentError()
-        elif type(item) is not int or not 1 <= item <= 10000:
+        elif not _number(item, 10000):
             raise AgentError()
     extra = value["unsupported_requirements"]
     if not isinstance(extra, list) or len(extra) > 8 or any(
@@ -255,10 +272,6 @@ _USD = {"$", "US$", "USD", "US DOLLAR", "US DOLLARS", "DOLLAR", "DOLLARS"}
 _FOREIGN = (r"€|£|₹|\b(?:C|CA|A|AU|NZ|NT|HK|S|SG|MX|R|J|TT|B)\$|\b(?:EUR|euros?|GBP|pounds?|INR|rupees?|CAD|AUD|NZD|HKD|SGD|MXN|JPY|yen)\b"
             r"|\b(?:Canadian|Australian|Aussie|Kiwi|New Zealand|Hong Kong|Singapore|Mexican|Taiwan(?:ese)?|Jamaican)\s+dollars?\b")
 _METRIC = r"(?<![\d,.])(\d{1,6}(?:\.\d{1,6})?)\s*-?\s*(l|lt|litres?|liters?|ml|millilitres?|milliliters?|m|metres?|meters?|cm|centimetres?|centimeters?|mm|millimetres?|millimeters?)\b"
-# Unit-aware conversion: a stated unit only grounds the attribute it can measure.
-_UNIT_FACTORS = {"l": {"volume_ml": 1000, "capacity_l": 1}, "ml": {"volume_ml": 1, "capacity_l": 0.001},
-                 "m": {"width_cm": 100, "height_cm": 100}, "cm": {"width_cm": 1, "height_cm": 1},
-                 "mm": {"width_cm": 0.1, "height_cm": 0.1}}
 
 
 def _unit(word):
@@ -293,46 +306,66 @@ def _number_words(text):
     return found
 
 
-def _grounded(arguments, text):
-    """Null any extracted number the buyer never wrote; the buyer is then asked.
+def _grounded(native, text):
+    """Ground the model's as-written values in the buyer text, then convert them.
 
-    The model proposes values; only numbers literally present in the request
-    text survive. Budgets match $N as N*100 cents, or N*100-1 for "under $N".
-    Limit: this checks presence, not role; a number stated for another field can
-    still pass, so the human-confirmed requirements and exact review remain final.
+    Only numbers literally present in the request survive (digits or number
+    words); anything else becomes unknown and the buyer is asked. Code, never the
+    model, converts the budget to cents and sizes to centimetres/litres/millilitres.
+    A budget may be N or N-0.01 for "under N". Limit: this checks presence, not
+    role; human-confirmed requirements and the exact review remain final.
     """
     # Bounded digit runs: no float overflow from pathological input.
     numbers = {float(item.replace(",", "")) for item in re.findall(r"\d[\d,]{0,15}(?:\.\d{1,6})?", text)}
-    words = _number_words(text)
-    integers = {int(item) for item in numbers if item == int(item)} | words
-    cents = {round(item * 100) for item in numbers} | {item * 100 for item in words}
-    arguments = {**arguments, "attributes": dict(arguments["attributes"])}
-    if arguments["quantity"] not in integers:
-        arguments["quantity"] = None
-    if arguments["budget_cents"] not in cents | {item - 1 for item in cents}:
-        arguments["budget_cents"] = None
-    # A specification written next to a metric unit may be converted (0.5 L = 500 ml),
-    # but only into an attribute that measures that dimension.
-    converted = {}
-    for number, unit in re.findall(_METRIC, text, re.I):
-        for key, factor in _UNIT_FACTORS[_unit(unit)].items():
-            value = float(number) * factor
-            if abs(value - round(value)) < 1e-9:
-                converted.setdefault(key, set()).add(round(value))
-    for key, item in arguments["attributes"].items():
-        if type(item) is int and item not in integers | converted.get(key, set()):
-            arguments["attributes"][key] = None
-        # A paper size is grounded only when the buyer wrote it (A4, A5, A6).
-        elif type(item) is str and not re.search(rf"\b{re.escape(item)}\b", text, re.I):
-            arguments["attributes"][key] = None
+    numbers |= {float(item) for item in _number_words(text)}
+    cents = {round(item * 100) for item in numbers}
+    arguments = {"category": _NATIVE_CATEGORIES[native["category"]], "currency": native["currency"],
+                 "one_time": native["one_time"], "unsupported_requirements": native["unsupported_requirements"],
+                 "quantity": native["quantity"] if native["quantity"] in numbers else None,
+                 "budget_cents": None, "attributes": {}}
+    if native["budget"] is not None and round(native["budget"] * 100) in cents | {item - 1 for item in cents}:
+        arguments["budget_cents"] = round(native["budget"] * 100)
+    # The unit must be one the buyer wrote next to a number; otherwise use the only
+    # written unit that measures this dimension, else the attribute's own unit.
+    written = {_unit(unit) for _, unit in re.findall(_METRIC, text, re.I)}
+    for key, item in native["attributes"].items():
+        canonical = _NATIVE_ATTRIBUTES[key]
+        if item is None:
+            value = None
+        elif key == "paper_size":
+            # A paper size is grounded only when the buyer wrote it (A4, A5, A6).
+            value = item if re.search(rf"\b{re.escape(item)}\b", text, re.I) else None
+        elif float(item) not in numbers:
+            value = None
+        else:
+            options = written & set(_CONVERT[canonical])
+            unit = native["size_unit"] if native["size_unit"] in options else (
+                next(iter(options)) if len(options) == 1 else _DEFAULT_UNIT[canonical])
+            converted = item * _CONVERT[canonical][unit]
+            value = round(converted) if abs(converted - round(converted)) < 1e-9 and 1 <= round(converted) <= 10000 else None
+        arguments["attributes"][canonical] = value
     if (isinstance(arguments["currency"], str) and arguments["currency"].strip().upper() in _USD
             and not re.search(_FOREIGN, text, re.I)):
         arguments["currency"] = "USD"
     return arguments
 
 
+def native_example(arguments):
+    """Inverse of _grounded for synthetic tests: canonical arguments as the model writes them."""
+    units = {_DEFAULT_UNIT[key] for key, item in (arguments.get("attributes") or {}).items()
+             if key in _DEFAULT_UNIT and item is not None}
+    names = {canonical: key for key, canonical in _NATIVE_ATTRIBUTES.items()}
+    return {"category": arguments.get("category"), "quantity": arguments.get("quantity"),
+            "budget": None if arguments.get("budget_cents") is None else arguments["budget_cents"] / 100,
+            "currency": arguments.get("currency"), "one_time": arguments.get("one_time"),
+            "size_unit": units.pop() if len(units) == 1 else None,
+            "attributes": {**dict.fromkeys(_NATIVE_ATTRIBUTES), **{names.get(key, key): item for key, item in
+                                                                  (arguments.get("attributes") or {}).items()}},
+            "unsupported_requirements": arguments.get("unsupported_requirements", [])}
+
+
 def _search(arguments, confirmed, text):
-    arguments = _grounded({**arguments, "category": _NATIVE_CATEGORIES[arguments["category"]]}, text)
+    arguments = _grounded(arguments, text)
     raw_unsupported, ambiguous = _raw_policy(text, confirmed)
     proposed = {key: value for key, value in arguments.items()
                 if key not in ("attributes", "unsupported_requirements") and value is not None}

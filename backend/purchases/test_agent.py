@@ -24,19 +24,19 @@ TEXT = "Exactly 40 microfiber cloths, 40 by 40 cm, maximum $60 delivered includi
 
 
 def arguments(constraints=None, **changes):
+    """Canonical test constraints expressed as the model's as-written native call."""
     value = deepcopy(CONSTRAINTS if constraints is None else constraints)
     value = {key: value.get(key) for key in agent._FIELDS}
     value["unsupported_requirements"] = []
     value.update(changes)
     native = {"cloth": "microfiber cloth", "bag": "waste bag", "bottle": "spray bottle"}
     value["category"] = native.get(value["category"], value["category"])
-    value["attributes"] = {**dict.fromkeys(agent._ATTRIBUTE_NAMES), **(value["attributes"] or {})}
-    return value
-
+    return {**agent.native_example(value), **{key: item for key, item in value.items() if key not in agent._FIELDS}}
 
 def described(value):
     """Synthetic request text stating every number the mocked model extracts."""
-    numbers = [value.get("quantity"), value["budget_cents"] / 100 if value.get("budget_cents") else None,
+    budget = value.get("budget") or (value["budget_cents"] / 100 if value.get("budget_cents") else None)
+    numbers = [value.get("quantity"), budget,
                *[item for item in (value.get("attributes") or {}).values() if item is not None]]
     return "Synthetic one-time supply request: " + ", ".join(str(item) for item in numbers if item is not None) + "."
 
@@ -114,14 +114,15 @@ class AgentTests(TransactionTestCase):
                 self.assertEqual(len(fake.bodies), 2)
                 self.assertEqual(fake.bodies[0]["tools"], [agent.TOOL])
                 parameters = fake.bodies[0]["tools"][0]["function"]["parameters"]
-                self.assertEqual(set(parameters["required"]), set(agent._FIELDS))
+                self.assertEqual(set(parameters["required"]), set(agent._NATIVE_FIELDS))
                 self.assertFalse(parameters["additionalProperties"])
                 self.assertNotIn("oneOf", json.dumps(parameters))
                 schema = parameters["properties"]["attributes"]
-                self.assertEqual(set(schema["required"]), agent._ATTRIBUTE_NAMES)
+                self.assertEqual(set(schema["required"]), set(agent._NATIVE_ATTRIBUTES))
                 self.assertEqual(set(schema["properties"]), set(schema["required"]))
                 self.assertFalse(schema["additionalProperties"])
-                self.assertEqual({key: item for key, item in fake.value["attributes"].items() if item is not None}, attributes)
+                self.assertEqual({agent._NATIVE_ATTRIBUTES[key]: item for key, item in fake.value["attributes"].items()
+                                  if item is not None}, attributes)
                 self.assertTrue(all("null" in item["type"] for item in schema["properties"].values()))
                 self.assertEqual(agent._arguments(fake.value)["category"], fake.value["category"])
                 self.assertEqual(fake.bodies[1]["response_format"]["json_schema"]["schema"], agent.FINAL_SCHEMA)
@@ -198,7 +199,8 @@ class AgentTests(TransactionTestCase):
             self.assertNotIn("budget_cents", result["constraints"])
         with self.http(arguments()):
             self.assertIn(agent.compare(TEXT + " " + "9" * 400)["status"], {"READY", "NEEDS_CLARIFICATION", "NO_MATCH"})
-        bottle = arguments(category="bottle", quantity=5, budget_cents=2000, attributes={"volume_ml": 500})
+        bottle = {**arguments(category="bottle", quantity=5, budget_cents=2000), "size_unit": "l",
+                  "attributes": {**dict.fromkeys(agent._NATIVE_ATTRIBUTES), "volume": 0.5}}
         with self.http(bottle):
             result = agent.compare("Buy 5 spray bottles under $20, one-time.")
         self.assertNotIn("attributes", result["constraints"])
@@ -218,13 +220,23 @@ class AgentTests(TransactionTestCase):
         self.assertEqual(result["clarification"]["missing_fields"], ["attributes.width_cm"])
 
     def test_units_paper_size_and_recurrence_are_grounded_in_text(self):
-        wrong_units = arguments(category="bottle", quantity=30, budget_cents=5940,
-                                attributes={"capacity_l": 500, "volume_ml": 5000})
+        wrong_units = {**arguments(category="bottle", quantity=30, budget_cents=5940), "size_unit": "l",
+                       "attributes": {**dict.fromkeys(agent._NATIVE_ATTRIBUTES), "capacity": 500, "volume": 5000}}
         with self.http(wrong_units):
             result = agent.compare("Thirty spray bottles of 0.5-litre volume, at most USD 59.40, one-time.")
         self.assertEqual(result["status"], "NEEDS_CLARIFICATION")
         self.assertEqual(result["clarification"]["missing_fields"], ["attributes.volume_ml"])
-        with self.http(arguments(category="bottle", quantity=30, budget_cents=5940, attributes={"volume_ml": 500})):
+        # As written: 0.5 with unit l; code converts to 500 ml, even if the unit is omitted.
+        for unit in ("l", None, "ml"):
+            as_written = {**arguments(category="bottle", quantity=30, budget_cents=5940), "size_unit": unit,
+                          "attributes": {**dict.fromkeys(agent._NATIVE_ATTRIBUTES), "volume": 0.5}}
+            with self.subTest(unit=unit), self.http(as_written):
+                result = agent.compare("Thirty spray bottles of 0.5-litre volume, at most USD 59.40, one-time.")
+            self.assertEqual(result["constraints"]["attributes"], {"volume_ml": 500})
+        with self.http(arguments(category="bottle", quantity=30, budget_cents=59400)):
+            result = agent.compare("Thirty spray bottles of 0.5-litre volume, at most USD 59.40, one-time.")
+        self.assertNotIn("budget_cents", result["constraints"])
+        with self.http(as_written):
             result = agent.compare("Thirty spray bottles of 0.5-litre volume, at most USD 59.40, one-time.")
         self.assertEqual(result["constraints"]["attributes"], {"volume_ml": 500})
         stray = arguments(category="bottle", quantity=15, budget_cents=5000,
@@ -253,7 +265,7 @@ class AgentTests(TransactionTestCase):
         self.assertEqual(result["status"], "NO_MATCH")
         for key in CONSTRAINTS["attributes"]:
             value = arguments()
-            del value["attributes"][key]
+            del value["attributes"][{"width_cm": "width", "height_cm": "height"}[key]]
             with self.subTest(missing_attribute=key), self.http(value) as fake, patch.object(agent, "_search") as search:
                 with self.assertRaises(agent.AgentError) as caught:
                     agent.compare(TEXT)

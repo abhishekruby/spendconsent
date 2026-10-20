@@ -13,6 +13,7 @@ from datetime import datetime, timezone
 import hashlib
 import json
 import os
+import re
 from pathlib import Path
 import socket
 import statistics
@@ -355,8 +356,14 @@ def self_test():
             native = {"cloth": "microfiber cloth", "bag": "waste bag", "bottle": "spray bottle", "notebook": "notebook"}
             category = native.get(value["category"], "unsupported" if value["category"] is not None else None)
             applicable = agent.ATTRIBUTES.get(agent._NATIVE_CATEGORIES[category], ())
-            value = {**value, "category": category, "attributes": {
-                **dict.fromkeys(agent._ATTRIBUTE_NAMES), **(value["attributes"] if applicable else {})}}
+            value = agent.native_example({**value, "category": category,
+                                          "attributes": value["attributes"] if applicable else {}})
+            # Copy sizes as the buyer wrote them (e.g. 0.5 l), like a correct model call.
+            for number, word in re.findall(agent._METRIC, case["input"]["text"], re.I):
+                for key, canonical in agent._NATIVE_ATTRIBUTES.items():
+                    factor = agent._CONVERT.get(canonical, {}).get(agent._unit(word))
+                    if factor and value["attributes"][key] is not None and abs(float(number) * factor - value["attributes"][key]) < 1e-9:
+                        value["attributes"][key], value["size_unit"] = float(number), agent._unit(word)
             return {"role": "assistant", "content": None, "tool_calls": [{"id": "offline_1", "type": "function",
                     "function": {"name": "search_catalog", "arguments": json.dumps(value)}}]}
         facts = json.loads(payload["messages"][-1]["content"])
