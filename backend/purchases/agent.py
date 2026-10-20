@@ -342,7 +342,7 @@ def _grounded(native, text):
             # A paper size is grounded only when the buyer wrote it and no other
             # size ("A4 or A5" is undecided, so the buyer is asked; "not A5" is not).
             sizes = {size.upper() for size in re.findall(r"\bA[0-9]\b", text, re.I)}
-            excluded = {size.upper() for size in re.findall(r"\b(?:not|no|never)\s+(A[0-9])\b", text, re.I)}
+            excluded = {size.upper() for size in re.findall(r"\b(?:non-?\s*|(?:not|no|never|except|but|other than|instead of)\s+)(A[0-9])\b", text, re.I)}
             value = item if (re.search(rf"\b{re.escape(item)}\b", text, re.I) and item.upper() not in excluded
                              and sizes - excluded <= {item.upper()}) else None
         elif float(item) not in numbers:
@@ -363,8 +363,10 @@ def _grounded(native, text):
             value = round(converted) if abs(converted - round(converted)) < 1e-9 and 1 <= round(converted) <= 10000 else None
         arguments["attributes"][canonical] = value
     # "These are labels, not notebooks": an excluded product is not a match.
+    # ponytail: phrase heuristic; other wordings fall through to the exact review.
     if arguments["category"] in _NEGATABLE and re.search(
-            rf"\b(?:not|no|never)\s+(?:an?\s+|any\s+)?(?:{_NEGATABLE[arguments['category']]})\b\s*(?:[.,;:!)]|$)", text, re.I):
+            rf"\b(?:not|no|never|aren[’']t|isn[’']t|rather than)\s+(?:an?\s+|any\s+|the\s+)?(?:{_NEGATABLE[arguments['category']]})\b"
+            r"[ \t]*(?:[.,;:!)\n\-–—…]|or\b|$)", text, re.I):
         arguments["category"] = "unsupported"
     if (isinstance(arguments["currency"], str) and arguments["currency"].strip().upper() in _USD
             and not re.search(_FOREIGN, text, re.I)):

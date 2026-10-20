@@ -276,10 +276,12 @@ class AgentTests(TransactionTestCase):
         with self.http(notebook):
             result = agent.compare("Thirty notebooks, at most $70.00, one-time. We haven't picked A4 or A5 yet.")
         self.assertEqual(result["clarification"]["missing_fields"], ["attributes.paper_size"])
-        for text, missing in (("Fifteen A4 notebooks, not A5, at most $70.00, one-time.", []),
-                              ("Fifteen notebooks, not A4, at most $70.00, one-time.", ["attributes.paper_size"])):
+        for text, missing in (("Thirty A4 notebooks, not A5, at most $70.00, one-time.", []),
+                              ("Thirty notebooks, not A4, at most $70.00, one-time.", ["attributes.paper_size"]),
+                              ("Thirty non-A4 notebooks, at most $70.00, one-time.", ["attributes.paper_size"]),
+                              ("Thirty notebooks in any size except A4, at most $70.00, one-time.", ["attributes.paper_size"])):
             with self.subTest(text=text), self.http(notebook):
-                result = agent.compare(text.replace("Fifteen", "Thirty"))
+                result = agent.compare(text)
             self.assertEqual(result["clarification"]["missing_fields"] if result["clarification"] else [], missing)
         cloth = {**arguments(quantity=40, budget_cents=6000), "size_unit": "cm",
                  "attributes": {**dict.fromkeys(agent._NATIVE_ATTRIBUTES), "width": 40, "height": 30}}
@@ -291,6 +293,15 @@ class AgentTests(TransactionTestCase):
             result = agent.compare("Twenty A5 label sheets. These are labels, not notebooks. USD 50.00, one-time.")
         self.assertEqual(result["status"], "NO_MATCH")
         self.assertNotIn("category", result["constraints"])
+        for text in ("Twenty A5 sheets - labels, not notebooks - thanks. USD 50.00, one-time.",
+                     "Twenty A5 label sheets; these aren't notebooks\nUSD 50.00, one-time."):
+            with self.subTest(text=text), self.http(labels):
+                self.assertEqual(agent.compare(text)["status"], "NO_MATCH")
+        single = {**cloth, "size_unit": "mm"}
+        with self.http(single) as fake:
+            result = agent.compare("Forty cloths, 40 wide, 30 cm high, at most $60, one-time.")
+        self.assertEqual(result["constraints"]["attributes"], {"width_cm": 40, "height_cm": 30})
+        self.assertIsNone(json.loads(fake.bodies[-1]["messages"][-1]["content"])["recommended_offer_id"])
         with self.http() as fake:
             result = agent.compare("Exactly 40 microfiber cloths, 40 by 40 cm, no cloths smaller than that, "
                                    "maximum $60 delivered including tax, one-time only.")
