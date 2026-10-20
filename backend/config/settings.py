@@ -1,4 +1,4 @@
-"""Local-only settings. No PayPal configuration or private .env is read."""
+"""Local-only settings. Private PayPal configuration is lazy and default-off."""
 import hashlib
 import os
 from pathlib import Path
@@ -62,6 +62,11 @@ REST_FRAMEWORK = {
 # private readiness marker is also required; no request can override either gate.
 SPENDCONSENT_AI_ENABLED = os.environ.get("SPENDCONSENT_AI_ENABLED") == "1"
 SPENDCONSENT_AI_READINESS = private / "ai-ready.json"
+# The switch only permits configuration loading. An exact private action-time
+# permission is still required at every real create/capture dispatch.
+SPENDCONSENT_PAYPAL_ENABLED = os.environ.get("SPENDCONSENT_PAYPAL_ENABLED") == "1"
+SPENDCONSENT_PAYPAL_CREDENTIALS = ROOT / ".env"
+SPENDCONSENT_PAYPAL_PERMISSION = private / "paypal-permission.json"
 # Server logs contain no request bodies, private model/provider responses or local variables.
 LOGGING = {"version": 1, "disable_existing_loggers": False,
            "handlers": {"null": {"class": "logging.NullHandler"}},

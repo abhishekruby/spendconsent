@@ -45,7 +45,7 @@ function loadCore(): Promise<Core> {
   return core;
 }
 
-/** Unwired preparation only. Call after server enablement and a stored order exists.
+/** Call after server enablement and a stored order exists.
  * Dispose when the session/attempt changes or its UI unmounts. Start from a user click.
  */
 export async function preparePayPal(session: Session, attempt: Attempt, callbacks: Callbacks) {

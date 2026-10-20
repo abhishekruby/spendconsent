@@ -1,10 +1,14 @@
 # PayPal runtime preparation
 
-Checked 19 October 2026. This is implementation preparation, not authenticated
-PayPal evidence or financial authorization. No private configuration was read,
-no credentials were created, no PayPal sandbox endpoint was called, and no SDK
-was downloaded or executed. The application still disables PayPal and financial
-actions. The independent actual-AI qualification remains a separate gate.
+Checked 20 October 2026. The sandbox runtime and browser SDK wiring are implemented
+and default off. Owner verification passed 91 PostgreSQL tests, nine frontend
+groups, the offline SDK check and production build. Independent checks cover
+11 runtime and 26 checkout/race tests plus SDK lifecycle checks. All provider/model
+responses in those tests are explicit fakes. Sandbox OAuth separately returned
+HTTP 200 today; no actual order, capture or financial action has occurred.
+AI qualification, actual SDK initialization and a concrete approved purchase remain
+separate release gates. `PAYPAL_MERCHANT_ID` is missing from private configuration;
+the existing seller's ID must be supplied privately before real checkout.
 
 ## Current official SDK contract
 
@@ -35,64 +39,51 @@ describes the buyer's selection. Documentation does not prove that this merchant
 will return every required field. No partner, multiparty, Fastlane, agentic API
 or additional payment-method entitlement is assumed.
 
-## Prepared slice
+## Implemented runtime and browser path
 
-[The new helper](../frontend/src/paypal.ts) is not imported by the application.
-Importing it has no side effects. Calling it requires validated sandbox session
-and attempt data, all three capability flags enabled, an allowed `open_paypal`
-action, and an existing provider order. It loads only the fixed sandbox source
-and refuses an unknown preloaded PayPal SDK. It passes only the browser-safe
-client ID to SDK initialization, checks PayPal eligibility for the stored USD
-total, and prepares a one-shot start function for a direct click.
+`runtime_paypal.py` lazily loads owner-only sandbox configuration only when enabled.
+Read-only reconciliation remains available for an existing attempt. No HTTP endpoint
+can grant financial permission. A private action-time permission must bind the
+owner, current request/review/digest/approval, configured seller, USD total,
+explicit create/capture operations and expiry. The runtime rechecks it after OAuth
+immediately before financial dispatch. The persisted attempt/idempotency keys bound
+by approval prevent using permission to start another intended purchase.
 
-It reopens the existing order; it has no create-order function. A matching
-callback forwards only the local attempt ID to the caller's approval handler.
-Mismatch, duplicate callbacks, cancellation, errors, disposal and repeat starts
-cannot trigger that handler again. Raw SDK errors and payer data are discarded.
-The caller must dispose on unmount/session/attempt changes and handle its own
-server errors. A dispatched server operation still requires reconciliation.
+The App now imports the inert SDK helper. Direct human actions start only the
+server-approved cart, then open that attempt's existing order. SDK approval sends
+only `{}` to the local attempt capture endpoint. Callback order IDs and browser
+amounts never become server authority. Cancellation, errors, disposal and duplicate
+callbacks cannot establish success. Only server read-back may do so.
 
-Run the standalone offline check from `frontend/`:
+Session/attempt changes dispose the SDK flow. A load failure offers a full page
+reload, which resets the SDK cache and restores the saved attempt; it never creates
+a replacement order. Existing status/stop controls remain accessible. Mutations
+that fail recover with reads rather than automatic payment retries.
+
+Offline checks from `frontend/`:
 
 ```bash
+npm test
 node --test tests/paypal.test.mjs
+npm run build
 ```
 
-This uses installed TypeScript and Node, a fake DOM and an explicitly fake SDK.
-It compiles into the existing ignored `.test-build/` folder. It is not an SDK,
-browser, OAuth, merchant, shipping-echo or financial integration test. No new
-dependency or backend runtime switch was added.
+## Remaining actual integration gates
 
-## Next concrete integration
-
-1. Review and wire the sandbox runtime with default capabilities off. Obtain
-   the configured sandbox merchant binding without displaying credentials;
-   update the fixture binding and require a fresh review and human approval.
-   Never upgrade an old placeholder-payee review. Keep all credentials server
-   side; session JSON may expose the browser-safe sandbox client ID only.
-2. Add server enforcement for a bounded, explicit action-time human permission
-   before enabling any real create/capture test. Its allowed request/review,
-   merchant, amount, operation count and expiry must be concrete and checked at
-   dispatch. A browser button, a model response, a PRD, a team-lead instruction
-   or an environment flag alone does not supply the required human permission.
-3. With that permission, the existing start endpoint calls `checkout.start` once.
-   Bind the SDK helper to its returned attempt. Its approval handler calls only
-   `/api/attempts/<local-id>/capture`; never accept browser totals or an arbitrary
-   callback order ID as server authority. Preserve CSRF and session ownership.
-   Cancellation may request local stop or status refresh, never capture.
-4. Let the existing server capture path perform trusted GET, fresh exact-review
-   checks, capture dispatch and independent GET reconciliation. SDK callbacks
-   never display success. Refresh/restart loads the same persisted attempt;
-   uncertain creation without an ID requires resolution rather than another
-   order. Include an accessible native status/retry path and a visible SDK
-   loading, eligibility or popup failure state.
-5. Verify actual returned merchant, order, item, shipping and capture evidence
-   against the immutable review. Missing `shipping.options` currently fails
-   closed before capture; completed mismatches stay in payment review with the
-   hold intact. If PayPal omits that field, record the limitation and review a
-   justified evidence-contract change before another approved test. Do not
-   silently copy stored shipping into independent provider proof or mark PAID.
-
-Production build and offline checks can validate this prepared code. Completing
-these gates still requires a genuine approved buyer journey and sanitized
-read-back evidence; no account readiness or payment success is claimed here.
+1. Supply the existing sandbox seller Merchant ID privately in `.env`. The
+   [official account lookup](https://developer.paypal.com/platforms/checkout/save-payment-methods/onboarding/platform/)
+   uses sandbox.paypal.com → Account Settings → Business information → PayPal
+   Merchant ID (checked 20 October). Do not create new credentials or change
+   account settings. Newly configured reviews must use this binding; old placeholder
+   payees are never upgraded into valid approval.
+2. Pass the independent actual-AI suites and integrated browser flow. Prepare the
+   exact review and human app approval, then obtain concrete action-time consent
+   before writing any private create/capture permission or enabling dispatch.
+3. Verify the actual SDK, separate sandbox buyer approval, Orders responses and
+   independent read-back. Missing `shipping.options` currently fails closed before
+   capture. If PayPal omits it, record the limitation and review a justified
+   evidence-contract change before another approved test; stored shipping facts
+   cannot masquerade as independently returned provider proof.
+4. Demonstrate recovery without duplicates and preserve sanitized evidence. No
+   test result above establishes authenticated SDK/Orders compatibility or payment
+   success. Public deployment/submission remains unauthorized.

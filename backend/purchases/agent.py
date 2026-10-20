@@ -34,8 +34,8 @@ TOOL = {"type": "function", "function": {
     "name": "search_catalog",
     "description": "Interpret exact buyer requirements and compare fictional catalog quotes. Unknowns are null; never guess. Include every unsupported requirement.",
     "parameters": {"type": "object", "properties": {
-        "category": {"type": ["string", "null"], "description": "cloth, bag, bottle or notebook. For other items use their actual category; never substitute a supported item."},
-        "quantity": {"type": ["integer", "null"], "description": "Exact individual units, not packs; preserve all digits."},
+        "category": {"type": ["string", "null"], "description": "Identify the requested product first: microfiber cloth -> cloth; waste bag -> bag; spray bottle -> bottle; notebook -> notebook. For every other product use its own category; never substitute based on matching dimensions."},
+        "quantity": {"type": ["integer", "null"], "description": "Explicit individual-item count only, never packs, dimensions or a price. No stated item count means null, never 1; preserve all digits."},
         "budget_cents": {"type": ["integer", "null"], "description": "Full delivered budget in integer cents: $12.34 = 1234; unknown = null."},
         "currency": {"type": ["string", "null"], "description": "Actual requested currency; $ means USD; euros means EUR. Never convert currencies."},
         "one_time": {"type": ["boolean", "null"], "description": "True only if buyer requires one-time terms; false for recurring; null when unspecified."},
@@ -50,6 +50,10 @@ FINAL_SCHEMA = {"type": "object", "properties": {
     "required": ["status", "offer_id"], "additionalProperties": False}
 SYSTEM = """You are SpendConsent, a read-only purchasing assistant. Call search_catalog
 exactly once using only the buyer's stated requirements; missing facts stay null.
+Identify the actual requested product before mapping its category; matching
+dimensions never make an unsupported product supported. Quantity comes only from
+an explicit item count; dimensions, budget and one-time terms do not supply a
+quantity, and missing quantity is null, never 1.
 Include every attribute key, using null for unknown or inapplicable values.
 For cloth dimensions, preserve both stated dimensions in order as width_cm and
 height_cm. Never infer an unstated dimension from another dimension.

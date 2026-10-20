@@ -5,7 +5,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { Api, ApiError, safeApiError } from '../.test-build/api.js';
 import { isAttempt, isConstraints, isPurchaseRequest, isSession } from '../.test-build/contract.js';
 import { locksRequest, money, newerAttempt, newerRequest, parseCents, pending, permitted, unitCost } from '../.test-build/logic.js';
-import { Offer, PaymentStatus, ReviewCard, paymentTransitionNotice } from '../.test-build/App.js';
+import { Offer, PaymentStatus, PayPalCheckout, ReviewCard, paymentTransitionNotice } from '../.test-build/App.js';
 
 // Explicit local test fixtures only. The running application has no seeded results.
 const id = '11111111-1111-4111-8111-111111111111';
@@ -112,6 +112,28 @@ test('transport is called without the Api instance as its receiver, as browser f
   });
   assert.equal((await api.session()).environment, 'sandbox');
   assert.equal(calls, 1);
+});
+
+test('payment requests send only local authority and preserve uncertain attempts without POST retry', async () => {
+  const calls = [];
+  const api = new Api(async (path, options) => {
+    calls.push({ path, options });
+    if (path === '/api/session') return Response.json(session);
+    if (options.method === 'POST') throw new TypeError('Test-only lost capture response');
+    return Response.json({ attempt });
+  });
+  await api.session();
+  await assert.rejects(api.mutateAttempt(`/api/attempts/${id}/capture`), error => error.code === 'CONNECTION_LOST');
+  assert.equal((await api.attempt(id)).attempt.state, 'UNKNOWN');
+  assert.equal(calls.filter(call => call.options.method === 'POST').length, 1);
+  assert.equal(calls[1].options.body, '{}');
+  assert.equal(calls[1].options.headers['X-CSRFToken'], session.csrf_token);
+  const html = renderToStaticMarkup(createElement(PayPalCheckout, {
+    session, attempt: { ...attempt, state: 'AWAITING_BUYER' }, busy: false, async onApprove() { throw Error('Rendering never captures'); },
+  }));
+  assert.ok(html.includes('Loading sandbox checkout'));
+  assert.ok(/disabled=""[^>]*>Continue to PayPal sandbox/.test(html));
+  assert.ok(html.includes('independent status check'));
 });
 
 test('non-JSON, malformed successful responses and interrupted calls fail safely without automatic POST retries', async () => {

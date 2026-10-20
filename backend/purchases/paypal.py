@@ -1,4 +1,4 @@
-"""Unwired sandbox-only REST adapter. Tests mock urllib; no runtime enable path.
+"""Sandbox-only REST adapter. Runtime injects the action-time dispatch guard.
 
 Tokens and credentials stay in memory. Only the persisted immutable attempt maps
 an order to a purchase; a new client can verify it after a process restart.
@@ -193,12 +193,13 @@ def _unique_object(pairs):
 
 
 class SandboxClient:
-    def __init__(self, client_id, client_secret, merchant_id):
+    def __init__(self, client_id, client_secret, merchant_id, before_financial=None):
         if (not isinstance(client_id, str) or not re.fullmatch(r"[A-Za-z0-9_-]{1,256}", client_id)
                 or not isinstance(client_secret, str) or not 1 <= len(client_secret) <= 512 or any(char in client_secret for char in "\r\n")
                 or not isinstance(merchant_id, str) or not MERCHANT_ID.fullmatch(merchant_id)):
             raise PayPalUnavailable("SANDBOX_CONFIG_INVALID")
         self._client_id, self._client_secret, self._merchant_id = client_id, client_secret, merchant_id
+        self._before_financial = before_financial
         self._token, self._token_expires = None, 0
         self._token_lock = threading.Lock()
         self._opener = urllib.request.build_opener(urllib.request.ProxyHandler({}), NoRedirect(),
@@ -211,6 +212,8 @@ class SandboxClient:
                    or re.fullmatch(r"/v2/checkout/orders/[A-Z0-9]{1,36}" + (r"/capture" if method == "POST" else ""), path) and method in ("GET", "POST"))
         if not allowed:
             raise PayPalUnavailable("BINDING_UNVERIFIED")
+        if self._before_financial and method == "POST" and path != "/v1/oauth2/token":
+            self._before_financial("create" if path == "/v2/checkout/orders" else "capture", headers.get("PayPal-Request-Id"))
         request = urllib.request.Request(BASE_URL + path, body, {"Accept": "application/json", **headers}, method=method)
         try:
             with self._opener.open(request, timeout=TIMEOUT) as response:

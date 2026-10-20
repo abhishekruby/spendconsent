@@ -1,8 +1,16 @@
 # PayPal AI Hackathon 2026 — Project Lab
 
-A dedicated local workspace for building SpendConsent. **As of 19 October 2026, the deterministic authority, checkout domain, unwired sandbox REST adapter and default-off AI application wiring pass 79 independently reviewed real-PostgreSQL tests in 26.018 seconds.** Private checkpoint `1cd99bc` preserves the reviewed AI adapter, wiring and qualification runner. The added checks mock inference and do not establish actual AI quality. The frontend passes eight Node test groups and its production build; actual browser checks cover saved requests, confirmed requirements, refresh recovery, mobile layout and focus. Actual AI quality remains below its gate: the application reports `MODEL_UNAVAILABLE`, and all three readiness/financial capabilities remain false. Actual PayPal order/capture/read-back, SDK checkout and a sandbox purchase remain unverified. Implementation is authorized by the project-completion goal of 16 October; the full project is incomplete.
+SpendConsent helps a small-business owner compare routine supplies, review exact
+packs and full charges, and approve one immutable cart before PayPal sandbox
+checkout. The catalog and shipping/tax are fictional; model inference is local.
 
-Backend setup and limits: [backend foundation](backend/README.md). Adapter mapping and limits: [unwired sandbox checkpoint](docs/paypal-integration.md). Browser evidence and limits: [frontend checkpoint](docs/frontend-checkpoint.md). Current evidence and blockers: [progress](docs/progress.md). Sandbox OAuth authentication passed with HTTP 200 on 13 October 2026; that establishes authentication only.
+**The full project remains incomplete.** Guarded payment runtime/browser wiring
+is implemented and default off. Actual AI qualification, the integrated browser
+journey, approved sandbox purchasing/read-back and usability gates remain open.
+Current checkpoint and next action: [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md).
+Setup: [backend](backend/README.md), [frontend](frontend/README.md).
+Integration boundaries: [PayPal runtime](docs/paypal-runtime-plan.md).
+Measured history and limitations: [progress](docs/progress.md).
 
 Application migration 0006 is applied: the existing version-3 request and its exact requirements were preserved and backfilled as human-confirmed constraints; 16 offers and zero payment attempts remain. Django/Vite were restarted on loopback with AI disabled.
 

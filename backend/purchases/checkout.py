@@ -1,9 +1,9 @@
-"""Durable checkout authority, exercised only with provider fakes in tests.
+"""Durable checkout authority; runtime adapters are injected by the API.
 
 There is deliberately no runtime provider, HTTP client, automatic retry or API
 enable switch here. Callers must inject create_order(payload, key),
-capture_order(order_id, payload, key), and get_order(order_id). A future reviewed
-adapter must map trusted provider data into the normalized observation below:
+capture_order(order_id, payload, key), and get_order(order_id). The reviewed
+adapter maps trusted provider data into the normalized observation below:
 {id, status, purchase: <persisted create payload>, capture: null|{
  id, order_id, status, payee_ref, currency, total_cents}}.
 The adapter must verify echoed facts and preserve the stored mapping for fields
@@ -33,11 +33,16 @@ MESSAGES = {
     "STOPPED": "This attempt stopped before any unresolved capture. No replacement was started.",
     "REVIEW_CHANGED": "The purchase changed before capture. Inspect and approve a fresh review.",
     "REVIEW_EXPIRED": "Approval or quote expired before capture. Inspect and approve a fresh review.",
+    "FINANCIAL_ACTIONS_DISABLED": "The exact action-time permission was unavailable before dispatch. No financial request was sent.",
 }
 
 
 class ProviderDeclined(Exception):
     """Adapter evidence establishes terminal no-create/no-capture, never a timeout."""
+
+
+class DispatchDenied(Exception):
+    """The runtime guard refused before any financial HTTP request was sent."""
 
 
 def _outside_transaction():
@@ -149,6 +154,8 @@ def start(owner, approval_id, provider):
         _event(request, attempt, "CREATING")
     try:
         response = provider.create_order(deepcopy(attempt.create_payload), str(attempt.create_key))
+    except DispatchDenied:
+        return _dispatch_denied(owner, attempt.id)
     except ProviderDeclined:
         return _definitive_decline(owner, attempt.id, "create")
     except Exception:
@@ -190,6 +197,13 @@ def _definitive_decline(owner, pk, operation):
     with _locked(owner, pk) as (request, approval, offer, attempt):
         if attempt.state not in TERMINAL and (operation != "create" or not attempt.capture_dispatched_at):
             _transition(request, offer, attempt, "STOPPED", "PROVIDER_DECLINED")
+        return _result(attempt)
+
+
+def _dispatch_denied(owner, pk):
+    with _locked(owner, pk) as (request, approval, offer, attempt):
+        if attempt.state not in TERMINAL:
+            _transition(request, offer, attempt, "STOPPED", "FINANCIAL_ACTIONS_DISABLED")
         return _result(attempt)
 
 
@@ -298,6 +312,8 @@ def capture(owner, pk, provider):
         attempt = current
     try:
         provider.capture_order(attempt.provider_order_id, deepcopy(attempt.capture_payload), str(attempt.capture_key))
+    except DispatchDenied:
+        return _dispatch_denied(owner, pk)
     except ProviderDeclined:
         return _definitive_decline(owner, pk, "capture")
     except Exception:

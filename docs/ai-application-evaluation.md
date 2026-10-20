@@ -73,3 +73,26 @@ records bounded validated native arguments, with no raw responses, full prompts
 or private reasoning. A failed experiment must remain preserved; these fixtures
 must not become tuning data. Passing this isolated protocol evaluation still does
 not complete the integrated browser, persistence, usefulness or payment gates.
+
+## 20 October continuation and next checkpoint
+
+The preserved `ai-application-qualification-a9fdb54.json` original suite now has
+20 attempted rows: **14/20** correct, both default repetitions correct, warm
+median **55.6055 s**, maximum **90.027 s**. Its inherited interruption has unknown
+timing, so latency qualification fails despite that numerical median. Both
+repetitions invented a missing quantity and substituted cloth for an unsupported
+product; a resumed unsupported-currency case timed out. Fresh cases remain unrun
+in that report. This failed report will not be overwritten or used as a pass.
+
+Continuation used the same verified 4B model/template/runtime hashes on 20 October,
+but a restarted process and concurrent backend verification; this is not a
+continuous or isolated benchmark. The first startup health check returned 503;
+the continuation was inadvertently launched before a separate health-200 check,
+which subsequently succeeded. No startup-related outcome was removed.
+
+The next independently reviewed prompt-only checkpoint clarifies explicit item
+count versus dimensions/budget and actual product identity before category mapping.
+It changes no model, sampling, schema types, parser, arithmetic, deadline, answer
+or score threshold. A newly prepared report must run all original and fresh
+cases independently after explicit health HTTP 200 and a private source commit.
+Neither a prompt review nor an offline self-test grants application readiness.

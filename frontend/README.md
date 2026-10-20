@@ -36,8 +36,9 @@ uncertain/mismatched outcomes through React server rendering. They are never
 imported by the running application. Build/test success is not browser or actual
 AI/payment integration evidence.
 
-Payment capabilities default off. PayPal's SDK is not loaded, and this build
-cannot create an order or capture a payment. Review and app approval are direct
+Payment capabilities default off. The SDK loads only for a permitted saved
+attempt. Runtime configuration and exact action-time human permission are both
+required before any real order/capture. Review and app approval are direct
 human UI actions. The checkout area explains its unavailable integration.
 Existing attempts render only permitted status/stop actions; bounded automatic
 checks use GET only. A stop cannot undo an already dispatched operation. SDK

@@ -109,10 +109,12 @@ def comparison_event(request, inference_id):
 
 
 def snapshot(request, offer, result, version, created_at, expires_at):
+    from .runtime_paypal import merchant_ref
+    payee_ref = merchant_ref() or PAYEE_REF
     return {"schema_version": 1, "owner_uuid": str(request.owner_uuid), "request_id": str(request.id),
             "request_version": request.version, "review_version": version, "quote_version": offer.version,
             "created_at": created_at.isoformat(), "expires_at": expires_at.isoformat(),
-            "merchant": MERCHANT, "payee_ref": PAYEE_REF,
+            "merchant": MERCHANT, "payee_ref": payee_ref,
             "item": {"offer_id": str(offer.id), "sku": offer.sku, "variant_id": offer.variant_id,
                      "name": offer.name, "specification": result["specification"], "attributes": offer.attributes,
                      "pack_units": offer.pack_units, "packs": result["packs"], "individual_units": result["individual_units"]},

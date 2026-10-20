@@ -1,5 +1,12 @@
 # Progress — project log
 
+## Latest status — 20 October 2026: fresh completion goal resumed; guarded PayPal wiring
+
+- Resumed in the fresh project chat; old chat stays paused. Preserved existing checkout/data and interrupted AI evidence. Hash-verified local model/API/Vite/PostgreSQL restarted without downloads or new services.
+- Runtime and browser SDK wiring are default off, independently reviewed, and require exact private action-time permission. Owner checks: 91 PostgreSQL tests, nine frontend groups, SDK offline group and production build. Independent checks: 11 runtime plus 26 checkout/race tests and SDK lifecycle. Resolved the SDK cached-load-failure retry by using an honest full page reload that restores the same attempt. See [runtime state and remaining gates](paypal-runtime-plan.md).
+- Actual sandbox OAuth returned HTTP 200, token received, no financial API called; seller Merchant ID remains missing and was requested privately. Repository visibility reverified PRIVATE. Browser restored existing version-3 request; real AI-to-review journey remains gated. Keyboard/labels/mobile checks passed on that unavailable state; corrected low-contrast form borders using the existing muted token. No full accessibility certification is claimed.
+- Preserved original application qualification: 14/20, inherited unknown timing and one new timeout; fresh suite unrun. Independently reviewed prompt clarification keeps all gates unchanged; [detailed experiment limits](ai-application-evaluation.md). New whole-suite inference requires the reviewed private source checkpoint first. Full PRD remains incomplete; no purchase/publication/deployment/submission/outreach.
+
 ## Latest status — 20 October 2026: token-efficient workflow; build remains paused
 
 - Startup now reads AGENTS.md plus compact PROJECT_CONTEXT.md; detailed specifications/evidence are on demand. Previous context is preserved unchanged in PROJECT_CONTEXT_HISTORY.md. Master safety/permission instructions are unchanged.

@@ -1,4 +1,4 @@
-"""Same-origin anonymous-session JSON API; financial integration stays disabled."""
+"""Same-origin anonymous API; financial dispatch requires exact private permission."""
 import uuid
 from django.core.exceptions import BadRequest, RequestDataTooBig
 from django.http import Http404, JsonResponse
@@ -9,7 +9,7 @@ from rest_framework.decorators import api_view, authentication_classes
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.views import exception_handler as drf_exception_handler
-from . import inference, serializers, services
+from . import checkout, inference, runtime_paypal, serializers, services
 from .models import Approval, PaymentAttempt, PurchaseRequest
 
 
@@ -45,6 +45,8 @@ def exception_handler(exc, context):
         if exc.request_id:
             payload["request_id"] = exc.request_id
         return Response(payload, status=exc.status_code)
+    if isinstance(exc, checkout.DispatchDenied):
+        return Response({"error": {"code": "FINANCIAL_ACTIONS_DISABLED", "message": "This sandbox operation needs current permission for the exact approved cart.", "retryable": False}}, status=503)
     response = drf_exception_handler(exc, context)
     if response is None:
         # Do not expose traceback, model input, DB details, provider payload or credentials.
@@ -109,6 +111,8 @@ def attempt_data(attempt):
         actions = ["check_status"]
     elif attempt.state not in ("PAID", "STOPPED"):
         actions = ["check_status", "stop"]
+        if attempt.state == "AWAITING_BUYER" and runtime_paypal.allowed(attempt.approval, "capture"):
+            actions += ["open_paypal", "capture"]
     return {"id": str(attempt.id), "state": attempt.state, "pending_operation": attempt.pending_operation,
             "reason_code": attempt.reason_code, "created_at": attempt.created_at, "updated_at": attempt.updated_at,
             "provider_order_id": attempt.provider_order_id, "capture_id": attempt.capture_id,
@@ -132,9 +136,11 @@ def request_data(request):
 def session(request):
     if "owner_uuid" not in request.session:
         request.session["owner_uuid"] = str(uuid.uuid4())
+    ai_ready = inference.ready()
+    capabilities, paypal_config = runtime_paypal.session_data(owner(request), request.session.get("current_request_id"), ai_ready)
     return Response({"environment": "sandbox", "csrf_token": get_token(request),
-                     "capabilities": {"ai_ready": inference.ready(), "paypal_ready": False, "financial_actions_enabled": False},
-                     "current_request_id": request.session.get("current_request_id"), "paypal": None})
+                     "capabilities": {"ai_ready": ai_ready, **capabilities},
+                     "current_request_id": request.session.get("current_request_id"), "paypal": paypal_config})
 
 
 @endpoint(["POST"])
@@ -186,9 +192,16 @@ def approve(request, pk):
 @endpoint(["POST"])
 def start_attempt(request, pk):
     validated(serializers.Empty, request)
-    if not Approval.objects.filter(id=pk, review__request__owner_uuid=owner(request)).exists():
+    approval = Approval.objects.select_related("review__request").filter(id=pk, review__request__owner_uuid=owner(request)).first()
+    if not approval:
         raise Http404
-    raise services.DomainError("FINANCIAL_ACTIONS_DISABLED", "Sandbox financial actions are disabled; no payment attempt was created.", 503)
+    existing = PaymentAttempt.objects.filter(approval=approval).first()
+    if existing:
+        attempt, status = checkout._result(existing)
+    else:
+        provider = runtime_paypal.provider(runtime_paypal.require(approval, "create"))
+        attempt, status = checkout.start(owner(request), approval.id, provider)
+    return Response({"attempt": attempt_data(attempt)}, status=status)
 
 
 def owned_attempt(request, pk):
@@ -209,6 +222,19 @@ def attempt_action(request, pk, action):
         raise Http404
     validated(serializers.Empty, request)
     attempt = owned_attempt(request, pk)
-    return Response({"error": {"code": "FINANCIAL_ACTIONS_DISABLED" if action == "capture" else "INTEGRATION_UNAVAILABLE",
-                               "message": "Payment integration is disabled. This attempt's stored status is unchanged.", "retryable": False},
-                     "attempt": attempt_data(attempt)}, status=503)
+    if action == "stop":
+        attempt, status = checkout.stop(owner(request), attempt.id)
+    elif attempt.state in checkout.TERMINAL or (action == "capture" and attempt.state != "AWAITING_BUYER"):
+        attempt, status = checkout._result(attempt)
+    elif action == "reconcile" and not attempt.provider_order_id:
+        # No configuration or provider lookup can resolve uncertain creation
+        # without an ID. Keep the persisted manual-resolution state visible.
+        attempt, status = checkout.reconcile(owner(request), attempt.id, None)
+    else:
+        config = runtime_paypal.require(attempt.approval, "capture") if action == "capture" else runtime_paypal.configuration(readonly=True)
+        if not config:
+            return Response({"error": {"code": "INTEGRATION_UNAVAILABLE", "message": "Read-only verification is unavailable. The stored outcome remains unresolved.", "retryable": False},
+                             "attempt": attempt_data(attempt)}, status=503)
+        provider = runtime_paypal.provider(config)
+        attempt, status = (checkout.capture if action == "capture" else checkout.reconcile)(owner(request), attempt.id, provider)
+    return Response({"attempt": attempt_data(attempt)}, status=status)

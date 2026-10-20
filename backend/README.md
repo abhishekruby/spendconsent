@@ -81,20 +81,21 @@ The foundation tests cover catalog totals, constraints, session/CSRF/ownership,
 retry conflicts, immutable/current review, approval expiry/revocation, changed
 facts, edit blocking for unresolved/paid attempts and three real row-lock races.
 They call deterministic comparison directly only in clearly named test setup.
-The complete suite now contains 79 real-PostgreSQL checks: the original 24,
-22 checkout-domain checks, 10 PayPal adapter checks, 16 model-adapter checks and
-seven application-wiring checks, all using explicit fakes for inference/provider
-HTTP. Independent verification passed all 79 in 26.018 seconds. These do not establish real inference,
-actual PayPal dispatch/capture/read-back, provider-specific idempotency, browser
-accessibility, usefulness or release readiness.
+The owner suite now passes 91 real-PostgreSQL checks, including runtime guards;
+17 focused model-adapter checks also passed after the prompt-only clarification.
+Independent combined verification passed 11 runtime and 26 checkout/race checks
+plus offline SDK lifecycle checks. All provider/model responses in these tests
+are explicit fakes. These do not establish real inference quality, authenticated
+PayPal/SDK compatibility, accessibility, usefulness or release readiness.
 
 `purchases/checkout.py` contains `start`, `capture`, `reconcile` and `stop` domain
 functions. The first three require an explicit injected provider with
 `create_order(payload, key)`, `capture_order(order_id, payload, key)` and
-`get_order(order_id)`. `purchases/paypal.py` provides the unwired sandbox adapter;
-test-local fakes exercise the domain separately. There is no runtime provider
-loader, mock-payment endpoint or capability switch. Create/capture/reconciliation
-API routes retain their visible disabled responses.
+`get_order(order_id)`. `purchases/paypal.py` provides the sandbox adapter;
+`runtime_paypal.py` wires it behind default-off configuration and an exact private
+action-time permission checked at dispatch. There is no mock-payment endpoint.
+See [runtime setup and remaining real-integration gates](../docs/paypal-runtime-plan.md).
+Test-local fakes exercise the domain separately; they do not prove actual payment.
 
 The adapter maps immutable persisted attempts to one USD purchase unit with exact
 pack quantities, charges, merchant binding, review digest and a fully reviewed

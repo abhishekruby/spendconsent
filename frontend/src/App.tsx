@@ -3,6 +3,7 @@ import type { FormEvent, ReactNode } from 'react';
 import { Api, ApiError } from './api.js';
 import type { Attempt, Candidate, Charges, Constraints, Evidence, PurchaseRequest, Review, Session } from './contract.js';
 import { locksRequest, money, newerAttempt, newerRequest, parseCents, pending, permitted, unitCost } from './logic.js';
+import { PayPalError, preparePayPal } from './paypal.js';
 
 const sample = 'Find exactly 40 microfiber cloths, 40 × 40 cm, under $60 including delivery and tax. One-time purchase only.';
 const dateTime = (value: string) => new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'medium' }).format(new Date(value));
@@ -67,11 +68,11 @@ export function App() {
   async function recover(id: string | null, signal: AbortSignal, serial: number) {
     // Read-back only: a failed mutation never triggers a second POST.
     let target = id;
-    if (!target) {
-      const next = await api.session(signal);
-      if (generation.current !== serial) return;
-      setSession(next); target = next.current_request_id;
-    }
+    if (target) setRecoveryBlocked(true);
+    const next = await api.session(signal);
+    if (generation.current !== serial) return;
+    setSession(next); target ??= next.current_request_id;
+    if (target && next.current_request_id !== target) throw new ApiError('SESSION_CHANGED', 'The browser session changed. Reconnect to recover its saved purchase.');
     if (target) {
       setRecoveryBlocked(true);
       const saved = await api.request(target, signal);
@@ -88,6 +89,9 @@ export function App() {
       const saved = await api.mutateRequest(path, body, controller.signal);
       if (generation.current !== serial) return;
       setRequest(old => newerRequest(old, saved)); setDraftMode(false);
+      const next = await api.session(controller.signal);
+      if (generation.current !== serial) return;
+      setSession(next);
       setNotice(path.endsWith('/approve') ? 'Exact cart approval recorded. No payment has been made.' : 'Saved request updated.');
     } catch (e) {
       if (controller.signal.aborted || generation.current !== serial) return;
@@ -107,22 +111,32 @@ export function App() {
     } catch (e) { if (!controller.signal.aborted && generation.current === serial) setError(asError(e)); }
     finally { if (generation.current === serial) setBusy(''); }
   }
-  async function attemptAction(action: 'reconcile' | 'stop') {
-    const attempt = request?.attempt;
-    if (!attempt || busy || !permitted(attempt, action === 'reconcile' ? 'check_status' : 'stop', false)) return;
-    const { controller, serial } = begin(action === 'reconcile' ? 'Checking the existing payment status' : 'Requesting a stop');
+  async function paymentAction(path: string, label: string) {
+    if (!request || busy || recoveryBlocked) return;
+    const { controller, serial } = begin(label);
     try {
-      const result = await api.mutateAttempt(`/api/attempts/${attempt.id}/${action}`, controller.signal);
+      const result = await api.mutateAttempt(path, controller.signal);
       if (generation.current !== serial) return;
       setRequest(old => newerAttempt(old, result.attempt));
-      await recover(request!.id, controller.signal, serial);
-      if (generation.current === serial) setNotice(action === 'stop' ? 'Stop request processed. See the stored payment state below.' : 'Existing payment status checked.');
+      await recover(request.id, controller.signal, serial);
+      if (generation.current === serial) setNotice('The server returned the stored payment status below.');
     } catch (e) {
       if (controller.signal.aborted || generation.current !== serial) return;
       const failure = asError(e); setError(failure);
       if (failure.attempt) setRequest(old => newerAttempt(old, failure.attempt!));
-      try { await recover(request!.id, controller.signal, serial); } catch { /* Keep the last known attempt; never infer failure. */ }
+      try { await recover(request.id, controller.signal, serial); } catch { setRecoveryBlocked(true); }
     } finally { if (generation.current === serial) setBusy(''); }
+  }
+  function startAttempt() {
+    if (!request?.approval || request.approval.status !== 'APPROVED' || locksRequest(request)
+        || !session?.capabilities.ai_ready || !session.capabilities.paypal_ready || !session.capabilities.financial_actions_enabled) return;
+    void paymentAction(`/api/approvals/${request.approval.id}/attempts`, 'Creating the exact approved sandbox order');
+  }
+  async function attemptAction(action: 'reconcile' | 'stop' | 'capture', expectedId?: string) {
+    const attempt = request?.attempt;
+    if (!attempt || (expectedId && expectedId !== attempt.id)
+        || !permitted(attempt, action === 'reconcile' ? 'check_status' : action, session?.capabilities.financial_actions_enabled ?? false)) return;
+    await paymentAction(`/api/attempts/${attempt.id}/${action}`, action === 'capture' ? 'Verifying buyer approval and the exact payment' : action === 'reconcile' ? 'Checking the existing payment status' : 'Requesting a stop');
   }
   const attempt = request?.attempt ?? null;
   const previousAttempt = useRef<Attempt | null>(null);
@@ -219,8 +233,8 @@ export function App() {
             {request.candidates.length > 0 && <section aria-labelledby="offers-heading"><div className="subheading"><h3 id="offers-heading">Eligible offers</h3><span className="muted">Full delivered cost</span></div><p className="hint">Sample merchant catalog. Fictional goods and prices. Unit costs rounded to the nearest cent.</p><div className="offers">{request.candidates.map(candidate => <Offer key={candidate.id} candidate={candidate} lowest={candidate.total_cents === Math.min(...request.candidates.map(x => x.total_cents))} disabled={!!busy || recoveryBlocked || requestLocked || request.status !== 'READY'} onReview={() => void mutate(`/api/requests/${request.id}/reviews`, { expected_version: request.version, candidate_id: candidate.id }, 'Preparing the exact cart for review')} />)}</div></section>}
             {request.excluded.length > 0 && <details className="excluded"><summary>Excluded offers ({request.excluded.length})</summary><ul>{request.excluded.map(item => <li key={item.offer_id}><strong>{item.name}</strong><ul>{item.reasons.map((reason, i) => <li key={i}>{reason}</li>)}</ul></li>)}</ul></details>}
             {request.review && <ReviewCard review={request.review} approval={request.approval} locked={requestLocked} disabled={!!busy || recoveryBlocked || request.review.request_version !== request.version} onApprove={() => void mutate(`/api/reviews/${request.review!.id}/approve`, { expected_version: request.review!.version, expected_digest: request.review!.digest }, 'Recording your exact-cart approval')} />}
-            {request.approval && !request.attempt && <section className="payment-prep" aria-labelledby="checkout-heading"><h3 id="checkout-heading">Sandbox checkout</h3><p>App approval is <strong>{request.approval.status.toLowerCase()}</strong>. Payment has not started.</p><p className="muted">PayPal checkout integration is not available in this build. Financial controls remain disabled.</p><button disabled aria-describedby="checkout-disabled">Start sandbox checkout</button><p id="checkout-disabled" className="hint">Requires a verified SDK integration, an unexpired approval and explicit authorization for sandbox financial actions.</p></section>}
-            {attempt && <PaymentStatus attempt={attempt} financialEnabled={session?.capabilities.financial_actions_enabled ?? false} busy={!!busy} pollEnded={pollEnded} onAction={attemptAction} />}
+            {request.approval && (!attempt || (attempt.state === 'STOPPED' && request.approval.status === 'APPROVED')) && <section className="payment-prep" aria-labelledby="checkout-heading"><h3 id="checkout-heading">Sandbox checkout</h3><p>App approval is <strong>{request.approval.status.toLowerCase()}</strong>. This approval has not started a payment.</p><button disabled={!!busy || recoveryBlocked || request.approval.status !== 'APPROVED' || !session?.capabilities.ai_ready || !session.capabilities.paypal_ready || !session.capabilities.financial_actions_enabled} aria-describedby="checkout-permission" onClick={startAttempt}>Start sandbox checkout</button><p id="checkout-permission" className="hint">Requires current permission for this exact approved cart. After creation, continue to PayPal to approve the existing sandbox order.</p></section>}
+            {attempt && <><PaymentStatus attempt={attempt} financialEnabled={session?.capabilities.financial_actions_enabled ?? false} busy={!!busy || recoveryBlocked} pollEnded={pollEnded} onAction={attemptAction} />{session && permitted(attempt, 'open_paypal', session.capabilities.financial_actions_enabled) && <PayPalCheckout session={session} attempt={attempt} busy={!!busy || recoveryBlocked} onApprove={id => attemptAction('capture', id)} />}</>}
           </>}
           <section id="history" className="history" aria-labelledby="history-heading"><h3 id="history-heading">Decision history</h3><p className="hint">Saved application events for this request.</p>{request?.events.length ? <ol>{request.events.map(event => <li key={event.id}><time dateTime={event.created_at}>{dateTime(event.created_at)}</time><p>{event.message}</p></li>)}</ol> : <p className="muted">No saved decision events yet.</p>}</section>
         </main>
@@ -311,8 +325,38 @@ export function PaymentStatus({ attempt: a, financialEnabled, busy, pollEnded, o
     {pending(a) && <p className="hint">{pollEnded ? 'Automatic checks paused after a bounded wait. Check the existing payment manually.' : 'Checking the saved local status periodically. No payment action is retried.'}</p>}
     <div className="form-actions">{permitted(a, 'check_status', financialEnabled) && <button className="secondary" disabled={busy} onClick={() => onAction('reconcile')}>Check existing payment status</button>}{permitted(a, 'stop', financialEnabled) && <button className="text-button" disabled={busy} onClick={() => onAction('stop')}>Request stop</button>}</div>
     {permitted(a, 'stop', financialEnabled) && <p className="hint">Stopping cannot undo a dispatched payment. An uncertain outcome remains under status checks.</p>}
-    {(permitted(a, 'open_paypal', financialEnabled) || permitted(a, 'capture', financialEnabled)) && <p className="message warning">PayPal checkout integration is unavailable in this build. No checkout or capture control is active.</p>}
   </section>;
+}
+
+export function PayPalCheckout({ session, attempt, busy, onApprove }: { session: Session; attempt: Attempt; busy: boolean; onApprove: (id: string) => Promise<void> }) {
+  const [status, setStatus] = useState('Loading sandbox checkout');
+  const flow = useRef<Awaited<ReturnType<typeof preparePayPal>> | null>(null);
+  const approve = useRef(onApprove);
+  approve.current = onApprove;
+  useEffect(() => {
+    let active = true;
+    let preparedFlow: Awaited<ReturnType<typeof preparePayPal>> | null = null;
+    flow.current = null;
+    setStatus('Loading sandbox checkout');
+    void preparePayPal(session, attempt, {
+      onApprove: id => approve.current(id),
+      onCancel: () => { if (active) { flow.current = null; setStatus('PayPal approval canceled. No payment outcome is assumed. Check the existing payment status.'); } },
+      onError: () => { if (active) { flow.current = null; setStatus('PayPal checkout could not continue. Check the existing payment status before reopening it.'); } },
+    }).then(prepared => {
+      if (!active) { prepared.dispose(); return; }
+      preparedFlow = prepared; flow.current = prepared; setStatus('Ready to open the existing sandbox order');
+    }).catch(error => {
+      if (active) setStatus(error instanceof PayPalError && error.code === 'PAYPAL_INELIGIBLE' ? 'PayPal is not eligible for this sandbox checkout. The existing order remains saved.' : 'Sandbox checkout could not load. Check the existing payment status before retrying.');
+    });
+    return () => { active = false; preparedFlow?.dispose(); flow.current = null; };
+  }, [session, attempt]);
+  function open() {
+    const prepared = flow.current;
+    if (!prepared || busy) return;
+    flow.current = null; setStatus('Complete buyer approval in PayPal. The server must still verify payment.');
+    void prepared.start().catch(() => setStatus('Sandbox checkout could not open. Check the existing payment status.'));
+  }
+  return <section className="payment-prep" aria-label="PayPal buyer approval"><p role="status">{status}</p><button disabled={busy || !flow.current} onClick={open}>Continue to PayPal sandbox</button>{!flow.current && status !== 'Loading sandbox checkout' && <button className="secondary" disabled={busy} onClick={() => window.location.reload()}>Reload page to retry existing order</button>}<p className="hint">PayPal buyer approval allows the server to capture only this approved cart. Payment is confirmed by the server’s independent status check.</p></section>;
 }
 function ModelEvidence({ model }: { model: PurchaseRequest['model'] }) {
   if (!model) return null;
