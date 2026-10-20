@@ -45,7 +45,7 @@ def _issue(error):
         details = body.get("details") if isinstance(body, dict) else None
         issue = details[0].get("issue") if isinstance(details, list) and details and isinstance(details[0], dict) else body.get("name")
         return issue if isinstance(issue, str) and re.fullmatch(r"[A-Z][A-Z0-9_]{0,63}", issue) else None
-    except (OSError, ValueError, AttributeError, UnicodeError):
+    except (OSError, ValueError, AttributeError, UnicodeError, RecursionError):
         return None
     finally:
         error.close()
@@ -156,8 +156,8 @@ def normalize_order(raw, order_id, payload, merchant_id):
     check(shipping.get("address") == expected["shipping"]["address"], "SHIPPING_ADDRESS_UNVERIFIED")
     # No shipping options are sent; any echoed option must not add a charge.
     options = shipping.get("options", [])
-    check(isinstance(options, list) and all(isinstance(option, dict) and _cents(option.get("amount")) in (None, 0, payload["shipping_cents"])
-                                            for option in options), "SHIPPING_OPTION_UNVERIFIED")
+    check(isinstance(options, list) and all(isinstance(option, dict) and (
+        "amount" not in option or _cents(option["amount"]) in (0, payload["shipping_cents"])) for option in options), "SHIPPING_OPTION_UNVERIFIED")
     payments = unit.get("payments", {})
     check(isinstance(payments, dict), "PAYMENTS_UNVERIFIED")
     payments = payments if isinstance(payments, dict) else {}
@@ -249,7 +249,12 @@ class SandboxClient:
             # definitive decline with PayPal's issue code only. Capture errors stay
             # uncertain (a capture 422 can mean ORDER_ALREADY_CAPTURED).
             if method == "POST" and path == "/v2/checkout/orders" and error.code in (400, 422):
-                raise ProviderDeclined(_issue(error)) from None
+                issue = _issue(error)
+                # Only a parsed validation issue is definitive; replay/idempotency
+                # conflicts or unreadable bodies stay uncertain.
+                if issue and issue not in ("PREVIOUS_REQUEST_IN_PROGRESS", "DUPLICATE_REQUEST_ID"):
+                    raise ProviderDeclined(issue) from None
+                raise PayPalUnavailable() from None
             error.close()
             raise PayPalUnavailable() from None
         except (OSError, http.client.HTTPException, ValueError, TypeError, UnicodeError, RecursionError):

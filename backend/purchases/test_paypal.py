@@ -185,7 +185,8 @@ class PayPalSandboxClientTests(TransactionTestCase):
 
     def test_create_validation_rejection_is_a_definitive_decline_with_issue_code_only(self):
         for code, body, expected_state in ((422, b'{"name":"UNPROCESSABLE_ENTITY","details":[{"issue":"SHIPPING_OPTIONS_NOT_SUPPORTED","description":"PRIVATE_TEXT"}]}', "STOPPED"),
-                                           (400, b'not json PRIVATE_TEXT', "STOPPED"),
+                                           (400, b'not json PRIVATE_TEXT', "UNKNOWN"),
+                                           (422, b'{"details":[{"issue":"DUPLICATE_REQUEST_ID"}]}', "UNKNOWN"),
                                            (500, b'{"name":"INTERNAL_SERVER_ERROR"}', "UNKNOWN")):
             with self.subTest(code=code):
                 self.http = FakeHTTP()
@@ -205,7 +206,8 @@ class PayPalSandboxClientTests(TransactionTestCase):
                 self.assertEqual(sum(call.full_url.endswith("/v2/checkout/orders") for call in self.http.calls), 1)
                 if expected_state == "STOPPED":
                     self.assertEqual((attempt.reason_code, attempt.stock_hold_packs), ("PROVIDER_DECLINED", 0))
-                self.assertEqual(request.events.filter(message__contains="SHIPPING_OPTIONS_NOT_SUPPORTED").exists(), code == 422)
+                self.assertEqual(request.events.filter(message__contains="SHIPPING_OPTIONS_NOT_SUPPORTED").exists(),
+                                 b"SHIPPING_OPTIONS_NOT_SUPPORTED" in body)
                 self.assertFalse(request.events.filter(message__contains="PRIVATE").exists())
 
     def test_http_errors_never_retry_or_release_uncertain_capture(self):
