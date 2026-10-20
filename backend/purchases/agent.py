@@ -238,13 +238,14 @@ def _raw_policy(text, confirmed):
     if "currency" not in confirmed and re.search(_FOREIGN, text, re.I):
         (ambiguous if re.search(r"\$|\b(?:USD|US dollars?)\b", text, re.I) else unsupported).append("currency")
     if "one_time" not in confirmed:
-        for match in re.finditer(r"\b(?:subscriptions?|recurring|monthly|weekly|annually|daily|quarterly|fortnightly|bi-?weekly|"
-            r"standing orders?|auto-?renew\w*|automatic(?:ally)? renew\w*|repeat(?:ing)? (?:orders?|deliver\w*)|"
-            r"every (?:\w+ )?(?:days?|weeks?|months?|years?))\b", text, re.I):
+        for match in re.finditer(r"\b(?:subscri(?:ptions?|be\w*)|recurring|monthly|weekly|annually|yearly|quarterly|fortnightly|bi-?weekly|"
+            r"standing orders?|auto-?renew\w*|automatic(?:ally)? renew\w*|renews? automatically|"
+            r"repeat(?:ing)? (?:orders?|deliver\w*)|once (?:a|per|every) (?:week|month|year)|"
+            r"(?:every|each) (?:\w+ )?(?:weeks?|months?|years?))\b", text, re.I):
             clause = re.split(r"[,;.!?]", text[:match.start()])[-1]
             # Negated recurrence is compatible with one-time purchasing. An
             # affirmative/ambiguous mention asks the buyer; it never guesses.
-            if not re.search(r"\b(?:no|not|never|without|avoid)\b(?:\s+[\w-]+){0,4}\s*$", clause, re.I):
+            if not re.search(r"\b(?:no|not|never|without|avoid|don't|do not|doesn't|does not)(?:\s+[\w'-]+){0,4}\s*$", clause, re.I):
                 (ambiguous if re.search(r"\bone[ -]time\b|\bonce\b", text, re.I) else unsupported).append("one_time")
                 break
     return unsupported, ambiguous
@@ -253,7 +254,7 @@ def _raw_policy(text, confirmed):
 _USD = {"$", "US$", "USD", "US DOLLAR", "US DOLLARS", "DOLLAR", "DOLLARS"}
 _FOREIGN = (r"€|£|₹|\b(?:C|CA|A|AU|NZ|NT|HK|S|SG|MX|R|J|TT|B)\$|\b(?:EUR|euros?|GBP|pounds?|INR|rupees?|CAD|AUD|NZD|HKD|SGD|MXN|JPY|yen)\b"
             r"|\b(?:Canadian|Australian|Aussie|Kiwi|New Zealand|Hong Kong|Singapore|Mexican|Taiwan(?:ese)?|Jamaican)\s+dollars?\b")
-_METRIC = r"(\d{1,6}(?:\.\d{1,6})?)\s*-?\s*(l|lt|litres?|liters?|ml|millilitres?|milliliters?|m|metres?|meters?|cm|centimetres?|centimeters?|mm|millimetres?|millimeters?)\b"
+_METRIC = r"(?<![\d,.])(\d{1,6}(?:\.\d{1,6})?)\s*-?\s*(l|lt|litres?|liters?|ml|millilitres?|milliliters?|m|metres?|meters?|cm|centimetres?|centimeters?|mm|millimetres?|millimeters?)\b"
 # Unit-aware conversion: a stated unit only grounds the attribute it can measure.
 _UNIT_FACTORS = {"l": {"volume_ml": 1000, "capacity_l": 1}, "ml": {"volume_ml": 1, "capacity_l": 0.001},
                  "m": {"width_cm": 100, "height_cm": 100}, "cm": {"width_cm": 1, "height_cm": 1},

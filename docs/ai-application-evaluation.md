@@ -209,3 +209,10 @@ non-applicable attributes; `a12decc` treats those as unset. A separate agent the
 authored `ai-application-unseen-a12decc.json` (suite `unseen2`) against frozen
 adapter `a12decc`; the implementer has not read it. Qualification now requires
 all four suites to pass independently (80 outcomes, default cap 80).
+
+`8b36b78` (four suites): original 20/20, regression 20/20, exposed 808472c 17/20,
+blind a12decc 18/20 — gate failed by one outcome on an exposed suite. Exposed
+failures led to `168eee7` (unit-aware conversion per attribute, paper size must
+appear in text, more recurring phrases) and a recurrence/number-boundary
+follow-up after independent review. A separate agent authored blind suite
+`ai-application-unseen-168eee7.json` (`unseen3`); five suites, 100 outcomes.
