@@ -1,80 +1,67 @@
 # SpendConsent — compact handoff
 
-Updated 20 October 2026. Read once after AGENTS.md; load references only as needed.
+Updated 20 October 2026. Read after AGENTS.md; load references only as needed.
 
 ## Scope and authorization
 
-Real local AI interprets supply requests; server code owns exact USD totals.
-Buyers approve immutable carts before explicitly permitted sandbox purchasing.
-Preserve the full [PRD](docs/PRD.md): one merchant/SKU, 16 fictional SKUs,
-fixed synthetic tax/delivery, one-time USD.
-
-The full completion goal is **active in this fresh project chat** by explicit
-user instruction; the old chat's goal stays paused. Build/review/private commits
-and pushes are authorized. Zero-cost, secrets, non-destructive work, action-time
-financial consent and no-publication boundaries remain in AGENTS.md.
+Full PRD completion goal is active in this fresh chat; the old chat remains paused.
+Implementation, independent review and private commits/pushes are authorized.
+Zero cost, secrets, sandbox, action-time financial consent and no-publication
+boundaries remain. Preserve the full [PRD](docs/PRD.md): actual local AI,
+server-owned exact USD packs/totals, immutable human approval, one merchant/SKU,
+16 fictional SKUs, fixed synthetic tax/delivery, one-time USD.
 
 ## Verified checkpoint
 
-- Private repository: https://github.com/abhishekruby/paypal-ai-hackathon-2026;
-  visibility reverified PRIVATE today. Source `2f05695` and docs `721ddae` privately pushed/verified.
-- Django/PostgreSQL exact authority, immutable reviews, approval/reservation,
-  dispatch/recovery and default-off sandbox runtime: 91 owner-suite tests passed.
-  Independent combined review passed 11 runtime and 26 checkout/race tests plus
-  SDK lifecycle. Provider/model doubles are explicitly test-only.
-- React/TypeScript UI now wires gated create, existing-order SDK approval, server
-  capture and read-only recovery. Nine frontend groups, SDK offline group and
-  production build pass. SDK-load retry now reloads the page, restoring the same
-  attempt. Full actual browser AI/payment journey remains unverified.
-- Actual sandbox OAuth returned HTTP 200 today; no financial action occurred.
-  User supplied `PAYPAL_MERCHANT_ID` privately; sandbox configuration validation
-  passes without displaying its value. Actual seller binding still needs order
-  read-back. No purchase consent has been granted. Runtime/financial flags and AI readiness remain off.
-- Existing version-3 request, 16 offers and zero attempts preserved. Actual browser
-  restores that request. Limited labels/focus/keyboard/mobile checks pass; form
-  boundary contrast corrected. Full flow/accessibility/usefulness remain pending.
+Private repository: https://github.com/abhishekruby/paypal-ai-hackathon-2026.
+Visibility reverified PRIVATE today. Source `808472c` freezes the reviewed native
+product/attribute protocol; prior failed evidence is committed in `6db8760`.
+All 91 PostgreSQL backend tests pass on revised source (25.750s). Independent
+review passed native validation and evaluator selftest. Payment/runtime review
+previously passed 11 runtime +26 checkout/race tests. Frontend nine groups,
+SDK offline check and build passed; full actual browser flow remains unverified.
 
-## AI evidence and live handles
+User privately supplied Merchant ID; sandbox configuration validates. Actual
+sandbox OAuth returned HTTP 200. Seller/order binding and actual SDK remain
+unverified. No financial action or action-time purchase consent. Runtime,
+financial dispatch and AI readiness remain off; no readiness marker granted.
+Original saved request version3, 16 offers and zero attempts preserved.
 
-Pinned Qwen3-4B Q4_K_M, template and llama.cpp hashes reverified after the prior
-process handles disappeared. Model terminal `13779` on 11435, API `88346` on
-8000, Vite `6828` on 5173; PostgreSQL started (PID 185944). Resume live handles
-before restarting. Flags/readiness remain off.
+## AI evidence and next action
 
-Preserved failed reports: `ai-application-qualification-a9fdb54.json` (14/20,
-unknown-timing interruption) and `...-a7f7904.json` (default timeout 90.037 s,
-correct native arguments, next attempt interrupted). Fresh cases unrun in both.
-See [AI protocol](docs/ai-application-evaluation.md) for raw evidence and limits.
+Pinned Qwen3-4B Q4_K_M/template/llama.cpp hashes verified. Model session `13779`
+on11435 and API `88346` on8000 remain live; Vite `6828` on5173; main PostgreSQL
+PID185944. Model health HTTP200 rechecked. Resume live handles before restart.
+API still loads prior source with default-off flags; restart only for qualified
+integration. Evaluator `47821` is stopped, not a live job.
 
-Reviewed compact-context source `2f05695` kept both real model calls and all
-gates. Its preserved report passed original 18/20 (warm median 55.952s; both
-defaults correct) but failed fresh: 7/11 completed, four failures, plus one
-interrupted attempt with unknown timing. The evaluator `47821` stopped; do not
-resume it. This report spans a model-process break and shared verification load.
-No readiness marker was granted. Product/attribute schema confusion and misuse
-of missing facts as unsupported extras motivate the next reviewed protocol.
+Failed reports preserved: `ai-application-qualification-a9fdb54.json` (14/20),
+`...-a7f7904.json` (mandatory default timeout), `...-2f05695.json` (original18/20,
+warm55.952s, both defaults correct; fresh7/11 completed, four failures plus one
+interrupted/unknown-time attempt). Last run spans a model-process break/shared
+verification load. Never pool those outcomes or erase failures.
 
-**Next:** category-specific nullable tool attributes and closed full product
-labels, mapped to canonical codes only inside catalog search. Preserve all old
-answers/gates as regression suites. After adapter freeze, independently author
-new unseen cases; all three suites must independently pass 18/20, warm <60s,
-with both original defaults correct. No inference before review/private commit.
+Frozen source `808472c` retains two actual model calls/preset/deadline/strict final
+validation. Native full labels remain truthful in evidence; catalog search maps
+to canonical codes. Exact category-specific nullable attributes distinguish missing
+facts from explicit unsupported extras. No actual-model success yet.
 
-Reproduction: cached runtime/template hashes verified. Fresh dependency installs,
-frontend tests/build and a fresh checkout/isolated PostgreSQL 91-test run passed
-(48.726s). Full clean-machine setup/model redownload remain unverified. Mistaken
-npm-exec installer stopped; repo locks/global Node unchanged.
+**Next:** independently author ten unseen cases after adapter freeze; owner stays
+blind to inputs/answers. Runner extension adds a third suite. Review/selftest,
+private commit, verify health200, then one mandatory default before full trial.
+Original, exposed-fresh regression and unseen suites each require18/20 and warm
+median<60s; both original defaults must pass. Old answers/gates unchanged.
 
 ## Remaining delivery
 
-1. Independently pass original, regression and new unseen AI suites: >=18/20 each, warm median
-   <60s, both original defaults correct; preserve every failure.
-2. Actual browser request → comparison → exact review → approval.
-3. Finish real SDK/merchant verification; default off without exact permission.
-4. Concrete action-time consent, separate sandbox buyer, purchase/read-back/recovery.
-5. Five timed usability pairs; 30% active-effort reduction remains unachieved.
-6. Reproducible setup, honest demo under three minutes, whole-PRD audit/private sync.
+Actual browser request/comparison/exact review/approval; real SDK/seller verification;
+concrete action-time consent before sandbox purchase/read-back/recovery; five
+usability pairs (30% active-effort improvement unachieved); full accessibility,
+performance, honest under-three-minute demo and whole-PRD audit/private sync.
 
-References as needed: backend/README.md, docs/paypal-runtime-plan.md,
-docs/usability-evaluation.md, docs/prebuild-audit.md, docs/ai-feasibility.md.
-Detailed history/evidence stays in docs/progress.md and existing reports.
+Reproduction: cached archive/template hashes and overwrite refusal verified.
+Fresh dependencies/frontend checks/build and fresh tracked checkout/isolated
+PostgreSQL91tests passed48.726s. Full clean-machine setup/model redownload
+unverified. Mistaken npm-exec installer stopped; repo locks/global Node unchanged.
+Details: docs/ai-application-evaluation.md, ai-feasibility.md,
+paypal-runtime-plan.md, usability-evaluation.md and progress.md.

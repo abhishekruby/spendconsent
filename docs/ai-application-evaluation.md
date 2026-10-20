@@ -14,7 +14,7 @@ The original ten semantic cases from `ai_probe.py` run twice, preserving their
 original statuses and lowest SKUs. Their representation changes only to the
 canonical application schema: square size becomes width/height; unsupported
 currency and its budget stay outside USD constraints; an unsupported item has no
-invented supported category. The [independent fresh ten cases](ai-application-holdouts.md)
+invented supported category. The [independently authored ten cases](ai-application-holdouts.md)
 also run twice. Each suite independently requires at least 18/20 correct outcomes
 and a warm median strictly below 60 seconds. Both original default 40-cloth cases
 must additionally pass as READY with CLOTH-B; eighteen other correct outcomes
@@ -35,7 +35,7 @@ and raw responses are excluded. Only the fixed local model socket is permitted. 
 application write, model startup or model download occurs here.
 
 Run the offline self-test first. It uses explicitly mocked inference, checks all
-twenty distinct semantic cases, rejects corrupted constraints/prices/IDs/authority,
+thirty distinct semantic cases in the current three-suite revision, rejects corrupted constraints/prices/IDs/authority,
 checks independent score/latency thresholds, blocks a non-model destination and
 proves checkpoint creation, refusal to overwrite and partial-report resumption:
 
@@ -157,3 +157,14 @@ The prior fresh suite is now an exposed regression suite. Retain its unchanged
 answers and independently require 18/20 and warm median below 60s. A third unseen
 ten-case suite will be authored only after this adapter's reviewed source freeze;
 its own 20 outcomes must pass the same gates without pooling.
+
+
+Current evaluator revision retains the historical `fresh` suite under its original
+name as exposed regression evidence and adds `unseen`, authored after adapter
+commit `808472c`. All three suites retain independent 20-outcome gates. The
+runner records both fixture hashes and binds new fixture provenance to the
+frozen adapter hash/commit. Existing failed reports keep their original two-suite
+checkpoints. The default run cap becomes 60; atomic attempt recording and
+resumption behavior remain unchanged. The case author reviewed the adapter; the
+implementation owner remains blind to new case inputs/answers before inference.
+This independence is narrower than a separate external benchmark.

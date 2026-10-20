@@ -38,10 +38,12 @@ from purchases.serializers import Constraints, missing_constraints
 import ai_probe
 
 FRESH = "docs/evidence/ai-application-holdouts.json"
+UNSEEN = "docs/evidence/ai-application-unseen-808472c.json"
+SUITES = ("original", "fresh", "unseen")
 SEED = "backend/purchases/migrations/0002_sample_catalog.py"
 SOURCES = ("scripts/ai_application_eval.py", "scripts/ai_probe.py", "backend/purchases/agent.py",
            "backend/purchases/catalog.py", "backend/purchases/serializers.py",
-           "backend/purchases/models.py", SEED, FRESH)
+           "backend/purchases/models.py", SEED, FRESH, UNSEEN)
 QUOTE_FIELDS = ("sku", "packs", "individual_units", "subtotal_cents", "tax_cents",
                 "shipping_cents", "discount_cents", "total_cents")
 SAFE_ERRORS = {"MODEL_ERROR", "MODEL_TIMEOUT", "MODEL_BUSY", "MODEL_TRANSACTION", "INVALID_MODEL_INPUT"}
@@ -114,13 +116,20 @@ def original_cases(rows):
 
 
 def load_cases():
-    fresh = json.loads((ROOT / FRESH).read_text())
-    assert fresh["evaluation"]["results"] is None
-    assert fresh["evaluation"]["repetitions_per_case"] == 2
-    assert sha(SEED) == fresh["catalog"]["seed_sha256"]
-    assert sha("backend/purchases/catalog.py") == fresh["catalog"]["arithmetic_sha256"]
     rows = offers()
-    suites = {"original": original_cases(rows), "fresh": fresh["cases"]}
+    suites = {"original": original_cases(rows)}
+    for name, filename in (("fresh", FRESH), ("unseen", UNSEEN)):
+        fixture = json.loads((ROOT / filename).read_text())
+        assert fixture["evaluation"]["results"] is None
+        assert fixture["evaluation"]["repetitions_per_case"] == 2
+        assert sha(SEED) == fixture["catalog"]["seed_sha256"]
+        assert sha("backend/purchases/catalog.py") == fixture["catalog"]["arithmetic_sha256"]
+        if name == "unseen":
+            frozen = subprocess.check_output(["git", "show", fixture["adapter_freeze_commit"] +
+                ":backend/purchases/agent.py"], cwd=ROOT)
+            assert hashlib.sha256(frozen).hexdigest() == fixture["adapter_sha256"] == sha("backend/purchases/agent.py")
+        suites[name] = fixture["cases"]
+    assert tuple(suites) == SUITES
     assert len(rows) == 16 and all(len(cases) == 10 for cases in suites.values())
     for cases in suites.values():
         assert len({case["id"] for case in cases}) == 10
@@ -334,7 +343,7 @@ def self_test():
             expected = case["expected"]
             value = {key: expected["canonical_constraints"].get(key) for key in agent._FIELDS}
             value["attributes"] = value["attributes"] or {}
-            value["unsupported_requirements"] = []
+            value["unsupported_requirements"] = expected["raw_unsupported_intent"].get("unsupported_requirements", [])
             value.update({key: item for key, item in expected["raw_unsupported_intent"].items() if key in ("currency", "category", "one_time")})
             value = proposal_override[0] or value
             native = {"cloth": "microfiber cloth", "bag": "waste bag", "bottle": "spray bottle", "notebook": "notebook"}
@@ -416,12 +425,12 @@ def self_test():
         with patch.dict(run.__globals__, evaluate=offline_outcome, require_committed_sources=lambda: None), patch("builtins.print"):
             run(path, 1)
             assert json.loads(path.read_text())["phase"] == "partial" and len(called) == 1
-            run(path, 40)
+            run(path, 60)
         restored = json.loads(path.read_text())
-        assert restored["phase"] == "complete" and len(called) == 40
+        assert restored["phase"] == "complete" and len(called) == 60
         assert restored["suites"]["original"]["results"][0]["passed"] is False
         assert restored["suites"]["original"]["summary"]["passed"] == 19
-        assert restored["suites"]["fresh"]["summary"]["passed"] == 20
+        assert all(restored["suites"][name]["summary"]["passed"] == 20 for name in ("fresh", "unseen"))
         assert not restored["all_gates_passed"]
         assert not restored["suites"]["original"]["summary"]["default_case_gate_passed"]
     trace = {"model_requests": 0, "model_connections": 0, "native_tool_names": [], "blocked_other_destinations": 0,
@@ -435,7 +444,7 @@ def self_test():
         else:
             raise AssertionError("Non-model network destination was permitted")
     assert trace["blocked_other_destinations"] == 1 and trace["model_connections"] == 0
-    print("PASS: 20 frozen semantic cases, real catalog checks, rejection scoring and separate gates; mocked inference, no DB/network.")
+    print("PASS: 30 frozen semantic cases, real catalog checks, rejection scoring and separate gates; mocked inference, no DB/network.")
 
 
 def main():
@@ -445,19 +454,19 @@ def main():
     mode.add_argument("--prepare", action="store_true")
     mode.add_argument("--run", action="store_true")
     parser.add_argument("--output", type=Path)
-    parser.add_argument("--max-cases", type=int, default=40, help="Run at most this many additional cases; preserve and resume partial evidence.")
+    parser.add_argument("--max-cases", type=int, default=60, help="Run at most this many additional cases; preserve and resume partial evidence.")
     args = parser.parse_args()
     if args.self_test:
         self_test()
         return
-    if args.output is None or not 1 <= args.max_cases <= 40:
-        parser.error("--output and a --max-cases value in 1..40 are required")
+    if args.output is None or not 1 <= args.max_cases <= 60:
+        parser.error("--output and a --max-cases value in 1..60 are required")
     load_cases()
     if args.prepare:
         report = {"schema_version": 1, "phase": "prepared", "prepared_at": datetime.now(timezone.utc).isoformat(),
                   "prepared_commit": commit(), "checkpoint": checkpoint(), "synthetic_cases": True,
                   "actual_application_persistence_exercised": False,
-                  "suites": {name: {"results": [], "summary": summary([], name)} for name in ("original", "fresh")},
+                  "suites": {name: {"results": [], "summary": summary([], name)} for name in SUITES},
                   "all_gates_passed": False}
         save(args.output, report, initial=True)
         print("Prepared source/config checkpoint; no inference, network or database access.")
