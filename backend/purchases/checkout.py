@@ -72,9 +72,11 @@ def _locked(owner, pk):
         yield request, approval, offer, attempt
 
 
-def _event(request, attempt, kind, reason=None):
-    DecisionEvent.objects.create(request=request, attempt=attempt, type=kind, reason_code=reason,
-                                 message=MESSAGES[reason] if reason else "The exact stored payment state was verified.")
+def _event(request, attempt, kind, reason=None, detail=None):
+    message = MESSAGES[reason] if reason else "The exact stored payment state was verified."
+    if detail and re.fullmatch(r"[A-Z][A-Z0-9_]{0,63}", detail):
+        message += f" PayPal sandbox issue: {detail}."
+    DecisionEvent.objects.create(request=request, attempt=attempt, type=kind, reason_code=reason, message=message)
 
 
 def _save(attempt):
@@ -92,7 +94,7 @@ def _release(offer, attempt, paid=False):
         attempt.stock_hold_packs = 0
 
 
-def _transition(request, offer, attempt, state, reason=None, operation=None):
+def _transition(request, offer, attempt, state, reason=None, operation=None, detail=None):
     if state == "STOPPED":
         _release(offer, attempt)
     attempt.state = state
@@ -101,7 +103,7 @@ def _transition(request, offer, attempt, state, reason=None, operation=None):
     _save(attempt)
     request.status = "PAID" if state == "PAID" else "READY" if state == "STOPPED" else "CHECKOUT"
     request.save(update_fields=["status"])
-    _event(request, attempt, state, reason)
+    _event(request, attempt, state, reason, detail)
 
 
 def _authority(request, approval, offer, hold=0):
@@ -156,8 +158,8 @@ def start(owner, approval_id, provider):
         response = provider.create_order(deepcopy(attempt.create_payload), str(attempt.create_key))
     except DispatchDenied:
         return _dispatch_denied(owner, attempt.id)
-    except ProviderDeclined:
-        return _definitive_decline(owner, attempt.id, "create")
+    except ProviderDeclined as error:
+        return _definitive_decline(owner, attempt.id, "create", error.args[0] if error.args else None)
     except Exception:
         return _unknown(owner, attempt.id, "create")
     order_id = response.get("id") if isinstance(response, dict) else None
@@ -193,10 +195,10 @@ def _unknown(owner, pk, operation):
         return _result(attempt)
 
 
-def _definitive_decline(owner, pk, operation):
+def _definitive_decline(owner, pk, operation, detail=None):
     with _locked(owner, pk) as (request, approval, offer, attempt):
         if attempt.state not in TERMINAL and (operation != "create" or not attempt.capture_dispatched_at):
-            _transition(request, offer, attempt, "STOPPED", "PROVIDER_DECLINED")
+            _transition(request, offer, attempt, "STOPPED", "PROVIDER_DECLINED", detail=detail)
         return _result(attempt)
 
 

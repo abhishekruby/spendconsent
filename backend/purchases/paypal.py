@@ -16,6 +16,7 @@ import urllib.request
 import uuid
 from django.db import connection
 from . import catalog
+from .checkout import ProviderDeclined
 from .models import PaymentAttempt
 
 BASE_URL = "https://api-m.sandbox.paypal.com"
@@ -35,6 +36,19 @@ class PayPalUnavailable(Exception):
     def __init__(self, code="PROVIDER_UNAVAILABLE"):
         self.code = code if code in ("PROVIDER_UNAVAILABLE", "PROVIDER_RESPONSE_INVALID", "AUTH_UNAVAILABLE", "BINDING_UNVERIFIED", "SANDBOX_CONFIG_INVALID") else "PROVIDER_UNAVAILABLE"
         super().__init__(self.code)
+
+
+def _issue(error):
+    """PayPal's machine-readable issue name only (e.g. SHIPPING_OPTIONS_NOT_SUPPORTED), never raw text."""
+    try:
+        body = json.loads(error.read(8192).decode("utf-8"))
+        details = body.get("details") if isinstance(body, dict) else None
+        issue = details[0].get("issue") if isinstance(details, list) and details and isinstance(details[0], dict) else body.get("name")
+        return issue if isinstance(issue, str) and re.fullmatch(r"[A-Z][A-Z0-9_]{0,63}", issue) else None
+    except (OSError, ValueError, AttributeError, UnicodeError):
+        return None
+    finally:
+        error.close()
 
 
 class NoRedirect(urllib.request.HTTPRedirectHandler):
@@ -90,8 +104,9 @@ def wire_order(payload, merchant_id):
             if not isinstance(item[key], str) or not item[key] or len(item[key]) > 120:
                 raise ValueError
         description = f"{item['specification']}; variant {item['variant_id']}; {item['pack_units']} individual units per pack."
+        # PayPal rejects shipping.options with SET_PROVIDED_ADDRESS (SHIPPING_OPTIONS_NOT_SUPPORTED);
+        # the fixed delivery charge is carried by amount.breakdown.shipping instead.
         shipping_detail = deepcopy(DESTINATION_V1)
-        shipping_detail["options"] = [{"id": destination["option_id"], "label": destination["label"], "type": "SHIPPING", "selected": True, "amount": _money(shipping)}]
         unit = {"reference_id": payload["reference_id"], "custom_id": payload["review_digest"],
                 "payee": {"merchant_id": merchant_id}, "amount": {**_money(total), "breakdown": {
                     "item_total": _money(subtotal), "tax_total": _money(tax), "shipping": _money(shipping), "discount": _money(discount)}},
@@ -139,10 +154,10 @@ def normalize_order(raw, order_id, payload, merchant_id):
     shipping = unit.get("shipping") if isinstance(unit.get("shipping"), dict) else {}
     check(shipping.get("name") == expected["shipping"]["name"], "SHIPPING_RECIPIENT_UNVERIFIED")
     check(shipping.get("address") == expected["shipping"]["address"], "SHIPPING_ADDRESS_UNVERIFIED")
-    options = shipping.get("options")
-    selected = options[0] if isinstance(options, list) and len(options) == 1 and isinstance(options[0], dict) else {}
-    check(all(type(selected.get(key)) is type(value) and selected[key] == value for key, value in expected["shipping"]["options"][0].items() if key != "amount")
-          and _cents(selected.get("amount")) == payload["shipping_cents"], "SHIPPING_OPTION_UNVERIFIED")
+    # No shipping options are sent; any echoed option must not add a charge.
+    options = shipping.get("options", [])
+    check(isinstance(options, list) and all(isinstance(option, dict) and _cents(option.get("amount")) in (None, 0, payload["shipping_cents"])
+                                            for option in options), "SHIPPING_OPTION_UNVERIFIED")
     payments = unit.get("payments", {})
     check(isinstance(payments, dict), "PAYMENTS_UNVERIFIED")
     payments = payments if isinstance(payments, dict) else {}
@@ -230,6 +245,11 @@ class SandboxClient:
         except urllib.error.HTTPError as error:
             if error.code == 401:
                 self._token, self._token_expires = None, 0
+            # A create-order validation rejection (400/422) creates no order: report a
+            # definitive decline with PayPal's issue code only. Capture errors stay
+            # uncertain (a capture 422 can mean ORDER_ALREADY_CAPTURED).
+            if method == "POST" and path == "/v2/checkout/orders" and error.code in (400, 422):
+                raise ProviderDeclined(_issue(error)) from None
             error.close()
             raise PayPalUnavailable() from None
         except (OSError, http.client.HTTPException, ValueError, TypeError, UnicodeError, RecursionError):

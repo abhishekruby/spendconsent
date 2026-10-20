@@ -127,6 +127,8 @@ class PayPalSandboxClientTests(TransactionTestCase):
         self.assertEqual(review.snapshot["shipping"]["destination_label"], paypal.DESTINATION_LABEL_V1)
         self.assertEqual(body["payment_source"]["paypal"]["experience_context"]["shipping_preference"], "SET_PROVIDED_ADDRESS")
         self.assertNotIn("test-sandbox-secret", create.data.decode())
+        # SET_PROVIDED_ADDRESS forbids shipping.options (PayPal SHIPPING_OPTIONS_NOT_SUPPORTED).
+        self.assertNotIn("options", unit["shipping"])
 
     def test_independent_read_after_capture_and_restart_binding(self):
         request, review, approval, attempt = self.begin()
@@ -180,6 +182,31 @@ class PayPalSandboxClientTests(TransactionTestCase):
         self.assertTrue(https._context.check_hostname)
         self.assertEqual(https._context.verify_mode, ssl.CERT_REQUIRED)
         self.assertFalse(any(isinstance(handler, urllib.request.ProxyHandler) and handler.proxies for handler in handlers))
+
+    def test_create_validation_rejection_is_a_definitive_decline_with_issue_code_only(self):
+        for code, body, expected_state in ((422, b'{"name":"UNPROCESSABLE_ENTITY","details":[{"issue":"SHIPPING_OPTIONS_NOT_SUPPORTED","description":"PRIVATE_TEXT"}]}', "STOPPED"),
+                                           (400, b'not json PRIVATE_TEXT', "STOPPED"),
+                                           (500, b'{"name":"INTERNAL_SERVER_ERROR"}', "UNKNOWN")):
+            with self.subTest(code=code):
+                self.http = FakeHTTP()
+                self.paypal = self.new_client()
+                request = ready_request()
+                approval = make_approval(make_review(request))
+                original = self.http.__call__
+                def reject_create(call, timeout):
+                    if call.full_url.endswith("/v2/checkout/orders"):
+                        self.http.calls.append(call)
+                        raise urllib.error.HTTPError(call.full_url, code, "PRIVATE_REASON", Message(), io.BytesIO(body))
+                    return original(call, timeout)
+                self.paypal._opener.open.side_effect = reject_create
+                attempt, _ = checkout.start(request.owner_uuid, approval.id, self.paypal)
+                self.assertEqual(attempt.state, expected_state)
+                self.assertIsNone(attempt.provider_order_id)
+                self.assertEqual(sum(call.full_url.endswith("/v2/checkout/orders") for call in self.http.calls), 1)
+                if expected_state == "STOPPED":
+                    self.assertEqual((attempt.reason_code, attempt.stock_hold_packs), ("PROVIDER_DECLINED", 0))
+                self.assertEqual(request.events.filter(message__contains="SHIPPING_OPTIONS_NOT_SUPPORTED").exists(), code == 422)
+                self.assertFalse(request.events.filter(message__contains="PRIVATE").exists())
 
     def test_http_errors_never_retry_or_release_uncertain_capture(self):
         for code in (401, 422, 500):
