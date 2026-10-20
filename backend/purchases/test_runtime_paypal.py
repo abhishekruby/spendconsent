@@ -4,11 +4,15 @@ import json
 from pathlib import Path
 import tempfile
 import uuid
-from unittest.mock import patch
+import hashlib
+import io
+from unittest.mock import Mock, patch
+from django.core.management import call_command
+from django.core.management.base import CommandError
 from django.db import connection
 from django.test import Client, TransactionTestCase, override_settings
 from django.utils import timezone
-from . import checkout, runtime_paypal, services
+from . import agent, checkout, runtime_paypal, services
 from .models import PaymentAttempt
 from .test_paypal import FakeHTTP, MERCHANT
 from .tests import make_approval, make_review, ready_request, seed
@@ -76,6 +80,50 @@ class RuntimePayPalTests(TransactionTestCase):
         attempt = response.json()["attempt"]
         self.assertEqual(attempt["state"], "AWAITING_BUYER")
         return request, review, approval, attempt
+
+    def test_typed_consent_command_writes_only_the_exact_one_time_permission(self):
+        request, review, approval = self.purchase()
+        total = f"{review.snapshot['total_cents'] / 100:.2f}"
+        def run(typed, tty=True):
+            with patch("sys.stdin", Mock(**{"isatty.return_value": tty})), patch("builtins.input", return_value=typed):
+                call_command("authorize_sandbox_purchase", stdout=io.StringIO())
+        for typed, tty in (("9.99", True), ("yes", True), (total, False)):
+            with self.subTest(typed=typed, tty=tty), self.assertRaises(CommandError):
+                run(typed, tty)
+            self.assertFalse(self.permission.exists())
+        run(total)
+        self.assertEqual(self.permission.stat().st_mode & 0o777, 0o600)
+        self.assertTrue(runtime_paypal.allowed(approval, "create"))
+        self.assertTrue(runtime_paypal.allowed(approval, "capture"))
+        approval.revoked_at = timezone.now()
+        approval.save(update_fields=["revoked_at"])
+        self.permission.unlink()
+        with self.assertRaises(CommandError):
+            run(total)
+        self.assertFalse(self.permission.exists())
+
+    def test_ai_readiness_is_granted_only_from_a_passing_report_for_this_adapter(self):
+        marker = self.private / "ai" / "ai-ready.json"
+        adapter = hashlib.sha256(Path(agent.__file__).read_bytes()).hexdigest()
+        report = self.private / "report.json"
+        def grant(**changes):
+            data = {"phase": "complete", "all_gates_passed": True, "checkpoint": {
+                "sources": {"backend/purchases/agent.py": adapter}, "configuration": {"model": agent.MODEL}}, **changes}
+            report.write_text(json.dumps(data))
+            with override_settings(SPENDCONSENT_AI_READINESS=marker):
+                call_command("grant_ai_readiness", str(report), stdout=io.StringIO())
+        for changes in ({"all_gates_passed": False}, {"phase": "partial"},
+                        {"checkpoint": {"sources": {"backend/purchases/agent.py": "0" * 64}, "configuration": {"model": agent.MODEL}}},
+                        {"checkpoint": {"sources": {"backend/purchases/agent.py": adapter, "backend/purchases/catalog.py": "0" * 64},
+                                        "configuration": {"model": agent.MODEL}}},
+                        {"checkpoint": {"sources": [], "configuration": {"model": agent.MODEL}}}):
+            with self.subTest(changes=changes), self.assertRaises(CommandError):
+                grant(**changes)
+            self.assertFalse(marker.exists())
+        grant()
+        self.assertEqual(json.loads(marker.read_text()), {"schema_version": 1, "model": agent.MODEL,
+                                                          "qualified": True, "adapter_sha256": adapter})
+        self.assertEqual(marker.parent.stat().st_mode & 0o777, 0o700)
 
     def test_default_off_never_reads_config_or_allocates_attempt(self):
         with override_settings(SPENDCONSENT_PAYPAL_ENABLED=False), patch.object(runtime_paypal, "_private_text", side_effect=AssertionError("Disabled runtime cannot read files")):

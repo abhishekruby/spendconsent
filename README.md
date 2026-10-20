@@ -1,85 +1,105 @@
-# PayPal AI Hackathon 2026 — Project Lab
+# SpendConsent
 
-SpendConsent helps a small-business owner compare routine supplies, review exact
-packs and full charges, and approve one immutable cart before PayPal sandbox
-checkout. The catalog and shipping/tax are fictional; model inference is local.
+**An AI purchasing assistant that can't spend money you didn't approve.**
 
-**The full project remains incomplete.** Guarded payment runtime/browser wiring
-is implemented and default off. Actual AI qualification, the integrated browser
-journey, approved sandbox purchasing/read-back and usability gates remain open.
-Current checkpoint and next action: [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md).
-Setup: [backend](backend/README.md), [frontend](frontend/README.md).
-Integration boundaries: [PayPal runtime](docs/paypal-runtime-plan.md).
-Measured history and limitations: [progress](docs/progress.md).
+A small-business owner types what they need ("exactly 40 microfiber cloths,
+40 × 40 cm, under $60 including delivery and tax, one-time"). A local AI model
+reads the request and calls one catalog tool. The server compares offers on the
+full delivered cost and shows an exact cart (merchant, SKU, packs, tax, delivery,
+total). The owner approves that exact cart. Then PayPal sandbox checkout runs, and
+success is shown only after the server verifies the captured order against what
+was approved.
 
-Application migration 0006 is applied: the existing version-3 request and its exact requirements were preserved and backfilled as human-confirmed constraints; 16 offers and zero payment attempts remain. Django/Vite were restarted on loopback with AI disabled.
+Built for the PayPal AI Hackathon 2026. Sandbox only; fictional catalog.
 
-Architecture consolidation, 17 October: [system design](docs/system-design.md), [implementation gates](docs/implementation-plan.md), [stable API contract](docs/prebuild-audit.md#stable-api-contract-for-backendfrontend-agreement), and [frontend design](docs/frontend-design.md).
+## Why
 
-Product deliverables, 16 October: [research and target users](docs/research-and-users.md), [PRD](docs/PRD.md), and [selected stack and architecture](docs/architecture.md). The user authorized research, PRD preparation, stack selection and subsequent product implementation, multi-agent review/testing, and private commits/pushes. The proposal helps a small-business buyer compare routine supplies and approve an exact PayPal sandbox purchase. Differentiation and demand remain unproven. Earlier idea changes are retained in [two finalists and organizer fit](docs/two-finalists-and-organizer-fit.md).
+Buying routine supplies means checking sizes, pack counts and the real delivered
+price across options. AI shopping agents could do that work, but a buyer can't
+hand one money if it might guess a size, convert a currency, or buy the wrong
+pack. SpendConsent splits the job: **AI interprets, code checks and calculates,
+the human approves the exact cart, PayPal moves the money.**
 
-System design is ready: [detailed architecture](docs/system-design.md), [visual overview](docs/diagrams/system-overview.svg), and [implementation sequence](docs/implementation-plan.md). These specify the database relationships, application API, bounded AI tools, exact approval, PayPal sequence, and recovery states. Local backend execution uses loopback HTTP and an isolated project PostgreSQL cluster/private peer-authenticated socket; existing shared services stay untouched. Deterministic catalog, session/CSRF, immutable review and direct approval work proceeded alongside model evaluation under the [recorded scheduling revision](docs/implementation-plan.md#scheduling-revision--17-october-2026). Actual AI integration and payment release gates remain outstanding.
+## How it works
 
-Selected stack, revised after the user's backend question: React + TypeScript + Vite, Python 3.12 + Django 5.2 LTS + Django REST Framework, PostgreSQL, PayPal Orders v2 + JavaScript SDK v6, and local Qwen through a project-local llama.cpp CPU server. See [backend comparison](docs/stack-review.md). The backend environment pins Django 5.2.18 and DRF 3.18.3; dependency hashes/licenses are recorded in backend/. Verified Qwen3-1.7B inference remains below the unchanged 18/20 accuracy target: the latest extraction-thinking primary scored 14/20 and the separately measured regression scored 16/20. Earlier failed results remain preserved. The verified non-thinking Qwen3-4B trial from private checkpoint `95779a7` scored 16/20 with warm median 37.486 seconds; the unchanged >=18/20 accuracy gate failed. The separately authorized [application-protocol qualification](docs/ai-application-evaluation.md) from private checkpoint `1cd99bc` stopped after its first actual case failed in 39.859 seconds: the model omitted an explicitly stated cloth height and returned clarification instead of READY. The failed 1/40 partial report is preserved; remaining cases, including all fresh cases, were not run. Runtime enablement and the integrated browser/persistence/latency gates remain pending. See [AI feasibility](docs/ai-feasibility.md).
+| Step | Who | What is enforced |
+| --- | --- | --- |
+| Understand the request | Local Qwen3-4B (llama.cpp, CPU) via one native tool call | The model copies values *as written*; code keeps only numbers literally in the buyer's text, converts units and cents itself, and asks the buyer about anything missing or ambiguous |
+| Compare | Server | Exact spec and individual-unit quantity, full delivered total within budget, USD and one-time only; rejected offers say why |
+| Review | Server | Immutable snapshot + digest, 5-minute expiry |
+| Approve | Buyer, in the app | Binds that exact cart. Any later price or offer change revokes it, even within budget |
+| Pay | PayPal Orders v2 + JS SDK v6 (sandbox) | Server creates and captures the order, then reads it back independently (amount, currency, payee, order) before showing "Payment confirmed". Uncertain outcomes stay UNKNOWN; nothing is retried blindly |
 
-## Canonical workspace and continuity
+## Evidence
 
-Work here: `/home/abhishek/Documents/personal-project/PayPal AI Hackathon 2026 — Project Lab`. The original Codex output folder is preserved as an earlier snapshot. Read [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md) for the complete task-focused handoff and [project setup](docs/project-setup.md) for GitHub and Codex Projects status.
+- **AI:** six suites × 20 outcomes against the real application code, four of
+  them blind suites written by a separate author before inference. Qualified
+  run [4158aba](docs/evidence/ai-application-qualification-4158aba.json): 114/120,
+  every suite ≥ 18/20, warm medians 26–38 s on a laptop CPU. Failed runs are kept;
+  see [AI evaluation](docs/ai-application-evaluation.md).
+- **PayPal sandbox:** a real end-to-end purchase (USD 47.60, captured, read back,
+  stock decremented), with the problems found on the way:
+  [sandbox purchase evidence](docs/evidence/sandbox-purchase-2026-10-21.md).
+- **Tests:** 100+ backend tests on real PostgreSQL (checkout state machine,
+  idempotency, concurrency, stale approvals) and frontend unit tests.
 
-GitHub: [abhishekruby/paypal-ai-hackathon-2026](https://github.com/abhishekruby/paypal-ai-hackathon-2026), private; initial main push independently verified. Codex Project **PayPal AI Hackathon 2026** is registered with this folder, and the setup conversation has been moved into it.
+## Run it locally
 
-## Workspace map
+Tested on Ubuntu x86-64 with Python 3.12 + [uv](https://docs.astral.sh/uv/),
+PostgreSQL 16 binaries, Node 22, about 3 GB of disk for the model and 8 GB of RAM.
+Everything is free and runs on loopback.
 
-```text
-AGENTS.md                  Master project instructions
-README.md                  Entry point and safe setup
-PROJECT_CONTEXT.md         Current decisions, context, authorization, and handoff
-LICENSE                    MIT license for original repository material
-.env.example               Blank runtime configuration template
-.gitignore                 Secrets and generated files excluded
-docs/hackathon-rules.md    Official requirements and source links
-docs/ideas.md              Five product candidates and tradeoffs
-docs/market-research-and-ranking.md  Market evidence and personalized ranking
-docs/research-and-users.md Current evidence, users, competitors, and limitations
-docs/PRD.md                Proposed product scope and acceptance criteria
-docs/architecture.md       Selected planning stack, boundaries, and feasibility gates
-docs/system-design.md      Components, data model, APIs, sequence and state diagrams
-docs/implementation-plan.md Ordered milestones and verification gates
-docs/prebuild-audit.md     Canonical API field contract and release checks
-docs/frontend-design.md    Purchasing workspace and interaction design
-docs/frontend-checkpoint.md Verified browser checks and remaining UI/integration gaps
-docs/diagrams/             Editable SVG and rendered PNG system overview
-docs/progress.md           Evidence, checks, and next actions
-docs/tooling.md            Installed tools and access limits
-docs/sandbox-setup.md      Credential creation and safe API test
-backend/                   Verified deterministic authority/checkout domain and setup
-frontend/                  Session-bound React/Vite workspace; integration gates remain
-scripts/local_postgres.py  Isolated project PostgreSQL startup and self-check
-scripts/sandbox_check.py   Sandbox-only OAuth diagnostic
-```
+1. **Backend and database:** follow [backend/README.md](backend/README.md)
+   (creates `.venv`, an isolated project PostgreSQL, migrations and tests).
+2. **Model:** download and verify llama.cpp b11696 and Qwen3-4B Q4_K_M as in
+   [docs/ai-feasibility.md](docs/ai-feasibility.md) (Current 4B setup), then start
+   the server with the command in [docs/ai-application-evaluation.md](docs/ai-application-evaluation.md).
+3. **Enable AI** for the qualified adapter (or rerun the qualification yourself
+   with `scripts/ai_application_eval.py`):
+   ```bash
+   .venv/bin/python backend/manage.py grant_ai_readiness docs/evidence/ai-application-qualification-4158aba.json
+   ```
+4. **PayPal sandbox:** create a sandbox REST app on a **US** sandbox business
+   account (see [docs/sandbox-setup.md](docs/sandbox-setup.md)). Copy
+   `.env.example` to `.env` (owner-only, `chmod 600`) and fill the four
+   `PAYPAL_*` values with `PAYPAL_ENV=sandbox`. Never commit `.env`.
+5. **Start the API and the app:**
+   ```bash
+   SPENDCONSENT_AI_ENABLED=1 SPENDCONSENT_PAYPAL_ENABLED=1 .venv/bin/python backend/manage.py runserver 127.0.0.1:8000 --noreload
+   ```
+   Then follow [frontend/README.md](frontend/README.md) (`npm ci`, `npm run dev`)
+   and open http://127.0.0.1:5173.
+6. **Buy:** use the sample request → compare → review → approve. Then, in a
+   terminal, give the one-time payment consent for that exact cart (it shows the
+   cart and asks you to type the total):
+   ```bash
+   .venv/bin/python backend/manage.py authorize_sandbox_purchase
+   ```
+   Back in the app, start sandbox checkout and approve with a sandbox
+   **personal** account in the PayPal window.
 
-Read [AGENTS.md](AGENTS.md) first. Open this folder in your preferred editor or coding workspace. This is a local project folder, not a separately provisioned cloud service or background agent.
+Without step 3 or 4 the app still runs and says honestly that AI or payment is
+unavailable; it never fakes a result. To demo a changed price:
+`.venv/bin/python backend/manage.py set_offer_price CLOTH-B 2050`.
 
-## Optional sandbox authentication
+## Limits
 
-Default-off backend/frontend startup needs no PayPal credentials. This optional
-OAuth-only diagnostic uses installed Python 3.12 and needs no paid upgrade.
+One fictional merchant and 16 sample SKUs; one item per cart; USD one-time
+purchases only; sandbox only. The grounding check verifies that a number appears
+in the buyer's text, not its role, so the exact review remains the final check.
+Model latency is 20–40 s on CPU. No usability claim is made yet.
 
-```bash
-python3 scripts/sandbox_check.py --self-test
-python3 scripts/sandbox_check.py --prompt
-```
+## Repository map
 
-Run the second command yourself in an interactive terminal. Copy the dedicated **sandbox** app's client ID and secret directly from PayPal into its hidden prompts. Never paste them into this chat, shell commands, or documents. The script requests an OAuth token only, reports a sanitized success/failure summary, and discards the token. It does not make payments or create business objects.
+`backend/` Django 5.2 + DRF + PostgreSQL (authority, checkout, PayPal adapter,
+AI adapter in `purchases/agent.py`) · `frontend/` React + TypeScript + Vite ·
+`scripts/` qualification runner, PostgreSQL helper, sandbox OAuth check ·
+`docs/` [PRD](docs/PRD.md), [system design](docs/system-design.md),
+[PayPal runtime](docs/paypal-runtime-plan.md), [progress log](docs/progress.md),
+[evidence](docs/evidence/) · `PROJECT_CONTEXT.md` current status and handoff ·
+`AGENTS.md` rules for the coding agents that built this.
 
-The private `.env` was filled by the user and copied locally with owner-only permissions. To repeat the OAuth-only diagnostic, run `python3 scripts/sandbox_check.py`; the diagnostic reads it without printing values. Supported syntax is simple KEY=value with optional matching quotes, no shell expansion or multiline values. Environment variables override local values. `.env.example` remains blank and safe to share. Never publish `.env`.
+## License
 
-## Decision sequence
-
-1. Sandbox credential setup and authenticated OAuth response are verified; retain sandbox-only operation.
-2. Review the current [PRD](docs/PRD.md), including the target user, competitor overlap, and single-merchant limitation.
-3. Guarded checkout runtime and browser SDK wiring are implemented with the stated fake/test limits; continue actual AI qualification and real browser/sandbox verification while preserving the full PRD scope.
-4. Pass the unchanged actual-AI gate: at least 18/20 grounded correct outcomes and warm median under 60 seconds. Preserve failures and separately measure unseen cases.
-5. Integrate the smallest approved PayPal + actual-AI flow and test state/recovery with labeled fakes; obtain explicit approval before actual sandbox financial actions. Usability, usefulness and release evidence remain required.
-
-The competition source links and detailed status are in the docs. Private GitHub repository creation/synchronization is authorized for this setup. Public visibility, deployment, and submission remain separate approval steps. An MIT license for original repository material is included.
+[MIT](LICENSE). Model and runtime licenses are recorded in
+[docs/ai-feasibility.md](docs/ai-feasibility.md).
