@@ -28,7 +28,10 @@ def arguments(constraints=None, **changes):
     value = {key: value.get(key) for key in agent._FIELDS}
     value["unsupported_requirements"] = []
     value.update(changes)
-    value["attributes"] = {**dict.fromkeys(agent._ATTRIBUTE_NAMES), **(value["attributes"] or {})}
+    native = {"cloth": "microfiber cloth", "bag": "waste bag", "bottle": "spray bottle"}
+    value["category"] = native.get(value["category"], value["category"])
+    applicable = agent.ATTRIBUTES.get(agent._NATIVE_CATEGORIES.get(value["category"]), ())
+    value["attributes"] = {**dict.fromkeys(applicable), **(value["attributes"] or {})} if applicable else {}
     return value
 
 
@@ -104,12 +107,21 @@ class AgentTests(TransactionTestCase):
                 self.assertIsNone(result["clarification"])
                 self.assertEqual(len(fake.bodies), 2)
                 self.assertEqual(fake.bodies[0]["tools"], [agent.TOOL])
-                schema = fake.bodies[0]["tools"][0]["function"]["parameters"]["properties"]["attributes"]
-                self.assertEqual(set(schema["required"]), {"width_cm", "height_cm", "capacity_l", "volume_ml", "paper_size"})
+                parameters = fake.bodies[0]["tools"][0]["function"]["parameters"]
+                self.assertEqual(set(parameters["required"]), set(agent._FIELDS))
+                self.assertFalse(parameters["additionalProperties"])
+                branches = parameters["oneOf"]
+                self.assertTrue(all("additionalProperties" not in branch for branch in branches))
+                self.assertEqual({branch["properties"]["category"]["const"] for branch in branches},
+                                 {"microfiber cloth", "waste bag", "spray bottle", "notebook", "unsupported", None})
+                branch = next(branch for branch in branches if branch["properties"]["category"]["const"] == fake.value["category"])
+                schema = branch["properties"]["attributes"]
+                self.assertEqual(set(schema["required"]), set(attributes))
                 self.assertEqual(set(schema["properties"]), set(schema["required"]))
                 self.assertFalse(schema["additionalProperties"])
                 self.assertEqual({key: item for key, item in fake.value["attributes"].items() if item is not None}, attributes)
                 self.assertTrue(all("null" in item["type"] for item in schema["properties"].values()))
+                self.assertEqual(agent._arguments(fake.value)["category"], fake.value["category"])
                 self.assertEqual(fake.bodies[1]["response_format"]["json_schema"]["schema"], agent.FINAL_SCHEMA)
                 self.assertNotIn("tools", fake.bodies[1])
                 final_messages = fake.bodies[1]["messages"]
@@ -171,7 +183,7 @@ class AgentTests(TransactionTestCase):
             result = agent.compare("Exactly 40 microfiber cloths, 35 by 45 cm, at most $60 delivered, one-time only.")
         self.assertEqual(result["constraints"]["attributes"], {"width_cm": 35, "height_cm": 45})
         self.assertEqual(result["status"], "NO_MATCH")
-        for key in agent._ATTRIBUTE_NAMES:
+        for key in CONSTRAINTS["attributes"]:
             value = arguments()
             del value["attributes"][key]
             with self.subTest(missing_attribute=key), self.http(value) as fake, patch.object(agent, "_search") as search:
@@ -183,7 +195,7 @@ class AgentTests(TransactionTestCase):
 
     def test_unsupported_intent_is_explained_and_never_stored_as_fake_supported_fields(self):
         for changes, absent in (({"currency": "EUR"}, "currency"), ({"one_time": False}, "one_time"),
-                ({"category": "nitrile gloves"}, "category"),
+                ({"category": "unsupported"}, "category"),
                 ({"unsupported_requirements": ["must be red and organic"]}, None),
                 ({"category": "notebook", "attributes": {"paper_size": "LETTER"}}, "attributes.paper_size")):
             with self.subTest(changes=changes), self.http(arguments(**changes)):
@@ -278,8 +290,11 @@ class AgentTests(TransactionTestCase):
                     {**normal, "tool_calls": normal["tool_calls"] * 7}))
         for changes in ({"quantity": True}, {"quantity": 10001}, {"budget_cents": 1000001},
                         {"attributes": {"width_cm": True}}, {"one_time": "true"},
-                        {"approved": True}, {"unsupported_requirements": "none"}):
+                        {"approved": True}, {"unsupported_requirements": "none"}, {"category": "nitrile gloves"},
+                        {"attributes": {"width_cm": 40, "height_cm": 40, "volume_ml": None}}):
             bad.append(native_call(arguments(**changes)))
+        for category in ("cloth", "unsupported", None):
+            bad.append(native_call({**arguments(), "category": category}))
         for message in bad:
             with self.subTest(message=message), self.http() as fake:
                 fake.first = response(message, "tool_calls")

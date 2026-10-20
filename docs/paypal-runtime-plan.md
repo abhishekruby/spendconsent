@@ -7,8 +7,9 @@ groups, the offline SDK check and production build. Independent checks cover
 responses in those tests are explicit fakes. Sandbox OAuth separately returned
 HTTP 200 today; no actual order, capture or financial action has occurred.
 AI qualification, actual SDK initialization and a concrete approved purchase remain
-separate release gates. `PAYPAL_MERCHANT_ID` is missing from private configuration;
-the existing seller's ID must be supplied privately before real checkout.
+separate release gates. The user supplied `PAYPAL_MERCHANT_ID` privately; sandbox
+configuration validation passes without displaying its value. This does not yet
+prove seller identity against an actual order. Financial dispatch remains off.
 
 ## Current official SDK contract
 
@@ -70,7 +71,7 @@ npm run build
 
 ## Remaining actual integration gates
 
-1. Supply the existing sandbox seller Merchant ID privately in `.env`. The
+1. Merchant ID configuration is complete and privately validated. The
    [official account lookup](https://developer.paypal.com/platforms/checkout/save-payment-methods/onboarding/platform/)
    uses sandbox.paypal.com → Account Settings → Business information → PayPal
    Merchant ID (checked 20 October). Do not create new credentials or change

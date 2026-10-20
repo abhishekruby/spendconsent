@@ -134,3 +134,26 @@ is not an isolated or continuous benchmark. Runtime model/template/binary hashes
 were verified before continuation and health returned HTTP 200. No AI readiness
 marker was granted. The next protocol revision will keep these cases and answers
 as independent regression gates and add unseen cases only after source freeze.
+
+
+### Category protocol revision before a new trial
+
+The model now chooses a full product label from four supported products, an
+explicit unsupported sentinel, or null for an unspecified product. The native
+parser retains that exact label in evaluation evidence; catalog search alone
+maps it to existing canonical category codes before applying authoritative human
+constraints. Each category requires only its applicable nullable attributes.
+Cloths still require both width and height keys, with unknown values null. The
+schema and Python parser reject missing keys and irrelevant attributes. Explicit
+additional requirements remain unsupported; missing facts require clarification.
+This is protocol guidance and strict validation, not deterministic buyer-text
+interpretation. It does not establish that a model follows the protocol.
+
+Common schema fields are shared at the root, with category/attribute pairs tied
+by disjoint branches. This avoids repeating the entire tool six times (10,309
+JSON bytes); the compact tool is 3,744 bytes. Native two-call inference, full tool
+facts, final exact validation, model/sampling, deadline and score gates remain.
+The prior fresh suite is now an exposed regression suite. Retain its unchanged
+answers and independently require 18/20 and warm median below 60s. A third unseen
+ten-case suite will be authored only after this adapter's reviewed source freeze;
+its own 20 outcomes must pass the same gates without pooling.
