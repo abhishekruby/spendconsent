@@ -229,3 +229,15 @@ Seed SHA-256: `3be8b3c85cb3e7f1a555c111472cc0fbc48afc94c596ea63df46ef70c873ffc3`
 Catalog SHA-256: `96bd9d5cfdf1a5cbb0a84c6f3911c6c202621fe94517ae81728359e444758fa2`.
 Both match the source reviewed at private checkpoint `a9fdb54`. The runnable
 answer check is arithmetic verification, **not a timed study result**.
+
+## Agent rehearsal — 21 October 2026 (preliminary, not a usability result)
+
+Operator: agent through the application API (fresh session per task), adapter
+qualified in report 92fe770, warm model. Live catalog prices/specs match the
+sheet; CLOTH-A/B stock 96/98 and CLOTH-B quote version 3 after sandbox tests
+(no effect on answers). Assisted outcomes matched the frozen key on all five:
+U1 CLOTH-B 20.90 (CLOTH-A 27.80 also listed), U2 BAG-B 29.70, U3 BOTTLE-A 37.00
+(BOTTLE-D 38.75 also listed), U4 NOTEBOOK-B 59.40, U5 NO_MATCH. Model wall
+times 31.5, 26.5, 30.7, 27.3, 22.0 s. No human timing; no manual method run.
+Printable participant/observer kit: docs/usability-kit.html (adds an untimed
+practice request whose answer is BOTTLE-B 19.80).
