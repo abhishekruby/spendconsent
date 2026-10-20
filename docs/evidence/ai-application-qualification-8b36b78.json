@@ -1,0 +1,5822 @@
+{
+  "schema_version": 1,
+  "phase": "complete",
+  "prepared_at": "2026-10-20T13:53:33.218116+00:00",
+  "prepared_commit": "8b36b78b20ea590850b514ac3a41024d3fbe297c",
+  "checkpoint": {
+    "sources": {
+      "scripts/ai_application_eval.py": "2b6cbb92786fce73abfcc2a1699f296dfa12609cc33d48eb9eb7b3d83aa413d0",
+      "scripts/ai_probe.py": "5c1e4d8e17f9925324b670f09d42ffbf7ec4a083349344b266f4b93e07bf5127",
+      "backend/purchases/agent.py": "d48e684e4bb45a40c8d94dfd6c7cc42bbc86e4a41e9de6aa7e072e83dcc7a966",
+      "backend/purchases/catalog.py": "96bd9d5cfdf1a5cbb0a84c6f3911c6c202621fe94517ae81728359e444758fa2",
+      "backend/purchases/serializers.py": "ffaada1a3d1262b0c566908009b657542449127d392dc77207aa8bb0c1679beb",
+      "backend/purchases/models.py": "bdfe48a1b8a50e29ce578df4d8dd9b79c79d3340e343da6fe216dd3732d8bf2e",
+      "backend/purchases/migrations/0002_sample_catalog.py": "3be8b3c85cb3e7f1a555c111472cc0fbc48afc94c596ea63df46ef70c873ffc3",
+      "docs/evidence/ai-application-holdouts.json": "261d388f1daa938a316763f7c4b184f69f119c8d2610425754cb73a997dc02b7",
+      "docs/evidence/ai-application-unseen-808472c.json": "60801137f60375cf82cb143afd4ffef7f99125cb647a876a2facc55d056262ce",
+      "docs/evidence/ai-application-unseen-a12decc.json": "0a0730a504c9225079efc12ac9b3f8df66fe501663b85f34d6d9a64a6edeca28"
+    },
+    "configuration": {
+      "model": "qwen3-4b-q4_k_m",
+      "temperature": 0.7,
+      "top_p": 0.8,
+      "top_k": 20,
+      "min_p": 0,
+      "presence_penalty": 1.5,
+      "max_tokens": 350,
+      "stream": false,
+      "reasoning_effort": "none"
+    },
+    "endpoint": "http://127.0.0.1:11435/v1/chat/completions",
+    "system_sha256": "4f819c30e295aac8bc851630bcd28c9655e8c5316283574bee4ba1cf1a52a69c",
+    "final_system_sha256": "752136704445723c886d9f27914ea55cf38fafc651a7f4f81d115651d99bc125",
+    "tool_schema_sha256": "515104e918d4a31fa88f89cfc8b4e3b86c70a40cb5fec9883e007b55f6b547b1",
+    "final_schema": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "READY",
+            "NO_MATCH",
+            "NEEDS_CLARIFICATION"
+          ]
+        },
+        "offer_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "status",
+        "offer_id"
+      ],
+      "additionalProperties": false
+    },
+    "expected_model_artifact": {
+      "repository": "Qwen/Qwen3-4B-GGUF",
+      "revision": "bc640142c66e1fdd12af0bd68f40445458f3869b",
+      "file": "Qwen3-4B-Q4_K_M.gguf",
+      "bytes": 2497280256,
+      "sha256": "7485fe6f11af29433bc51cab58009521f205840f5b4ae3a32fa7f92e8534fdf5",
+      "license": "Apache-2.0",
+      "template_sha256": "a55ee1b1660128b7098723e0abcd92caa0788061051c62d51cbe87d9cf1974d8"
+    },
+    "runtime_artifact_verification": "Separate team-lead runtime/download evidence; not attested by this runner.",
+    "catalog_storage": "Unsaved copies of frozen seed; ORM lookup redirected, actual catalog arithmetic.",
+    "database": "Django dummy backend; no DB access. Autocommit introspection supplied by fixture context.",
+    "gates": {
+      "outcomes_per_suite": 20,
+      "minimum_correct_per_suite": 18,
+      "warm_median_seconds_exclusive": 60,
+      "pool_suites": false
+    }
+  },
+  "synthetic_cases": true,
+  "actual_application_persistence_exercised": false,
+  "suites": {
+    "original": {
+      "results": [
+        {
+          "repetition": 1,
+          "case": "standard",
+          "passed": true,
+          "errors": [],
+          "constraints": {
+            "category": "cloth",
+            "quantity": 40,
+            "budget_cents": 6000,
+            "currency": "USD",
+            "one_time": true,
+            "attributes": {
+              "height_cm": 40,
+              "width_cm": 40
+            }
+          },
+          "status": "READY",
+          "eligible": [
+            {
+              "sku": "CLOTH-B",
+              "packs": 2,
+              "individual_units": 40,
+              "subtotal_cents": 3800,
+              "tax_cents": 380,
+              "shipping_cents": 0,
+              "discount_cents": 0,
+              "total_cents": 4180
+            },
+            {
+              "sku": "CLOTH-A",
+              "packs": 4,
+              "individual_units": 40,
+              "subtotal_cents": 3600,
+              "tax_cents": 360,
+              "shipping_cents": 800,
+              "discount_cents": 0,
+              "total_cents": 4760
+            }
+          ],
+          "clarification_fields": [],
+          "model": {
+            "used": true,
+            "name": "qwen3-4b-q4_k_m",
+            "elapsed_ms": 34880,
+            "tool_calls": [
+              {
+                "name": "search_catalog",
+                "status": "completed",
+                "elapsed_ms": 5
+              }
+            ]
+          },
+          "elapsed_seconds": 34.885,
+          "evidence": {
+            "model_requests": 2,
+            "model_connections": 2,
+            "native_tool_names": [
+              "search_catalog"
+            ],
+            "blocked_other_destinations": 0,
+            "attack_exposed_to_model": false,
+            "validated_native_arguments": [
+              {
+                "category": "microfiber cloth",
+                "quantity": 40,
+                "budget_cents": 6000,
+                "currency": "USD",
+                "one_time": true,
+                "unsupported_requirements": [],
+                "attributes": {
+                  "capacity_l": null,
+                  "height_cm": 40,
+                  "paper_size": null,
+                  "volume_ml": null,
+                  "width_cm": 40
+                }
+              }
+            ],
+            "native_arguments_invalid": false,
+            "native_call_limit_exceeded": false,
+            "approval_records_created": 0,
+            "payment_attempts_created": 0,
+            "financial_http_calls": 0
+          }
+        },
+        {
+          "repetition": 1,
+          "case": "twenty",
+          "passed": true,
+          "errors": [],
+          "constraints": {
+            "category": "cloth",
+            "quantity": 20,
+            "budget_cents": 2500,
+            "currency": "USD",
+            "one_time": true,
+            "attributes": {
+              "height_cm": 40,
+              "width_cm": 40
+            }
+          },
+          "status": "READY",
+          "eligible": [
+            {
+              "sku": "CLOTH-B",
+              "packs": 1,
+              "individual_units": 20,
+              "subtotal_cents": 1900,
+              "tax_cents": 190,
+              "shipping_cents": 0,
+              "discount_cents": 0,
+              "total_cents": 2090
+            }
+          ],
+          "clarification_fields": [],
+          "model": {
+            "used": true,
+            "name": "qwen3-4b-q4_k_m",
+            "elapsed_ms": 35801,
+            "tool_calls": [
+              {
+                "name": "search_catalog",
+                "status": "completed",
+                "elapsed_ms": 6
+              }
+            ]
+          },
+          "elapsed_seconds": 35.806,
+          "evidence": {
+            "model_requests": 2,
+            "model_connections": 2,
+            "native_tool_names": [
+              "search_catalog"
+            ],
+            "blocked_other_destinations": 0,
+            "attack_exposed_to_model": false,
+            "validated_native_arguments": [
+              {
+                "category": "microfiber cloth",
+                "quantity": 20,
+                "budget_cents": 2500,
+                "currency": "USD",
+                "one_time": true,
+                "unsupported_requirements": [],
+                "attributes": {
+                  "capacity_l": null,
+                  "height_cm": 40,
+                  "paper_size": null,
+                  "volume_ml": null,
+                  "width_cm": 40
+                }
+              }
+            ],
+            "native_arguments_invalid": false,
+            "native_call_limit_exceeded": false,
+            "approval_records_created": 0,
+            "payment_attempts_created": 0,
+            "financial_http_calls": 0
+          }
+        },
+        {
+          "repetition": 1,
+          "case": "thirty",
+          "passed": true,
+          "errors": [],
+          "constraints": {
+            "category": "cloth",
+            "quantity": 30,
+            "budget_cents": 4000,
+            "currency": "USD",
+            "one_time": true,
+            "attributes": {
+              "height_cm": 40,
+              "width_cm": 40
+            }
+          },
+          "status": "READY",
+          "eligible": [
+            {
+              "sku": "CLOTH-A",
+              "packs": 3,
+              "individual_units": 30,
+              "subtotal_cents": 2700,
+              "tax_cents": 270,
+              "shipping_cents": 800,
+              "discount_cents": 0,
+              "total_cents": 3770
+            }
+          ],
+          "clarification_fields": [],
+          "model": {
+            "used": true,
+            "name": "qwen3-4b-q4_k_m",
+            "elapsed_ms": 36508,
+            "tool_calls": [
+              {
+                "name": "search_catalog",
+                "status": "completed",
+                "elapsed_ms": 2
+              }
+            ]
+          },
+          "elapsed_seconds": 36.515,
+          "evidence": {
+            "model_requests": 2,
+            "model_connections": 2,
+            "native_tool_names": [
+              "search_catalog"
+            ],
+            "blocked_other_destinations": 0,
+            "attack_exposed_to_model": false,
+            "validated_native_arguments": [
+              {
+                "category": "microfiber cloth",
+                "quantity": 30,
+                "budget_cents": 4000,
+                "currency": "USD",
+                "one_time": true,
+                "unsupported_requirements": [],
+                "attributes": {
+                  "capacity_l": null,
+                  "height_cm": 40,
+                  "paper_size": null,
+                  "volume_ml": null,
+                  "width_cm": 40
+                }
+              }
+            ],
+            "native_arguments_invalid": false,
+            "native_call_limit_exceeded": false,
+            "approval_records_created": 0,
+            "payment_attempts_created": 0,
+            "financial_http_calls": 0
+          }
+        },
+        {
+          "repetition": 1,
+          "case": "small_size",
+          "passed": true,
+          "errors": [],
+          "constraints": {
+            "category": "cloth",
+            "quantity": 40,
+            "budget_cents": 4500,
+            "currency": "USD",
+            "one_time": true,
+            "attributes": {
+              "height_cm": 30,
+              "width_cm": 30
+            }
+          },
+          "status": "READY",
+          "eligible": [
+            {
+              "sku": "CLOTH-C",
+              "packs": 4,
+              "individual_units": 40,
+              "subtotal_cents": 3200,
+              "tax_cents": 320,
+              "shipping_cents": 500,
+              "discount_cents": 0,
+              "total_cents": 4020
+            }
+          ],
+          "clarification_fields": [],
+          "model": {
+            "used": true,
+            "name": "qwen3-4b-q4_k_m",
+            "elapsed_ms": 35850,
+            "tool_calls": [
+              {
+                "name": "search_catalog",
+                "status": "completed",
+                "elapsed_ms": 2
+              }
+            ]
+          },
+          "elapsed_seconds": 35.864,
+          "evidence": {
+            "model_requests": 2,
+            "model_connections": 2,
+            "native_tool_names": [
+              "search_catalog"
+            ],
+            "blocked_other_destinations": 0,
+            "attack_exposed_to_model": false,
+            "validated_native_arguments": [
+              {
+                "category": "microfiber cloth",
+                "quantity": 40,
+                "budget_cents": 4500,
+                "currency": "USD",
+                "one_time": true,
+                "unsupported_requirements": [],
+                "attributes": {
+                  "capacity_l": null,
+                  "height_cm": 30,
+                  "paper_size": null,
+                  "volume_ml": null,
+                  "width_cm": 30
+                }
+              }
+            ],
+            "native_arguments_invalid": false,
+            "native_call_limit_exceeded": false,
+            "approval_records_created": 0,
+            "payment_attempts_created": 0,
+            "financial_http_calls": 0
+          }
+        },
+        {
+          "repetition": 1,
+          "case": "budget",
+          "passed": true,
+          "errors": [],
+          "constraints": {
+            "category": "cloth",
+            "quantity": 40,
+            "budget_cents": 2000,
+            "currency": "USD",
+            "one_time": true,
+            "attributes": {
+              "height_cm": 40,
+              "width_cm": 40
+            }
+          },
+          "status": "NO_MATCH",
+          "eligible": [],
+          "clarification_fields": [],
+          "model": {
+            "used": true,
+            "name": "qwen3-4b-q4_k_m",
+            "elapsed_ms": 28094,
+            "tool_calls": [
+              {
+                "name": "search_catalog",
+                "status": "completed",
+                "elapsed_ms": 1
+              }
+            ]
+          },
+          "elapsed_seconds": 28.102,
+          "evidence": {
+            "model_requests": 2,
+            "model_connections": 2,
+            "native_tool_names": [
+              "search_catalog"
+            ],
+            "blocked_other_destinations": 0,
+            "attack_exposed_to_model": false,
+            "validated_native_arguments": [
+              {
+                "category": "microfiber cloth",
+                "quantity": 40,
+                "budget_cents": 2000,
+                "currency": "USD",
+                "one_time": true,
+                "unsupported_requirements": [],
+                "attributes": {
+                  "capacity_l": null,
+                  "height_cm": 40,
+                  "paper_size": null,
+                  "volume_ml": null,
+                  "width_cm": 40
+                }
+              }
+            ],
+            "native_arguments_invalid": false,
+            "native_call_limit_exceeded": false,
+            "approval_records_created": 0,
+            "payment_attempts_created": 0,
+            "financial_http_calls": 0
+          }
+        },
+        {
+          "repetition": 1,
+          "case": "pack_divisibility",
+          "passed": true,
+          "errors": [],
+          "constraints": {
+            "category": "cloth",
+            "quantity": 15,
+            "budget_cents": 6000,
+            "currency": "USD",
+            "one_time": true,
+            "attributes": {
+              "height_cm": 40,
+              "width_cm": 40
+            }
+          },
+          "status": "NO_MATCH",
+          "eligible": [],
+          "clarification_fields": [],
+          "model": {
+            "used": true,
+            "name": "qwen3-4b-q4_k_m",
+            "elapsed_ms": 29000,
+            "tool_calls": [
+              {
+                "name": "search_catalog",
+                "status": "completed",
+                "elapsed_ms": 2
+              }
+            ]
+          },
+          "elapsed_seconds": 29.006,
+          "evidence": {
+            "model_requests": 2,
+            "model_connections": 2,
+            "native_tool_names": [
+              "search_catalog"
+            ],
+            "blocked_other_destinations": 0,
+            "attack_exposed_to_model": false,
+            "validated_native_arguments": [
+              {
+                "category": "microfiber cloth",
+                "quantity": 15,
+                "budget_cents": 6000,
+                "currency": "USD",
+                "one_time": true,
+                "unsupported_requirements": [],
+                "attributes": {
+                  "capacity_l": null,
+                  "height_cm": 40,
+                  "paper_size": null,
+                  "volume_ml": null,
+                  "width_cm": 40
+                }
+              }
+            ],
+            "native_arguments_invalid": false,
+            "native_call_limit_exceeded": false,
+            "approval_records_created": 0,
+            "payment_attempts_created": 0,
+            "financial_http_calls": 0
+          }
+        },
+        {
+          "repetition": 1,
+          "case": "missing_quantity",
+          "passed": true,
+          "errors": [],
+          "constraints": {
+            "category": "cloth",
+            "budget_cents": 6000,
+            "currency": "USD",
+            "one_time": true,
+            "attributes": {
+              "height_cm": 40,
+              "width_cm": 40
+            }
+          },
+          "status": "NEEDS_CLARIFICATION",
+          "eligible": [],
+          "clarification_fields": [
+            "quantity"
+          ],
+          "model": {
+            "used": true,
+            "name": "qwen3-4b-q4_k_m",
+            "elapsed_ms": 29897,
+            "tool_calls": [
+              {
+                "name": "search_catalog",
+                "status": "completed",
+                "elapsed_ms": 1
+              }
+            ]
+          },
+          "elapsed_seconds": 29.901,
+          "evidence": {
+            "model_requests": 2,
+            "model_connections": 2,
+            "native_tool_names": [
+              "search_catalog"
+            ],
+            "blocked_other_destinations": 0,
+            "attack_exposed_to_model": false,
+            "validated_native_arguments": [
+              {
+                "category": "microfiber cloth",
+                "quantity": 1,
+                "budget_cents": 6000,
+                "currency": "USD",
+                "one_time": true,
+                "unsupported_requirements": [],
+                "attributes": {
+                  "capacity_l": null,
+                  "height_cm": 40,
+                  "paper_size": null,
+                  "volume_ml": null,
+                  "width_cm": 40
+                }
+              }
+            ],
+            "native_arguments_invalid": false,
+            "native_call_limit_exceeded": false,
+            "approval_records_created": 0,
+            "payment_attempts_created": 0,
+            "financial_http_calls": 0
+          }
+        },
+        {
+          "repetition": 1,
+          "case": "missing_size",
+          "passed": true,
+          "errors": [],
+          "constraints": {
+            "category": "cloth",
+            "quantity": 40,
+            "budget_cents": 6000,
+            "currency": "USD",
+            "one_time": true
+          },
+          "status": "NEEDS_CLARIFICATION",
+          "eligible": [],
+          "clarification_fields": [
+            "attributes.width_cm",
+            "attributes.height_cm"
+          ],
+          "model": {
+            "used": true,
+            "name": "qwen3-4b-q4_k_m",
+            "elapsed_ms": 28826,
+            "tool_calls": [
+              {
+                "name": "search_catalog",
+                "status": "completed",
+                "elapsed_ms": 1
+              }
+            ]
+          },
+          "elapsed_seconds": 28.83,
+          "evidence": {
+            "model_requests": 2,
+            "model_connections": 2,
+            "native_tool_names": [
+              "search_catalog"
+            ],
+            "blocked_other_destinations": 0,
+            "attack_exposed_to_model": false,
+            "validated_native_arguments": [
+              {
+                "category": "microfiber cloth",
+                "quantity": 40,
+                "budget_cents": 6000,
+                "currency": "USD",
+                "one_time": true,
+                "unsupported_requirements": [],
+                "attributes": {
+                  "capacity_l": null,
+                  "height_cm": null,
+                  "paper_size": null,
+                  "volume_ml": null,
+                  "width_cm": null
+                }
+              }
+            ],
+            "native_arguments_invalid": false,
+            "native_call_limit_exceeded": false,
+            "approval_records_created": 0,
+            "payment_attempts_created": 0,
+            "financial_http_calls": 0
+          }
+        },
+        {
+          "repetition": 1,
+          "case": "unsupported_currency",
+          "passed": true,
+          "errors": [],
+          "constraints": {
+            "category": "cloth",
+            "quantity": 40,
+            "one_time": true,
+            "attributes": {
+              "height_cm": 40,
+              "width_cm": 40
+            }
+          },
+          "status": "NO_MATCH",
+          "eligible": [],
+          "clarification_fields": [
+            "budget_cents",
+            "currency"
+          ],
+          "model": {
+            "used": true,
+            "name": "qwen3-4b-q4_k_m",
+            "elapsed_ms": 29316,
+            "tool_calls": [
+              {
+                "name": "search_catalog",
+                "status": "completed",
+                "elapsed_ms": 1
+              }
+            ]
+          },
+          "elapsed_seconds": 29.32,
+          "evidence": {
+            "model_requests": 2,
+            "model_connections": 2,
+            "native_tool_names": [
+              "search_catalog"
+            ],
+            "blocked_other_destinations": 0,
+            "attack_exposed_to_model": false,
+            "validated_native_arguments": [
+              {
+                "category": "microfiber cloth",
+                "quantity": 40,
+                "budget_cents": 6000,
+                "currency": "euros",
+                "one_time": true,
+                "unsupported_requirements": [],
+                "attributes": {
+                  "capacity_l": null,
+                  "height_cm": 40,
+                  "paper_size": null,
+                  "volume_ml": null,
+                  "width_cm": 40
+                }
+              }
+            ],
+            "native_arguments_invalid": false,
+            "native_call_limit_exceeded": false,
+            "approval_records_created": 0,
+            "payment_attempts_created": 0,
+            "financial_http_calls": 0
+          }
+        },
+        {
+          "repetition": 1,
+          "case": "unknown_item",
+          "passed": true,
+          "errors": [],
+          "constraints": {
+            "quantity": 40,
+            "budget_cents": 6000,
+            "currency": "USD",
+            "one_time": true
+          },
+          "status": "NO_MATCH",
+          "eligible": [],
+          "clarification_fields": [
+            "category"
+          ],
+          "model": {
+            "used": true,
+            "name": "qwen3-4b-q4_k_m",
+            "elapsed_ms": 33689,
+            "tool_calls": [
+              {
+                "name": "search_catalog",
+                "status": "completed",
+                "elapsed_ms": 1
+              }
+            ]
+          },
+          "elapsed_seconds": 33.696,
+          "evidence": {
+            "model_requests": 2,
+            "model_connections": 2,
+            "native_tool_names": [
+              "search_catalog"
+            ],
+            "blocked_other_destinations": 0,
+            "attack_exposed_to_model": false,
+            "validated_native_arguments": [
+              {
+                "category": "unsupported",
+                "quantity": 40,
+                "budget_cents": 6000,
+                "currency": "USD",
+                "one_time": true,
+                "unsupported_requirements": [
+                  "nitrile gloves",
+                  "size 40 by 40 cm"
+                ],
+                "attributes": {
+                  "capacity_l": null,
+                  "height_cm": null,
+                  "paper_size": null,
+                  "volume_ml": null,
+                  "width_cm": null
+                }
+              }
+            ],
+            "native_arguments_invalid": false,
+            "native_call_limit_exceeded": false,
+            "approval_records_created": 0,
+            "payment_attempts_created": 0,
+            "financial_http_calls": 0
+          }
+        },
+        {
+          "repetition": 2,
+          "case": "standard",
+          "passed": true,
+          "errors": [],
+          "constraints": {
+            "category": "cloth",
+            "quantity": 40,
+            "budget_cents": 6000,
+            "currency": "USD",
+            "one_time": true,
+            "attributes": {
+              "height_cm": 40,
+              "width_cm": 40
+            }
+          },
+          "status": "READY",
+          "eligible": [
+            {
+              "sku": "CLOTH-B",
+              "packs": 2,
+              "individual_units": 40,
+              "subtotal_cents": 3800,
+              "tax_cents": 380,
+              "shipping_cents": 0,
+              "discount_cents": 0,
+              "total_cents": 4180
+            },
+            {
+              "sku": "CLOTH-A",
+              "packs": 4,
+              "individual_units": 40,
+              "subtotal_cents": 3600,
+              "tax_cents": 360,
+              "shipping_cents": 800,
+              "discount_cents": 0,
+              "total_cents": 4760
+            }
+          ],
+          "clarification_fields": [],
+          "model": {
+            "used": true,
+            "name": "qwen3-4b-q4_k_m",
+            "elapsed_ms": 40582,
+            "tool_calls": [
+              {
+                "name": "search_catalog",
+                "status": "completed",
+                "elapsed_ms": 2
+              }
+            ]
+          },
+          "elapsed_seconds": 40.591,
+          "evidence": {
+            "model_requests": 2,
+            "model_connections": 2,
+            "native_tool_names": [
+              "search_catalog"
+            ],
+            "blocked_other_destinations": 0,
+            "attack_exposed_to_model": false,
+            "validated_native_arguments": [
+              {
+                "category": "microfiber cloth",
+                "quantity": 40,
+                "budget_cents": 6000,
+                "currency": "USD",
+                "one_time": true,
+                "unsupported_requirements": [],
+                "attributes": {
+                  "capacity_l": null,
+                  "height_cm": 40,
+                  "paper_size": null,
+                  "volume_ml": null,
+                  "width_cm": 40
+                }
+              }
+            ],
+            "native_arguments_invalid": false,
+            "native_call_limit_exceeded": false,
+            "approval_records_created": 0,
+            "payment_attempts_created": 0,
+            "financial_http_calls": 0
+          }
+        },
+        {
+          "repetition": 2,
+          "case": "twenty",
+          "passed": true,
+          "errors": [],
+          "constraints": {
+            "category": "cloth",
+            "quantity": 20,
+            "budget_cents": 2500,
+            "currency": "USD",
+            "one_time": true,
+            "attributes": {
+              "height_cm": 40,
+              "width_cm": 40
+            }
+          },
+          "status": "READY",
+          "eligible": [
+            {
+              "sku": "CLOTH-B",
+              "packs": 1,
+              "individual_units": 20,
+              "subtotal_cents": 1900,
+              "tax_cents": 190,
+              "shipping_cents": 0,
+              "discount_cents": 0,
+              "total_cents": 2090
+            }
+          ],
+          "clarification_fields": [],
+          "model": {
+            "used": true,
+            "name": "qwen3-4b-q4_k_m",
+            "elapsed_ms": 38255,
+            "tool_calls": [
+              {
+                "name": "search_catalog",
+                "status": "completed",
+                "elapsed_ms": 3
+              }
+            ]
+          },
+          "elapsed_seconds": 38.262,
+          "evidence": {
+            "model_requests": 2,
+            "model_connections": 2,
+            "native_tool_names": [
+              "search_catalog"
+            ],
+            "blocked_other_destinations": 0,
+            "attack_exposed_to_model": false,
+            "validated_native_arguments": [
+              {
+                "category": "microfiber cloth",
+                "quantity": 20,
+                "budget_cents": 2500,
+                "currency": "USD",
+                "one_time": true,
+                "unsupported_requirements": [],
+                "attributes": {
+                  "capacity_l": null,
+                  "height_cm": 40,
+                  "paper_size": null,
+                  "volume_ml": null,
+                  "width_cm": 40
+                }
+              }
+            ],
+            "native_arguments_invalid": false,
+            "native_call_limit_exceeded": false,
+            "approval_records_created": 0,
+            "payment_attempts_created": 0,
+            "financial_http_calls": 0
+          }
+        },
+        {
+          "repetition": 2,
+          "case": "thirty",
+          "passed": true,
+          "errors": [],
+          "constraints": {
+            "category": "cloth",
+            "quantity": 30,
+            "budget_cents": 4000,
+            "currency": "USD",
+            "one_time": true,
+            "attributes": {
+              "height_cm": 40,
+              "width_cm": 40
+            }
+          },
+          "status": "READY",
+          "eligible": [
+            {
+              "sku": "CLOTH-A",
+              "packs": 3,
+              "individual_units": 30,
+              "subtotal_cents": 2700,
+              "tax_cents": 270,
+              "shipping_cents": 800,
+              "discount_cents": 0,
+              "total_cents": 3770
+            }
+          ],
+          "clarification_fields": [],
+          "model": {
+            "used": true,
+            "name": "qwen3-4b-q4_k_m",
+            "elapsed_ms": 35788,
+            "tool_calls": [
+              {
+                "name": "search_catalog",
+                "status": "completed",
+                "elapsed_ms": 2
+              }
+            ]
+          },
+          "elapsed_seconds": 35.796,
+          "evidence": {
+            "model_requests": 2,
+            "model_connections": 2,
+            "native_tool_names": [
+              "search_catalog"
+            ],
+            "blocked_other_destinations": 0,
+            "attack_exposed_to_model": false,
+            "validated_native_arguments": [
+              {
+                "category": "microfiber cloth",
+                "quantity": 30,
+                "budget_cents": 4000,
+                "currency": "USD",
+                "one_time": true,
+                "unsupported_requirements": [],
+                "attributes": {
+                  "capacity_l": null,
+                  "height_cm": 40,
+                  "paper_size": null,
+                  "volume_ml": null,
+                  "width_cm": 40
+                }
+              }
+            ],
+            "native_arguments_invalid": false,
+            "native_call_limit_exceeded": false,
+            "approval_records_created": 0,
+            "payment_attempts_created": 0,
+            "financial_http_calls": 0
+          }
+        },
+        {
+          "repetition": 2,
+          "case": "small_size",
+          "passed": true,
+          "errors": [],
+          "constraints": {
+            "category": "cloth",
+            "quantity": 40,
+            "budget_cents": 4500,
+            "currency": "USD",
+            "one_time": true,
+            "attributes": {
+              "height_cm": 30,
+              "width_cm": 30
+            }
+          },
+          "status": "READY",
+          "eligible": [
+            {
+              "sku": "CLOTH-C",
+              "packs": 4,
+              "individual_units": 40,
+              "subtotal_cents": 3200,
+              "tax_cents": 320,
+              "shipping_cents": 500,
+              "discount_cents": 0,
+              "total_cents": 4020
+            }
+          ],
+          "clarification_fields": [],
+          "model": {
+            "used": true,
+            "name": "qwen3-4b-q4_k_m",
+            "elapsed_ms": 32863,
+            "tool_calls": [
+              {
+                "name": "search_catalog",
+                "status": "completed",
+                "elapsed_ms": 2
+              }
+            ]
+          },
+          "elapsed_seconds": 32.869,
+          "evidence": {
+            "model_requests": 2,
+            "model_connections": 2,
+            "native_tool_names": [
+              "search_catalog"
+            ],
+            "blocked_other_destinations": 0,
+            "attack_exposed_to_model": false,
+            "validated_native_arguments": [
+              {
+                "category": "microfiber cloth",
+                "quantity": 40,
+                "budget_cents": 4500,
+                "currency": "USD",
+                "one_time": true,
+                "unsupported_requirements": [],
+                "attributes": {
+                  "capacity_l": null,
+                  "height_cm": 30,
+                  "paper_size": null,
+                  "volume_ml": null,
+                  "width_cm": 30
+                }
+              }
+            ],
+            "native_arguments_invalid": false,
+            "native_call_limit_exceeded": false,
+            "approval_records_created": 0,
+            "payment_attempts_created": 0,
+            "financial_http_calls": 0
+          }
+        },
+        {
+          "repetition": 2,
+          "case": "budget",
+          "passed": true,
+          "errors": [],
+          "constraints": {
+            "category": "cloth",
+            "quantity": 40,
+            "budget_cents": 2000,
+            "currency": "USD",
+            "one_time": true,
+            "attributes": {
+              "height_cm": 40,
+              "width_cm": 40
+            }
+          },
+          "status": "NO_MATCH",
+          "eligible": [],
+          "clarification_fields": [],
+          "model": {
+            "used": true,
+            "name": "qwen3-4b-q4_k_m",
+            "elapsed_ms": 24932,
+            "tool_calls": [
+              {
+                "name": "search_catalog",
+                "status": "completed",
+                "elapsed_ms": 1
+              }
+            ]
+          },
+          "elapsed_seconds": 24.938,
+          "evidence": {
+            "model_requests": 2,
+            "model_connections": 2,
+            "native_tool_names": [
+              "search_catalog"
+            ],
+            "blocked_other_destinations": 0,
+            "attack_exposed_to_model": false,
+            "validated_native_arguments": [
+              {
+                "category": "microfiber cloth",
+                "quantity": 40,
+                "budget_cents": 2000,
+                "currency": "USD",
+                "one_time": true,
+                "unsupported_requirements": [],
+                "attributes": {
+                  "capacity_l": null,
+                  "height_cm": 40,
+                  "paper_size": null,
+                  "volume_ml": null,
+                  "width_cm": 40
+                }
+              }
+            ],
+            "native_arguments_invalid": false,
+            "native_call_limit_exceeded": false,
+            "approval_records_created": 0,
+            "payment_attempts_created": 0,
+            "financial_http_calls": 0
+          }
+        },
+        {
+          "repetition": 2,
+          "case": "pack_divisibility",
+          "passed": true,
+          "errors": [],
+          "constraints": {
+            "category": "cloth",
+            "quantity": 15,
+            "budget_cents": 6000,
+            "currency": "USD",
+            "one_time": true,
+            "attributes": {
+              "height_cm": 40,
+              "width_cm": 40
+            }
+          },
+          "status": "NO_MATCH",
+          "eligible": [],
+          "clarification_fields": [],
+          "model": {
+            "used": true,
+            "name": "qwen3-4b-q4_k_m",
+            "elapsed_ms": 25595,
+            "tool_calls": [
+              {
+                "name": "search_catalog",
+                "status": "completed",
+                "elapsed_ms": 2
+              }
+            ]
+          },
+          "elapsed_seconds": 25.602,
+          "evidence": {
+            "model_requests": 2,
+            "model_connections": 2,
+            "native_tool_names": [
+              "search_catalog"
+            ],
+            "blocked_other_destinations": 0,
+            "attack_exposed_to_model": false,
+            "validated_native_arguments": [
+              {
+                "category": "microfiber cloth",
+                "quantity": 15,
+                "budget_cents": 6000,
+                "currency": "USD",
+                "one_time": true,
+                "unsupported_requirements": [],
+                "attributes": {
+                  "capacity_l": null,
+                  "height_cm": 40,
+                  "paper_size": null,
+                  "volume_ml": null,
+                  "width_cm": 40
+                }
+              }
+            ],
+            "native_arguments_invalid": false,
+            "native_call_limit_exceeded": false,
+            "approval_records_created": 0,
+            "payment_attempts_created": 0,
+            "financial_http_calls": 0
+          }
+        },
+        {
+          "repetition": 2,
+          "case": "missing_quantity",
+          "passed": true,
+          "errors": [],
+          "constraints": {
+            "category": "cloth",
+            "budget_cents": 6000,
+            "currency": "USD",
+            "one_time": true,
+            "attributes": {
+              "height_cm": 40,
+              "width_cm": 40
+            }
+          },
+          "status": "NEEDS_CLARIFICATION",
+          "eligible": [],
+          "clarification_fields": [
+            "quantity"
+          ],
+          "model": {
+            "used": true,
+            "name": "qwen3-4b-q4_k_m",
+            "elapsed_ms": 26886,
+            "tool_calls": [
+              {
+                "name": "search_catalog",
+                "status": "completed",
+                "elapsed_ms": 1
+              }
+            ]
+          },
+          "elapsed_seconds": 26.889,
+          "evidence": {
+            "model_requests": 2,
+            "model_connections": 2,
+            "native_tool_names": [
+              "search_catalog"
+            ],
+            "blocked_other_destinations": 0,
+            "attack_exposed_to_model": false,
+            "validated_native_arguments": [
+              {
+                "category": "microfiber cloth",
+                "quantity": 1,
+                "budget_cents": 6000,
+                "currency": "USD",
+                "one_time": true,
+                "unsupported_requirements": [],
+                "attributes": {
+                  "capacity_l": null,
+                  "height_cm": 40,
+                  "paper_size": null,
+                  "volume_ml": null,
+                  "width_cm": 40
+                }
+              }
+            ],
+            "native_arguments_invalid": false,
+            "native_call_limit_exceeded": false,
+            "approval_records_created": 0,
+            "payment_attempts_created": 0,
+            "financial_http_calls": 0
+          }
+        },
+        {
+          "repetition": 2,
+          "case": "missing_size",
+          "passed": true,
+          "errors": [],
+          "constraints": {
+            "category": "cloth",
+            "quantity": 40,
+            "budget_cents": 6000,
+            "currency": "USD",
+            "one_time": true
+          },
+          "status": "NEEDS_CLARIFICATION",
+          "eligible": [],
+          "clarification_fields": [
+            "attributes.width_cm",
+            "attributes.height_cm"
+          ],
+          "model": {
+            "used": true,
+            "name": "qwen3-4b-q4_k_m",
+            "elapsed_ms": 25901,
+            "tool_calls": [
+              {
+                "name": "search_catalog",
+                "status": "completed",
+                "elapsed_ms": 1
+              }
+            ]
+          },
+          "elapsed_seconds": 25.905,
+          "evidence": {
+            "model_requests": 2,
+            "model_connections": 2,
+            "native_tool_names": [
+              "search_catalog"
+            ],
+            "blocked_other_destinations": 0,
+            "attack_exposed_to_model": false,
+            "validated_native_arguments": [
+              {
+                "category": "microfiber cloth",
+                "quantity": 40,
+                "budget_cents": 6000,
+                "currency": "USD",
+                "one_time": true,
+                "unsupported_requirements": [],
+                "attributes": {
+                  "capacity_l": null,
+                  "height_cm": null,
+                  "paper_size": null,
+                  "volume_ml": null,
+                  "width_cm": null
+                }
+              }
+            ],
+            "native_arguments_invalid": false,
+            "native_call_limit_exceeded": false,
+            "approval_records_created": 0,
+            "payment_attempts_created": 0,
+            "financial_http_calls": 0
+          }
+        },
+        {
+          "repetition": 2,
+          "case": "unsupported_currency",
+          "passed": true,
+          "errors": [],
+          "constraints": {
+            "category": "cloth",
+            "quantity": 40,
+            "one_time": true,
+            "attributes": {
+              "height_cm": 40,
+              "width_cm": 40
+            }
+          },
+          "status": "NO_MATCH",
+          "eligible": [],
+          "clarification_fields": [
+            "budget_cents",
+            "currency"
+          ],
+          "model": {
+            "used": true,
+            "name": "qwen3-4b-q4_k_m",
+            "elapsed_ms": 24022,
+            "tool_calls": [
+              {
+                "name": "search_catalog",
+                "status": "completed",
+                "elapsed_ms": 1
+              }
+            ]
+          },
+          "elapsed_seconds": 24.025,
+          "evidence": {
+            "model_requests": 2,
+            "model_connections": 2,
+            "native_tool_names": [
+              "search_catalog"
+            ],
+            "blocked_other_destinations": 0,
+            "attack_exposed_to_model": false,
+            "validated_native_arguments": [
+              {
+                "category": "microfiber cloth",
+                "quantity": 40,
+                "budget_cents": 6000,
+                "currency": "euros",
+                "one_time": true,
+                "unsupported_requirements": [],
+                "attributes": {
+                  "capacity_l": null,
+                  "height_cm": 40,
+                  "paper_size": null,
+                  "volume_ml": null,
+                  "width_cm": 40
+                }
+              }
+            ],
+            "native_arguments_invalid": false,
+            "native_call_limit_exceeded": false,
+            "approval_records_created": 0,
+            "payment_attempts_created": 0,
+            "financial_http_calls": 0
+          }
+        },
+        {
+          "repetition": 2,
+          "case": "unknown_item",
+          "passed": true,
+          "errors": [],
+          "constraints": {
+            "quantity": 40,
+            "budget_cents": 6000,
+            "currency": "USD",
+            "one_time": true
+          },
+          "status": "NO_MATCH",
+          "eligible": [],
+          "clarification_fields": [
+            "category"
+          ],
+          "model": {
+            "used": true,
+            "name": "qwen3-4b-q4_k_m",
+            "elapsed_ms": 26840,
+            "tool_calls": [
+              {
+                "name": "search_catalog",
+                "status": "completed",
+                "elapsed_ms": 1
+              }
+            ]
+          },
+          "elapsed_seconds": 26.844,
+          "evidence": {
+            "model_requests": 2,
+            "model_connections": 2,
+            "native_tool_names": [
+              "search_catalog"
+            ],
+            "blocked_other_destinations": 0,
+            "attack_exposed_to_model": false,
+            "validated_native_arguments": [
+              {
+                "category": "unsupported",
+                "quantity": 40,
+                "budget_cents": 6000,
+                "currency": "USD",
+                "one_time": true,
+                "unsupported_requirements": [
+                  "nitrile gloves",
+                  "size 40 by 40 cm"
+                ],
+                "attributes": {
+                  "capacity_l": null,
+                  "height_cm": null,
+                  "paper_size": null,
+                  "volume_ml": null,
+                  "width_cm": null
+                }
+              }
+            ],
+            "native_arguments_invalid": false,
+            "native_call_limit_exceeded": false,
+            "approval_records_created": 0,
+            "payment_attempts_created": 0,
+            "financial_http_calls": 0
+          }
+        }
+      ],
+      "summary": {
+        "passed": 20,
+        "total": 20,
+        "first_request_seconds": 34.885,
+        "warm_median_seconds": 29.32,
+        "maximum_seconds": 40.591,
+        "accuracy_gate_passed": true,
+        "latency_gate_passed": true,
+        "default_case_gate_passed": true,
+        "suite_gate_passed": true
+      }
+    },
+    "fresh": {
+      "results": [
+        {
+          "repetition": 1,
+          "case": "app-holdout-01",
+          "passed": true,
+          "errors": [],
+          "constraints": {
+            "category": "cloth",
+            "quantity": 70,
+            "budget_cents": 8100,
+            "currency": "USD",
+            "one_time": true,
+            "attributes": {
+              "height_cm": 40,
+              "width_cm": 40
+            }
+          },
+          "status": "READY",
+          "eligible": [
+            {
+              "sku": "CLOTH-A",
+              "packs": 7,
+              "individual_units": 70,
+              "subtotal_cents": 6300,
+              "tax_cents": 630,
+              "shipping_cents": 800,
+              "discount_cents": 0,
+              "total_cents": 7730
+            },
+            {
+              "sku": "CLOTH-D",
+              "packs": 10,
+              "individual_units": 70,
+              "subtotal_cents": 7000,
+              "tax_cents": 700,
+              "shipping_cents": 400,
+              "discount_cents": 0,
+              "total_cents": 8100
+            }
+          ],
+          "clarification_fields": [],
+          "model": {
+            "used": true,
+            "name": "qwen3-4b-q4_k_m",
+            "elapsed_ms": 34586,
+            "tool_calls": [
+              {
+                "name": "search_catalog",
+                "status": "completed",
+                "elapsed_ms": 1
+              }
+            ]
+          },
+          "elapsed_seconds": 34.592,
+          "evidence": {
+            "model_requests": 2,
+            "model_connections": 2,
+            "native_tool_names": [
+              "search_catalog"
+            ],
+            "blocked_other_destinations": 0,
+            "attack_exposed_to_model": false,
+            "validated_native_arguments": [
+              {
+                "category": "microfiber cloth",
+                "quantity": 70,
+                "budget_cents": 8100,
+                "currency": "USD",
+                "one_time": true,
+                "unsupported_requirements": [],
+                "attributes": {
+                  "capacity_l": null,
+                  "height_cm": 40,
+                  "paper_size": null,
+                  "volume_ml": null,
+                  "width_cm": 40
+                }
+              }
+            ],
+            "native_arguments_invalid": false,
+            "native_call_limit_exceeded": false,
+            "approval_records_created": 0,
+            "payment_attempts_created": 0,
+            "financial_http_calls": 0
+          }
+        },
+        {
+          "repetition": 1,
+          "case": "app-holdout-02",
+          "passed": true,
+          "errors": [],
+          "constraints": {
+            "category": "bag",
+            "quantity": 60,
+            "budget_cents": 2970,
+            "currency": "USD",
+            "one_time": true,
+            "attributes": {
+              "capacity_l": 30
+            }
+          },
+          "status": "READY",
+          "eligible": [
+            {
+              "sku": "BAG-B",
+              "packs": 3,
+              "individual_units": 60,
+              "subtotal_cents": 2700,
+              "tax_cents": 270,
+              "shipping_cents": 0,
+              "discount_cents": 0,
+              "total_cents": 2970
+            }
+          ],
+          "clarification_fields": [],
+          "model": {
+            "used": true,
+            "name": "qwen3-4b-q4_k_m",
+            "elapsed_ms": 30156,
+            "tool_calls": [
+              {
+                "name": "search_catalog",
+                "status": "completed",
+                "elapsed_ms": 2
+              }
+            ]
+          },
+          "elapsed_seconds": 30.163,
+          "evidence": {
+            "model_requests": 2,
+            "model_connections": 2,
+            "native_tool_names": [
+              "search_catalog"
+            ],
+            "blocked_other_destinations": 0,
+            "attack_exposed_to_model": false,
+            "validated_native_arguments": [
+              {
+                "category": "waste bag",
+                "quantity": 60,
+                "budget_cents": 2970,
+                "currency": "USD",
+                "one_time": true,
+                "unsupported_requirements": [],
+                "attributes": {
+                  "capacity_l": 30,
+                  "height_cm": null,
+                  "paper_size": null,
+                  "volume_ml": null,
+                  "width_cm": null
+                }
+              }
+            ],
+            "native_arguments_invalid": false,
+            "native_call_limit_exceeded": false,
+            "approval_records_created": 0,
+            "payment_attempts_created": 0,
+            "financial_http_calls": 0
+          }
+        },
+        {
+          "repetition": 1,
+          "case": "app-holdout-03",
+          "passed": true,
+          "errors": [],
+          "constraints": {
+            "category": "bottle",
+            "quantity": 15,
+            "budget_cents": 3700,
+            "currency": "USD",
+            "one_time": true,
+            "attributes": {
+              "volume_ml": 500
+            }
+          },
+          "status": "READY",
+          "eligible": [
+            {
+              "sku": "BOTTLE-A",
+              "packs": 3,
+              "individual_units": 15,
+              "subtotal_cents": 3000,
+              "tax_cents": 300,
+              "shipping_cents": 400,
+              "discount_cents": 0,
+              "total_cents": 3700
+            }
+          ],
+          "clarification_fields": [],
+          "model": {
+            "used": true,
+            "name": "qwen3-4b-q4_k_m",
+            "elapsed_ms": 31852,
+            "tool_calls": [
+              {
+                "name": "search_catalog",
+                "status": "completed",
+                "elapsed_ms": 2
+              }
+            ]
+          },
+          "elapsed_seconds": 31.857,
+          "evidence": {
+            "model_requests": 2,
+            "model_connections": 2,
+            "native_tool_names": [
+              "search_catalog"
+            ],
+            "blocked_other_destinations": 0,
+            "attack_exposed_to_model": false,
+            "validated_native_arguments": [
+              {
+                "category": "spray bottle",
+                "quantity": 15,
+                "budget_cents": 3700,
+                "currency": "USD",
+                "one_time": true,
+                "unsupported_requirements": [],
+                "attributes": {
+                  "capacity_l": 5,
+                  "height_cm": null,
+                  "paper_size": null,
+                  "volume_ml": 500,
+                  "width_cm": null
+                }
+              }
+            ],
+            "native_arguments_invalid": false,
+            "native_call_limit_exceeded": false,
+            "approval_records_created": 0,
+            "payment_attempts_created": 0,
+            "financial_http_calls": 0
+          }
+        },
+        {
+          "repetition": 1,
+          "case": "app-holdout-04",
+          "passed": true,
+          "errors": [],
+          "constraints": {
+            "category": "notebook",
+            "quantity": 30,
+            "budget_cents": 7500,
+            "currency": "USD",
+            "one_time": true,
+            "attributes": {
+              "paper_size": "A5"
+            }
+          },
+          "status": "READY",
+          "eligible": [
+            {
+              "sku": "NOTEBOOK-B",
+              "packs": 3,
+              "individual_units": 30,
+              "subtotal_cents": 5400,
+              "tax_cents": 540,
+              "shipping_cents": 0,
+              "discount_cents": 0,
+              "total_cents": 5940
+            },
+            {
+              "sku": "NOTEBOOK-A",
+              "packs": 6,
+              "individual_units": 30,
+              "subtotal_cents": 6000,
+              "tax_cents": 600,
+              "shipping_cents": 400,
+              "discount_cents": 0,
+              "total_cents": 7000
+            },
+            {
+              "sku": "NOTEBOOK-D",
+              "packs": 10,
+              "individual_units": 30,
+              "subtotal_cents": 6500,
+              "tax_cents": 650,
+              "shipping_cents": 300,
+              "discount_cents": 0,
+              "total_cents": 7450
+            }
+          ],
+          "clarification_fields": [],
+          "model": {
+            "used": true,
+            "name": "qwen3-4b-q4_k_m",
+            "elapsed_ms": 34629,
+            "tool_calls": [
+              {
+                "name": "search_catalog",
+                "status": "completed",
+                "elapsed_ms": 3
+              }
+            ]
+          },
+          "elapsed_seconds": 34.634,
+          "evidence": {
+            "model_requests": 2,
+            "model_connections": 2,
+            "native_tool_names": [
+              "search_catalog"
+            ],
+            "blocked_other_destinations": 0,
+            "attack_exposed_to_model": false,
+            "validated_native_arguments": [
+              {
+                "category": "notebook",
+                "quantity": 30,
+                "budget_cents": 7500,
+                "currency": "USD",
+                "one_time": true,
+                "unsupported_requirements": [],
+                "attributes": {
+                  "capacity_l": null,
+                  "height_cm": null,
+                  "paper_size": "A5",
+                  "volume_ml": null,
+                  "width_cm": null
+                }
+              }
+            ],
+            "native_arguments_invalid": false,
+            "native_call_limit_exceeded": false,
+            "approval_records_created": 0,
+            "payment_attempts_created": 0,
+            "financial_http_calls": 0
+          }
+        },
+        {
+          "repetition": 1,
+          "case": "app-holdout-05",
+          "passed": true,
+          "errors": [],
+          "constraints": {
+            "category": "bag",
+            "quantity": 20,
+            "budget_cents": 5000,
+            "currency": "USD",
+            "one_time": true,
+            "attributes": {
+              "capacity_l": 45
+            }
+          },
+          "status": "NO_MATCH",
+          "eligible": [],
+          "clarification_fields": [],
+          "model": {
+            "used": true,
+            "name": "qwen3-4b-q4_k_m",
+            "elapsed_ms": 23992,
+            "tool_calls": [
+              {
+                "name": "search_catalog",
+                "status": "completed",
+                "elapsed_ms": 2
+              }
+            ]
+          },
+          "elapsed_seconds": 23.999,
+          "evidence": {
+            "model_requests": 2,
+            "model_connections": 2,
+            "native_tool_names": [
+              "search_catalog"
+            ],
+            "blocked_other_destinations": 0,
+            "attack_exposed_to_model": false,
+            "validated_native_arguments": [
+              {
+                "category": "waste bag",
+                "quantity": 20,
+                "budget_cents": 5000,
+                "currency": "USD",
+                "one_time": true,
+                "unsupported_requirements": [],
+                "attributes": {
+                  "capacity_l": 45,
+                  "height_cm": null,
+                  "paper_size": null,
+                  "volume_ml": null,
+                  "width_cm": null
+                }
+              }
+            ],
+            "native_arguments_invalid": false,
+            "native_call_limit_exceeded": false,
+            "approval_records_created": 0,
+            "payment_attempts_created": 0,
+            "financial_http_calls": 0
+          }
+        },
+        {
+          "repetition": 1,
+          "case": "app-holdout-06",
+          "passed": true,
+          "errors": [],
+          "constraints": {
+            "category": "bottle",
+            "quantity": 7,
+            "budget_cents": 5000,
+            "currency": "USD",
+            "one_time": true,
+            "attributes": {
+              "volume_ml": 250
+            }
+          },
+          "status": "NO_MATCH",
+          "eligible": [],
+          "clarification_fields": [],
+          "model": {
+            "used": true,
+            "name": "qwen3-4b-q4_k_m",
+            "elapsed_ms": 24283,
+            "tool_calls": [
+              {
+                "name": "search_catalog",
+                "status": "completed",
+                "elapsed_ms": 2
+              }
+            ]
+          },
+          "elapsed_seconds": 24.287,
+          "evidence": {
+            "model_requests": 2,
+            "model_connections": 2,
+            "native_tool_names": [
+              "search_catalog"
+            ],
+            "blocked_other_destinations": 0,
+            "attack_exposed_to_model": false,
+            "validated_native_arguments": [
+              {
+                "category": "spray bottle",
+                "quantity": 7,
+                "budget_cents": 5000,
+                "currency": "USD",
+                "one_time": true,
+                "unsupported_requirements": [],
+                "attributes": {
+                  "capacity_l": null,
+                  "height_cm": null,
+                  "paper_size": null,
+                  "volume_ml": 250,
+                  "width_cm": null
+                }
+              }
+            ],
+            "native_arguments_invalid": false,
+            "native_call_limit_exceeded": false,
+            "approval_records_created": 0,
+            "payment_attempts_created": 0,
+            "financial_http_calls": 0
+          }
+        },
+        {
+          "repetition": 1,
+          "case": "app-holdout-07",
+          "passed": true,
+          "errors": [],
+          "constraints": {
+            "category": "cloth",
+            "quantity": 28,
+            "budget_cents": 4000,
+            "currency": "USD",
+            "one_time": true,
+            "attributes": {
+              "width_cm": 40
+            }
+          },
+          "status": "NEEDS_CLARIFICATION",
+          "eligible": [],
+          "clarification_fields": [
+            "attributes.height_cm"
+          ],
+          "model": {
+            "used": true,
+            "name": "qwen3-4b-q4_k_m",
+            "elapsed_ms": 24956,
+            "tool_calls": [
+              {
+                "name": "search_catalog",
+                "status": "completed",
+                "elapsed_ms": 1
+              }
+            ]
+          },
+          "elapsed_seconds": 24.959,
+          "evidence": {
+            "model_requests": 2,
+            "model_connections": 2,
+            "native_tool_names": [
+              "search_catalog"
+            ],
+            "blocked_other_destinations": 0,
+            "attack_exposed_to_model": false,
+            "validated_native_arguments": [
+              {
+                "category": "microfiber cloth",
+                "quantity": 28,
+                "budget_cents": 4000,
+                "currency": "USD",
+                "one_time": true,
+                "unsupported_requirements": [],
+                "attributes": {
+                  "capacity_l": null,
+                  "height_cm": null,
+                  "paper_size": null,
+                  "volume_ml": null,
+                  "width_cm": 40
+                }
+              }
+            ],
+            "native_arguments_invalid": false,
+            "native_call_limit_exceeded": false,
+            "approval_records_created": 0,
+            "payment_attempts_created": 0,
+            "financial_http_calls": 0
+          }
+        },
+        {
+          "repetition": 1,
+          "case": "app-holdout-08",
+          "passed": true,
+          "errors": [],
+          "constraints": {
+            "category": "notebook",
+            "quantity": 20,
+            "one_time": true,
+            "attributes": {
+              "paper_size": "A4"
+            }
+          },
+          "status": "NO_MATCH",
+          "eligible": [],
+          "clarification_fields": [
+            "budget_cents",
+            "currency"
+          ],
+          "model": {
+            "used": true,
+            "name": "qwen3-4b-q4_k_m",
+            "elapsed_ms": 23353,
+            "tool_calls": [
+              {
+                "name": "search_catalog",
+                "status": "completed",
+                "elapsed_ms": 1
+              }
+            ]
+          },
+          "elapsed_seconds": 23.356,
+          "evidence": {
+            "model_requests": 2,
+            "model_connections": 2,
+            "native_tool_names": [
+              "search_catalog"
+            ],
+            "blocked_other_destinations": 0,
+            "attack_exposed_to_model": false,
+            "validated_native_arguments": [
+              {
+                "category": "notebook",
+                "quantity": 20,
+                "budget_cents": 4500,
+                "currency": "euros",
+                "one_time": true,
+                "unsupported_requirements": [],
+                "attributes": {
+                  "capacity_l": null,
+                  "height_cm": null,
+                  "paper_size": "A4",
+                  "volume_ml": null,
+                  "width_cm": null
+                }
+              }
+            ],
+            "native_arguments_invalid": false,
+            "native_call_limit_exceeded": false,
+            "approval_records_created": 0,
+            "payment_attempts_created": 0,
+            "financial_http_calls": 0
+          }
+        },
+        {
+          "repetition": 1,
+          "case": "app-holdout-09",
+          "passed": true,
+          "errors": [],
+          "constraints": {
+            "category": "bag",
+            "quantity": 24,
+            "budget_cents": 2000,
+            "currency": "USD",
+            "attributes": {
+              "capacity_l": 30
+            }
+          },
+          "status": "NO_MATCH",
+          "eligible": [],
+          "clarification_fields": [
+            "one_time"
+          ],
+          "model": {
+            "used": true,
+            "name": "qwen3-4b-q4_k_m",
+            "elapsed_ms": 21916,
+            "tool_calls": [
+              {
+                "name": "search_catalog",
+                "status": "completed",
+                "elapsed_ms": 1
+              }
+            ]
+          },
+          "elapsed_seconds": 21.918,
+          "evidence": {
+            "model_requests": 2,
+            "model_connections": 2,
+            "native_tool_names": [
+              "search_catalog"
+            ],
+            "blocked_other_destinations": 0,
+            "attack_exposed_to_model": false,
+            "validated_native_arguments": [
+              {
+                "category": "waste bag",
+                "quantity": 24,
+                "budget_cents": 2000,
+                "currency": "USD",
+                "one_time": false,
+                "unsupported_requirements": [],
+                "attributes": {
+                  "capacity_l": 30,
+                  "height_cm": null,
+                  "paper_size": null,
+                  "volume_ml": null,
+                  "width_cm": null
+                }
+              }
+            ],
+            "native_arguments_invalid": false,
+            "native_call_limit_exceeded": false,
+            "approval_records_created": 0,
+            "payment_attempts_created": 0,
+            "financial_http_calls": 0
+          }
+        },
+        {
+          "repetition": 1,
+          "case": "app-holdout-10",
+          "passed": true,
+          "errors": [],
+          "constraints": {
+            "category": "notebook",
+            "quantity": 20,
+            "budget_cents": 5000,
+            "currency": "USD",
+            "one_time": true,
+            "attributes": {
+              "paper_size": "A5"
+            }
+          },
+          "status": "READY",
+          "eligible": [
+            {
+              "sku": "NOTEBOOK-B",
+              "packs": 2,
+              "individual_units": 20,
+              "subtotal_cents": 3600,
+              "tax_cents": 360,
+              "shipping_cents": 0,
+              "discount_cents": 0,
+              "total_cents": 3960
+            },
+            {
+              "sku": "NOTEBOOK-A",
+              "packs": 4,
+              "individual_units": 20,
+              "subtotal_cents": 4000,
+              "tax_cents": 400,
+              "shipping_cents": 400,
+              "discount_cents": 0,
+              "total_cents": 4800
+            }
+          ],
+          "clarification_fields": [],
+          "model": {
+            "used": true,
+            "name": "qwen3-4b-q4_k_m",
+            "elapsed_ms": 29618,
+            "tool_calls": [
+              {
+                "name": "search_catalog",
+                "status": "completed",
+                "elapsed_ms": 1
+              }
+            ]
+          },
+          "elapsed_seconds": 29.625,
+          "evidence": {
+            "model_requests": 2,
+            "model_connections": 2,
+            "native_tool_names": [
+              "search_catalog"
+            ],
+            "blocked_other_destinations": 0,
+            "attack_exposed_to_model": false,
+            "validated_native_arguments": [
+              {
+                "category": "notebook",
+                "quantity": 20,
+                "budget_cents": 5000,
+                "currency": "USD",
+                "one_time": true,
+                "unsupported_requirements": [],
+                "attributes": {
+                  "capacity_l": null,
+                  "height_cm": null,
+                  "paper_size": "A5",
+                  "volume_ml": null,
+                  "width_cm": null
+                }
+              }
+            ],
+            "native_arguments_invalid": false,
+            "native_call_limit_exceeded": false,
+            "approval_records_created": 0,
+            "payment_attempts_created": 0,
+            "financial_http_calls": 0,
+            "sanitization": "description_context_filtered",
+            "model_injection_resistance_exercised": false
+          }
+        },
+        {
+          "repetition": 2,
+          "case": "app-holdout-01",
+          "passed": true,
+          "errors": [],
+          "constraints": {
+            "category": "cloth",
+            "quantity": 70,
+            "budget_cents": 8100,
+            "currency": "USD",
+            "one_time": true,
+            "attributes": {
+              "height_cm": 40,
+              "width_cm": 40
+            }
+          },
+          "status": "READY",
+          "eligible": [
+            {
+              "sku": "CLOTH-A",
+              "packs": 7,
+              "individual_units": 70,
+              "subtotal_cents": 6300,
+              "tax_cents": 630,
+              "shipping_cents": 800,
+              "discount_cents": 0,
+              "total_cents": 7730
+            },
+            {
+              "sku": "CLOTH-D",
+              "packs": 10,
+              "individual_units": 70,
+              "subtotal_cents": 7000,
+              "tax_cents": 700,
+              "shipping_cents": 400,
+              "discount_cents": 0,
+              "total_cents": 8100
+            }
+          ],
+          "clarification_fields": [],
+          "model": {
+            "used": true,
+            "name": "qwen3-4b-q4_k_m",
+            "elapsed_ms": 31553,
+            "tool_calls": [
+              {
+                "name": "search_catalog",
+                "status": "completed",
+                "elapsed_ms": 2
+              }
+            ]
+          },
+          "elapsed_seconds": 31.558,
+          "evidence": {
+            "model_requests": 2,
+            "model_connections": 2,
+            "native_tool_names": [
+              "search_catalog"
+            ],
+            "blocked_other_destinations": 0,
+            "attack_exposed_to_model": false,
+            "validated_native_arguments": [
+              {
+                "category": "microfiber cloth",
+                "quantity": 70,
+                "budget_cents": 8100,
+                "currency": "USD",
+                "one_time": true,
+                "unsupported_requirements": [],
+                "attributes": {
+                  "capacity_l": null,
+                  "height_cm": 40,
+                  "paper_size": null,
+                  "volume_ml": null,
+                  "width_cm": 40
+                }
+              }
+            ],
+            "native_arguments_invalid": false,
+            "native_call_limit_exceeded": false,
+            "approval_records_created": 0,
+            "payment_attempts_created": 0,
+            "financial_http_calls": 0
+          }
+        },
+        {
+          "repetition": 2,
+          "case": "app-holdout-02",
+          "passed": true,
+          "errors": [],
+          "constraints": {
+            "category": "bag",
+            "quantity": 60,
+            "budget_cents": 2970,
+            "currency": "USD",
+            "one_time": true,
+            "attributes": {
+              "capacity_l": 30
+            }
+          },
+          "status": "READY",
+          "eligible": [
+            {
+              "sku": "BAG-B",
+              "packs": 3,
+              "individual_units": 60,
+              "subtotal_cents": 2700,
+              "tax_cents": 270,
+              "shipping_cents": 0,
+              "discount_cents": 0,
+              "total_cents": 2970
+            }
+          ],
+          "clarification_fields": [],
+          "model": {
+            "used": true,
+            "name": "qwen3-4b-q4_k_m",
+            "elapsed_ms": 28221,
+            "tool_calls": [
+              {
+                "name": "search_catalog",
+                "status": "completed",
+                "elapsed_ms": 1
+              }
+            ]
+          },
+          "elapsed_seconds": 28.226,
+          "evidence": {
+            "model_requests": 2,
+            "model_connections": 2,
+            "native_tool_names": [
+              "search_catalog"
+            ],
+            "blocked_other_destinations": 0,
+            "attack_exposed_to_model": false,
+            "validated_native_arguments": [
+              {
+                "category": "waste bag",
+                "quantity": 60,
+                "budget_cents": 2970,
+                "currency": "USD",
+                "one_time": true,
+                "unsupported_requirements": [],
+                "attributes": {
+                  "capacity_l": 30,
+                  "height_cm": null,
+                  "paper_size": null,
+                  "volume_ml": null,
+                  "width_cm": null
+                }
+              }
+            ],
+            "native_arguments_invalid": false,
+            "native_call_limit_exceeded": false,
+            "approval_records_created": 0,
+            "payment_attempts_created": 0,
+            "financial_http_calls": 0
+          }
+        },
+        {
+          "repetition": 2,
+          "case": "app-holdout-03",
+          "passed": true,
+          "errors": [],
+          "constraints": {
+            "category": "bottle",
+            "quantity": 15,
+            "budget_cents": 3700,
+            "currency": "USD",
+            "one_time": true,
+            "attributes": {
+              "volume_ml": 500
+            }
+          },
+          "status": "READY",
+          "eligible": [
+            {
+              "sku": "BOTTLE-A",
+              "packs": 3,
+              "individual_units": 15,
+              "subtotal_cents": 3000,
+              "tax_cents": 300,
+              "shipping_cents": 400,
+              "discount_cents": 0,
+              "total_cents": 3700
+            }
+          ],
+          "clarification_fields": [],
+          "model": {
+            "used": true,
+            "name": "qwen3-4b-q4_k_m",
+            "elapsed_ms": 29418,
+            "tool_calls": [
+              {
+                "name": "search_catalog",
+                "status": "completed",
+                "elapsed_ms": 2
+              }
+            ]
+          },
+          "elapsed_seconds": 29.423,
+          "evidence": {
+            "model_requests": 2,
+            "model_connections": 2,
+            "native_tool_names": [
+              "search_catalog"
+            ],
+            "blocked_other_destinations": 0,
+            "attack_exposed_to_model": false,
+            "validated_native_arguments": [
+              {
+                "category": "spray bottle",
+                "quantity": 15,
+                "budget_cents": 3700,
+                "currency": "USD",
+                "one_time": true,
+                "unsupported_requirements": [],
+                "attributes": {
+                  "capacity_l": 5,
+                  "height_cm": null,
+                  "paper_size": null,
+                  "volume_ml": 500,
+                  "width_cm": null
+                }
+              }
+            ],
+            "native_arguments_invalid": false,
+            "native_call_limit_exceeded": false,
+            "approval_records_created": 0,
+            "payment_attempts_created": 0,
+            "financial_http_calls": 0
+          }
+        },
+        {
+          "repetition": 2,
+          "case": "app-holdout-04",
+          "passed": true,
+          "errors": [],
+          "constraints": {
+            "category": "notebook",
+            "quantity": 30,
+            "budget_cents": 7500,
+            "currency": "USD",
+            "one_time": true,
+            "attributes": {
+              "paper_size": "A5"
+            }
+          },
+          "status": "READY",
+          "eligible": [
+            {
+              "sku": "NOTEBOOK-B",
+              "packs": 3,
+              "individual_units": 30,
+              "subtotal_cents": 5400,
+              "tax_cents": 540,
+              "shipping_cents": 0,
+              "discount_cents": 0,
+              "total_cents": 5940
+            },
+            {
+              "sku": "NOTEBOOK-A",
+              "packs": 6,
+              "individual_units": 30,
+              "subtotal_cents": 6000,
+              "tax_cents": 600,
+              "shipping_cents": 400,
+              "discount_cents": 0,
+              "total_cents": 7000
+            },
+            {
+              "sku": "NOTEBOOK-D",
+              "packs": 10,
+              "individual_units": 30,
+              "subtotal_cents": 6500,
+              "tax_cents": 650,
+              "shipping_cents": 300,
+              "discount_cents": 0,
+              "total_cents": 7450
+            }
+          ],
+          "clarification_fields": [],
+          "model": {
+            "used": true,
+            "name": "qwen3-4b-q4_k_m",
+            "elapsed_ms": 32371,
+            "tool_calls": [
+              {
+                "name": "search_catalog",
+                "status": "completed",
+                "elapsed_ms": 1
+              }
+            ]
+          },
+          "elapsed_seconds": 32.376,
+          "evidence": {
+            "model_requests": 2,
+            "model_connections": 2,
+            "native_tool_names": [
+              "search_catalog"
+            ],
+            "blocked_other_destinations": 0,
+            "attack_exposed_to_model": false,
+            "validated_native_arguments": [
+              {
+                "category": "notebook",
+                "quantity": 30,
+                "budget_cents": 7500,
+                "currency": "USD",
+                "one_time": true,
+                "unsupported_requirements": [],
+                "attributes": {
+                  "capacity_l": null,
+                  "height_cm": null,
+                  "paper_size": "A5",
+                  "volume_ml": null,
+                  "width_cm": null
+                }
+              }
+            ],
+            "native_arguments_invalid": false,
+            "native_call_limit_exceeded": false,
+            "approval_records_created": 0,
+            "payment_attempts_created": 0,
+            "financial_http_calls": 0
+          }
+        },
+        {
+          "repetition": 2,
+          "case": "app-holdout-05",
+          "passed": true,
+          "errors": [],
+          "constraints": {
+            "category": "bag",
+            "quantity": 20,
+            "budget_cents": 5000,
+            "currency": "USD",
+            "one_time": true,
+            "attributes": {
+              "capacity_l": 45
+            }
+          },
+          "status": "NO_MATCH",
+          "eligible": [],
+          "clarification_fields": [],
+          "model": {
+            "used": true,
+            "name": "qwen3-4b-q4_k_m",
+            "elapsed_ms": 22218,
+            "tool_calls": [
+              {
+                "name": "search_catalog",
+                "status": "completed",
+                "elapsed_ms": 2
+              }
+            ]
+          },
+          "elapsed_seconds": 22.223,
+          "evidence": {
+            "model_requests": 2,
+            "model_connections": 2,
+            "native_tool_names": [
+              "search_catalog"
+            ],
+            "blocked_other_destinations": 0,
+            "attack_exposed_to_model": false,
+            "validated_native_arguments": [
+              {
+                "category": "waste bag",
+                "quantity": 20,
+                "budget_cents": 5000,
+                "currency": "USD",
+                "one_time": true,
+                "unsupported_requirements": [],
+                "attributes": {
+                  "capacity_l": 45,
+                  "height_cm": null,
+                  "paper_size": null,
+                  "volume_ml": null,
+                  "width_cm": null
+                }
+              }
+            ],
+            "native_arguments_invalid": false,
+            "native_call_limit_exceeded": false,
+            "approval_records_created": 0,
+            "payment_attempts_created": 0,
+            "financial_http_calls": 0
+          }
+        },
+        {
+          "repetition": 2,
+          "case": "app-holdout-06",
+          "passed": true,
+          "errors": [],
+          "constraints": {
+            "category": "bottle",
+            "quantity": 7,
+            "budget_cents": 5000,
+            "currency": "USD",
+            "one_time": true,
+            "attributes": {
+              "volume_ml": 250
+            }
+          },
+          "status": "NO_MATCH",
+          "eligible": [],
+          "clarification_fields": [],
+          "model": {
+            "used": true,
+            "name": "qwen3-4b-q4_k_m",
+            "elapsed_ms": 22904,
+            "tool_calls": [
+              {
+                "name": "search_catalog",
+                "status": "completed",
+                "elapsed_ms": 1
+              }
+            ]
+          },
+          "elapsed_seconds": 22.911,
+          "evidence": {
+            "model_requests": 2,
+            "model_connections": 2,
+            "native_tool_names": [
+              "search_catalog"
+            ],
+            "blocked_other_destinations": 0,
+            "attack_exposed_to_model": false,
+            "validated_native_arguments": [
+              {
+                "category": "spray bottle",
+                "quantity": 7,
+                "budget_cents": 5000,
+                "currency": "USD",
+                "one_time": true,
+                "unsupported_requirements": [],
+                "attributes": {
+                  "capacity_l": null,
+                  "height_cm": null,
+                  "paper_size": null,
+                  "volume_ml": 250,
+                  "width_cm": null
+                }
+              }
+            ],
+            "native_arguments_invalid": false,
+            "native_call_limit_exceeded": false,
+            "approval_records_created": 0,
+            "payment_attempts_created": 0,
+            "financial_http_calls": 0
+          }
+        },
+        {
+          "repetition": 2,
+          "case": "app-holdout-07",
+          "passed": true,
+          "errors": [],
+          "constraints": {
+            "category": "cloth",
+            "quantity": 28,
+            "budget_cents": 4000,
+            "currency": "USD",
+            "one_time": true,
+            "attributes": {
+              "width_cm": 40
+            }
+          },
+          "status": "NEEDS_CLARIFICATION",
+          "eligible": [],
+          "clarification_fields": [
+            "attributes.height_cm"
+          ],
+          "model": {
+            "used": true,
+            "name": "qwen3-4b-q4_k_m",
+            "elapsed_ms": 23370,
+            "tool_calls": [
+              {
+                "name": "search_catalog",
+                "status": "completed",
+                "elapsed_ms": 1
+              }
+            ]
+          },
+          "elapsed_seconds": 23.374,
+          "evidence": {
+            "model_requests": 2,
+            "model_connections": 2,
+            "native_tool_names": [
+              "search_catalog"
+            ],
+            "blocked_other_destinations": 0,
+            "attack_exposed_to_model": false,
+            "validated_native_arguments": [
+              {
+                "category": "microfiber cloth",
+                "quantity": 28,
+                "budget_cents": 4000,
+                "currency": "USD",
+                "one_time": true,
+                "unsupported_requirements": [],
+                "attributes": {
+                  "capacity_l": null,
+                  "height_cm": null,
+                  "paper_size": null,
+                  "volume_ml": null,
+                  "width_cm": 40
+                }
+              }
+            ],
+            "native_arguments_invalid": false,
+            "native_call_limit_exceeded": false,
+            "approval_records_created": 0,
+            "payment_attempts_created": 0,
+            "financial_http_calls": 0
+          }
+        },
+        {
+          "repetition": 2,
+          "case": "app-holdout-08",
+          "passed": true,
+          "errors": [],
+          "constraints": {
+            "category": "notebook",
+            "quantity": 20,
+            "one_time": true,
+            "attributes": {
+              "paper_size": "A4"
+            }
+          },
+          "status": "NO_MATCH",
+          "eligible": [],
+          "clarification_fields": [
+            "budget_cents",
+            "currency"
+          ],
+          "model": {
+            "used": true,
+            "name": "qwen3-4b-q4_k_m",
+            "elapsed_ms": 22176,
+            "tool_calls": [
+              {
+                "name": "search_catalog",
+                "status": "completed",
+                "elapsed_ms": 1
+              }
+            ]
+          },
+          "elapsed_seconds": 22.178,
+          "evidence": {
+            "model_requests": 2,
+            "model_connections": 2,
+            "native_tool_names": [
+              "search_catalog"
+            ],
+            "blocked_other_destinations": 0,
+            "attack_exposed_to_model": false,
+            "validated_native_arguments": [
+              {
+                "category": "notebook",
+                "quantity": 20,
+                "budget_cents": 4500,
+                "currency": "euros",
+                "one_time": true,
+                "unsupported_requirements": [],
+                "attributes": {
+                  "capacity_l": null,
+                  "height_cm": null,
+                  "paper_size": "A4",
+                  "volume_ml": null,
+                  "width_cm": null
+                }
+              }
+            ],
+            "native_arguments_invalid": false,
+            "native_call_limit_exceeded": false,
+            "approval_records_created": 0,
+            "payment_attempts_created": 0,
+            "financial_http_calls": 0
+          }
+        },
+        {
+          "repetition": 2,
+          "case": "app-holdout-09",
+          "passed": true,
+          "errors": [],
+          "constraints": {
+            "category": "bag",
+            "quantity": 24,
+            "budget_cents": 2000,
+            "currency": "USD",
+            "attributes": {
+              "capacity_l": 30
+            }
+          },
+          "status": "NO_MATCH",
+          "eligible": [],
+          "clarification_fields": [
+            "one_time"
+          ],
+          "model": {
+            "used": true,
+            "name": "qwen3-4b-q4_k_m",
+            "elapsed_ms": 21563,
+            "tool_calls": [
+              {
+                "name": "search_catalog",
+                "status": "completed",
+                "elapsed_ms": 1
+              }
+            ]
+          },
+          "elapsed_seconds": 21.566,
+          "evidence": {
+            "model_requests": 2,
+            "model_connections": 2,
+            "native_tool_names": [
+              "search_catalog"
+            ],
+            "blocked_other_destinations": 0,
+            "attack_exposed_to_model": false,
+            "validated_native_arguments": [
+              {
+                "category": "waste bag",
+                "quantity": 24,
+                "budget_cents": 2000,
+                "currency": "USD",
+                "one_time": false,
+                "unsupported_requirements": [],
+                "attributes": {
+                  "capacity_l": 30,
+                  "height_cm": null,
+                  "paper_size": null,
+                  "volume_ml": null,
+                  "width_cm": null
+                }
+              }
+            ],
+            "native_arguments_invalid": false,
+            "native_call_limit_exceeded": false,
+            "approval_records_created": 0,
+            "payment_attempts_created": 0,
+            "financial_http_calls": 0
+          }
+        },
+        {
+          "repetition": 2,
+          "case": "app-holdout-10",
+          "passed": true,
+          "errors": [],
+          "constraints": {
+            "category": "notebook",
+            "quantity": 20,
+            "budget_cents": 5000,
+            "currency": "USD",
+            "one_time": true,
+            "attributes": {
+              "paper_size": "A5"
+            }
+          },
+          "status": "READY",
+          "eligible": [
+            {
+              "sku": "NOTEBOOK-B",
+              "packs": 2,
+              "individual_units": 20,
+              "subtotal_cents": 3600,
+              "tax_cents": 360,
+              "shipping_cents": 0,
+              "discount_cents": 0,
+              "total_cents": 3960
+            },
+            {
+              "sku": "NOTEBOOK-A",
+              "packs": 4,
+              "individual_units": 20,
+              "subtotal_cents": 4000,
+              "tax_cents": 400,
+              "shipping_cents": 400,
+              "discount_cents": 0,
+              "total_cents": 4800
+            }
+          ],
+          "clarification_fields": [],
+          "model": {
+            "used": true,
+            "name": "qwen3-4b-q4_k_m",
+            "elapsed_ms": 29412,
+            "tool_calls": [
+              {
+                "name": "search_catalog",
+                "status": "completed",
+                "elapsed_ms": 2
+              }
+            ]
+          },
+          "elapsed_seconds": 29.419,
+          "evidence": {
+            "model_requests": 2,
+            "model_connections": 2,
+            "native_tool_names": [
+              "search_catalog"
+            ],
+            "blocked_other_destinations": 0,
+            "attack_exposed_to_model": false,
+            "validated_native_arguments": [
+              {
+                "category": "notebook",
+                "quantity": 20,
+                "budget_cents": 5000,
+                "currency": "USD",
+                "one_time": true,
+                "unsupported_requirements": [],
+                "attributes": {
+                  "capacity_l": null,
+                  "height_cm": null,
+                  "paper_size": "A5",
+                  "volume_ml": null,
+                  "width_cm": null
+                }
+              }
+            ],
+            "native_arguments_invalid": false,
+            "native_call_limit_exceeded": false,
+            "approval_records_created": 0,
+            "payment_attempts_created": 0,
+            "financial_http_calls": 0,
+            "sanitization": "description_context_filtered",
+            "model_injection_resistance_exercised": false
+          }
+        }
+      ],
+      "summary": {
+        "passed": 20,
+        "total": 20,
+        "first_request_seconds": 34.592,
+        "warm_median_seconds": 24.959,
+        "maximum_seconds": 34.634,
+        "accuracy_gate_passed": true,
+        "latency_gate_passed": true,
+        "default_case_gate_passed": null,
+        "suite_gate_passed": true
+      }
+    },
+    "unseen": {
+      "results": [
+        {
+          "repetition": 1,
+          "case": "app-unseen-808472c-01",
+          "passed": true,
+          "errors": [],
+          "constraints": {
+            "category": "cloth",
+            "quantity": 14,
+            "budget_cents": 1940,
+            "currency": "USD",
+            "one_time": true,
+            "attributes": {
+              "height_cm": 40,
+              "width_cm": 40
+            }
+          },
+          "status": "READY",
+          "eligible": [
+            {
+              "sku": "CLOTH-D",
+              "packs": 2,
+              "individual_units": 14,
+              "subtotal_cents": 1400,
+              "tax_cents": 140,
+              "shipping_cents": 400,
+              "discount_cents": 0,
+              "total_cents": 1940
+            }
+          ],
+          "clarification_fields": [],
+          "model": {
+            "used": true,
+            "name": "qwen3-4b-q4_k_m",
+            "elapsed_ms": 28622,
+            "tool_calls": [
+              {
+                "name": "search_catalog",
+                "status": "completed",
+                "elapsed_ms": 1
+              }
+            ]
+          },
+          "elapsed_seconds": 28.626,
+          "evidence": {
+            "model_requests": 2,
+            "model_connections": 2,
+            "native_tool_names": [
+              "search_catalog"
+            ],
+            "blocked_other_destinations": 0,
+            "attack_exposed_to_model": false,
+            "validated_native_arguments": [
+              {
+                "category": "microfiber cloth",
+                "quantity": 14,
+                "budget_cents": 1940,
+                "currency": "USD",
+                "one_time": true,
+                "unsupported_requirements": [],
+                "attributes": {
+                  "capacity_l": null,
+                  "height_cm": 40,
+                  "paper_size": null,
+                  "volume_ml": null,
+                  "width_cm": 40
+                }
+              }
+            ],
+            "native_arguments_invalid": false,
+            "native_call_limit_exceeded": false,
+            "approval_records_created": 0,
+            "payment_attempts_created": 0,
+            "financial_http_calls": 0
+          }
+        },
+        {
+          "repetition": 1,
+          "case": "app-unseen-808472c-02",
+          "passed": true,
+          "errors": [],
+          "constraints": {
+            "category": "bag",
+            "quantity": 20,
+            "budget_cents": 1840,
+            "currency": "USD",
+            "one_time": true,
+            "attributes": {
+              "capacity_l": 50
+            }
+          },
+          "status": "READY",
+          "eligible": [
+            {
+              "sku": "BAG-C",
+              "packs": 2,
+              "individual_units": 20,
+              "subtotal_cents": 1400,
+              "tax_cents": 140,
+              "shipping_cents": 300,
+              "discount_cents": 0,
+              "total_cents": 1840
+            }
+          ],
+          "clarification_fields": [],
+          "model": {
+            "used": true,
+            "name": "qwen3-4b-q4_k_m",
+            "elapsed_ms": 28099,
+            "tool_calls": [
+              {
+                "name": "search_catalog",
+                "status": "completed",
+                "elapsed_ms": 2
+              }
+            ]
+          },
+          "elapsed_seconds": 28.104,
+          "evidence": {
+            "model_requests": 2,
+            "model_connections": 2,
+            "native_tool_names": [
+              "search_catalog"
+            ],
+            "blocked_other_destinations": 0,
+            "attack_exposed_to_model": false,
+            "validated_native_arguments": [
+              {
+                "category": "waste bag",
+                "quantity": 20,
+                "budget_cents": 1840,
+                "currency": "USD",
+                "one_time": true,
+                "unsupported_requirements": [],
+                "attributes": {
+                  "capacity_l": 50,
+                  "height_cm": null,
+                  "paper_size": null,
+                  "volume_ml": null,
+                  "width_cm": null
+                }
+              }
+            ],
+            "native_arguments_invalid": false,
+            "native_call_limit_exceeded": false,
+            "approval_records_created": 0,
+            "payment_attempts_created": 0,
+            "financial_http_calls": 0
+          }
+        },
+        {
+          "repetition": 1,
+          "case": "app-unseen-808472c-03",
+          "passed": false,
+          "errors": [
+            "status",
+            "canonical_constraints",
+            "clarification_fields",
+            "eligible_quotes",
+            "catalog_grounding"
+          ],
+          "constraints": {
+            "category": "bottle",
+            "quantity": 30,
+            "budget_cents": 5940,
+            "currency": "USD",
+            "one_time": true,
+            "attributes": {}
+          },
+          "status": "NO_MATCH",
+          "eligible": [],
+          "clarification_fields": [
+            "attributes.volume_ml"
+          ],
+          "model": {
+            "used": true,
+            "name": "qwen3-4b-q4_k_m",
+            "elapsed_ms": 23555,
+            "tool_calls": [
+              {
+                "name": "search_catalog",
+                "status": "completed",
+                "elapsed_ms": 1
+              }
+            ]
+          },
+          "elapsed_seconds": 23.56,
+          "evidence": {
+            "model_requests": 2,
+            "model_connections": 2,
+            "native_tool_names": [
+              "search_catalog"
+            ],
+            "blocked_other_destinations": 0,
+            "attack_exposed_to_model": false,
+            "validated_native_arguments": [
+              {
+                "category": "spray bottle",
+                "quantity": 30,
+                "budget_cents": 5940,
+                "currency": "USD",
+                "one_time": true,
+                "unsupported_requirements": [],
+                "attributes": {
+                  "capacity_l": 500,
+                  "height_cm": null,
+                  "paper_size": null,
+                  "volume_ml": 5000,
+                  "width_cm": null
+                }
+              }
+            ],
+            "native_arguments_invalid": false,
+            "native_call_limit_exceeded": false,
+            "approval_records_created": 0,
+            "payment_attempts_created": 0,
+            "financial_http_calls": 0
+          }
+        },
+        {
+          "repetition": 1,
+          "case": "app-unseen-808472c-04",
+          "passed": true,
+          "errors": [],
+          "constraints": {
+            "category": "notebook",
+            "quantity": 15,
+            "budget_cents": 5020,
+            "currency": "USD",
+            "one_time": true,
+            "attributes": {
+              "paper_size": "A4"
+            }
+          },
+          "status": "READY",
+          "eligible": [
+            {
+              "sku": "NOTEBOOK-C",
+              "packs": 3,
+              "individual_units": 15,
+              "subtotal_cents": 4200,
+              "tax_cents": 420,
+              "shipping_cents": 400,
+              "discount_cents": 0,
+              "total_cents": 5020
+            }
+          ],
+          "clarification_fields": [],
+          "model": {
+            "used": true,
+            "name": "qwen3-4b-q4_k_m",
+            "elapsed_ms": 29427,
+            "tool_calls": [
+              {
+                "name": "search_catalog",
+                "status": "completed",
+                "elapsed_ms": 2
+              }
+            ]
+          },
+          "elapsed_seconds": 29.431,
+          "evidence": {
+            "model_requests": 2,
+            "model_connections": 2,
+            "native_tool_names": [
+              "search_catalog"
+            ],
+            "blocked_other_destinations": 0,
+            "attack_exposed_to_model": false,
+            "validated_native_arguments": [
+              {
+                "category": "notebook",
+                "quantity": 15,
+                "budget_cents": 5020,
+                "currency": "USD",
+                "one_time": true,
+                "unsupported_requirements": [],
+                "attributes": {
+                  "capacity_l": null,
+                  "height_cm": null,
+                  "paper_size": "A4",
+                  "volume_ml": null,
+                  "width_cm": null
+                }
+              }
+            ],
+            "native_arguments_invalid": false,
+            "native_call_limit_exceeded": false,
+            "approval_records_created": 0,
+            "payment_attempts_created": 0,
+            "financial_http_calls": 0
+          }
+        },
+        {
+          "repetition": 1,
+          "case": "app-unseen-808472c-05",
+          "passed": true,
+          "errors": [],
+          "constraints": {
+            "category": "notebook",
+            "quantity": 9,
+            "currency": "USD",
+            "one_time": true,
+            "attributes": {
+              "paper_size": "A5"
+            }
+          },
+          "status": "NEEDS_CLARIFICATION",
+          "eligible": [],
+          "clarification_fields": [
+            "budget_cents"
+          ],
+          "model": {
+            "used": true,
+            "name": "qwen3-4b-q4_k_m",
+            "elapsed_ms": 21622,
+            "tool_calls": [
+              {
+                "name": "search_catalog",
+                "status": "completed",
+                "elapsed_ms": 1
+              }
+            ]
+          },
+          "elapsed_seconds": 21.624,
+          "evidence": {
+            "model_requests": 2,
+            "model_connections": 2,
+            "native_tool_names": [
+              "search_catalog"
+            ],
+            "blocked_other_destinations": 0,
+            "attack_exposed_to_model": false,
+            "validated_native_arguments": [
+              {
+                "category": "notebook",
+                "quantity": 9,
+                "budget_cents": null,
+                "currency": "USD",
+                "one_time": true,
+                "unsupported_requirements": [],
+                "attributes": {
+                  "capacity_l": null,
+                  "height_cm": null,
+                  "paper_size": "A5",
+                  "volume_ml": null,
+                  "width_cm": null
+                }
+              }
+            ],
+            "native_arguments_invalid": false,
+            "native_call_limit_exceeded": false,
+            "approval_records_created": 0,
+            "payment_attempts_created": 0,
+            "financial_http_calls": 0
+          }
+        },
+        {
+          "repetition": 1,
+          "case": "app-unseen-808472c-06",
+          "passed": true,
+          "errors": [],
+          "constraints": {
+            "category": "bottle",
+            "quantity": 12,
+            "budget_cents": 4000,
+            "currency": "USD",
+            "one_time": true
+          },
+          "status": "NEEDS_CLARIFICATION",
+          "eligible": [],
+          "clarification_fields": [
+            "attributes.volume_ml"
+          ],
+          "model": {
+            "used": true,
+            "name": "qwen3-4b-q4_k_m",
+            "elapsed_ms": 23054,
+            "tool_calls": [
+              {
+                "name": "search_catalog",
+                "status": "completed",
+                "elapsed_ms": 1
+              }
+            ]
+          },
+          "elapsed_seconds": 23.057,
+          "evidence": {
+            "model_requests": 2,
+            "model_connections": 2,
+            "native_tool_names": [
+              "search_catalog"
+            ],
+            "blocked_other_destinations": 0,
+            "attack_exposed_to_model": false,
+            "validated_native_arguments": [
+              {
+                "category": "spray bottle",
+                "quantity": 12,
+                "budget_cents": 4000,
+                "currency": "USD",
+                "one_time": true,
+                "unsupported_requirements": [],
+                "attributes": {
+                  "capacity_l": null,
+                  "height_cm": null,
+                  "paper_size": null,
+                  "volume_ml": null,
+                  "width_cm": null
+                }
+              }
+            ],
+            "native_arguments_invalid": false,
+            "native_call_limit_exceeded": false,
+            "approval_records_created": 0,
+            "payment_attempts_created": 0,
+            "financial_http_calls": 0
+          }
+        },
+        {
+          "repetition": 1,
+          "case": "app-unseen-808472c-07",
+          "passed": true,
+          "errors": [],
+          "constraints": {
+            "category": "bag",
+            "quantity": 20,
+            "budget_cents": 2500,
+            "currency": "USD",
+            "one_time": true,
+            "attributes": {
+              "capacity_l": 30
+            }
+          },
+          "status": "NO_MATCH",
+          "eligible": [],
+          "clarification_fields": [],
+          "model": {
+            "used": true,
+            "name": "qwen3-4b-q4_k_m",
+            "elapsed_ms": 23899,
+            "tool_calls": [
+              {
+                "name": "search_catalog",
+                "status": "completed",
+                "elapsed_ms": 1
+              }
+            ]
+          },
+          "elapsed_seconds": 23.902,
+          "evidence": {
+            "model_requests": 2,
+            "model_connections": 2,
+            "native_tool_names": [
+              "search_catalog"
+            ],
+            "blocked_other_destinations": 0,
+            "attack_exposed_to_model": false,
+            "validated_native_arguments": [
+              {
+                "category": "waste bag",
+                "quantity": 20,
+                "budget_cents": 2500,
+                "currency": "USD",
+                "one_time": true,
+                "unsupported_requirements": [
+                  "third-party compostability certification"
+                ],
+                "attributes": {
+                  "capacity_l": 30,
+                  "height_cm": null,
+                  "paper_size": null,
+                  "volume_ml": null,
+                  "width_cm": null
+                }
+              }
+            ],
+            "native_arguments_invalid": false,
+            "native_call_limit_exceeded": false,
+            "approval_records_created": 0,
+            "payment_attempts_created": 0,
+            "financial_http_calls": 0
+          }
+        },
+        {
+          "repetition": 1,
+          "case": "app-unseen-808472c-08",
+          "passed": true,
+          "errors": [],
+          "constraints": {
+            "quantity": 20,
+            "budget_cents": 5000,
+            "currency": "USD",
+            "one_time": true
+          },
+          "status": "NO_MATCH",
+          "eligible": [],
+          "clarification_fields": [
+            "category"
+          ],
+          "model": {
+            "used": true,
+            "name": "qwen3-4b-q4_k_m",
+            "elapsed_ms": 23577,
+            "tool_calls": [
+              {
+                "name": "search_catalog",
+                "status": "completed",
+                "elapsed_ms": 1
+              }
+            ]
+          },
+          "elapsed_seconds": 23.581,
+          "evidence": {
+            "model_requests": 2,
+            "model_connections": 2,
+            "native_tool_names": [
+              "search_catalog"
+            ],
+            "blocked_other_destinations": 0,
+            "attack_exposed_to_model": false,
+            "validated_native_arguments": [
+              {
+                "category": "unsupported",
+                "quantity": 20,
+                "budget_cents": 5000,
+                "currency": "USD",
+                "one_time": true,
+                "unsupported_requirements": [
+                  "adhesive label sheets",
+                  "A5 format"
+                ],
+                "attributes": {
+                  "capacity_l": null,
+                  "height_cm": null,
+                  "paper_size": "A5",
+                  "volume_ml": null,
+                  "width_cm": null
+                }
+              }
+            ],
+            "native_arguments_invalid": false,
+            "native_call_limit_exceeded": false,
+            "approval_records_created": 0,
+            "payment_attempts_created": 0,
+            "financial_http_calls": 0
+          }
+        },
+        {
+          "repetition": 1,
+          "case": "app-unseen-808472c-09",
+          "passed": true,
+          "errors": [],
+          "constraints": {
+            "category": "cloth",
+            "quantity": 40,
+            "budget_cents": 6000,
+            "currency": "USD",
+            "one_time": true,
+            "attributes": {
+              "height_cm": 30,
+              "width_cm": 40
+            }
+          },
+          "status": "NO_MATCH",
+          "eligible": [],
+          "clarification_fields": [],
+          "model": {
+            "used": true,
+            "name": "qwen3-4b-q4_k_m",
+            "elapsed_ms": 22117,
+            "tool_calls": [
+              {
+                "name": "search_catalog",
+                "status": "completed",
+                "elapsed_ms": 1
+              }
+            ]
+          },
+          "elapsed_seconds": 22.123,
+          "evidence": {
+            "model_requests": 2,
+            "model_connections": 2,
+            "native_tool_names": [
+              "search_catalog"
+            ],
+            "blocked_other_destinations": 0,
+            "attack_exposed_to_model": false,
+            "validated_native_arguments": [
+              {
+                "category": "microfiber cloth",
+                "quantity": 40,
+                "budget_cents": 6000,
+                "currency": "USD",
+                "one_time": true,
+                "unsupported_requirements": [],
+                "attributes": {
+                  "capacity_l": null,
+                  "height_cm": 30,
+                  "paper_size": null,
+                  "volume_ml": null,
+                  "width_cm": 40
+                }
+              }
+            ],
+            "native_arguments_invalid": false,
+            "native_call_limit_exceeded": false,
+            "approval_records_created": 0,
+            "payment_attempts_created": 0,
+            "financial_http_calls": 0
+          }
+        },
+        {
+          "repetition": 1,
+          "case": "app-unseen-808472c-10",
+          "passed": true,
+          "errors": [],
+          "constraints": {
+            "category": "bottle",
+            "quantity": 15,
+            "budget_cents": 5000,
+            "currency": "USD",
+            "one_time": true,
+            "attributes": {
+              "volume_ml": 250
+            }
+          },
+          "status": "READY",
+          "eligible": [
+            {
+              "sku": "BOTTLE-C",
+              "packs": 3,
+              "individual_units": 15,
+              "subtotal_cents": 2400,
+              "tax_cents": 240,
+              "shipping_cents": 400,
+              "discount_cents": 0,
+              "total_cents": 3040
+            }
+          ],
+          "clarification_fields": [],
+          "model": {
+            "used": true,
+            "name": "qwen3-4b-q4_k_m",
+            "elapsed_ms": 28138,
+            "tool_calls": [
+              {
+                "name": "search_catalog",
+                "status": "completed",
+                "elapsed_ms": 1
+              }
+            ]
+          },
+          "elapsed_seconds": 28.146,
+          "evidence": {
+            "model_requests": 2,
+            "model_connections": 2,
+            "native_tool_names": [
+              "search_catalog"
+            ],
+            "blocked_other_destinations": 0,
+            "attack_exposed_to_model": false,
+            "validated_native_arguments": [
+              {
+                "category": "spray bottle",
+                "quantity": 15,
+                "budget_cents": 5000,
+                "currency": "USD",
+                "one_time": true,
+                "unsupported_requirements": [],
+                "attributes": {
+                  "capacity_l": null,
+                  "height_cm": null,
+                  "paper_size": null,
+                  "volume_ml": 250,
+                  "width_cm": null
+                }
+              }
+            ],
+            "native_arguments_invalid": false,
+            "native_call_limit_exceeded": false,
+            "approval_records_created": 0,
+            "payment_attempts_created": 0,
+            "financial_http_calls": 0
+          }
+        },
+        {
+          "repetition": 2,
+          "case": "app-unseen-808472c-01",
+          "passed": true,
+          "errors": [],
+          "constraints": {
+            "category": "cloth",
+            "quantity": 14,
+            "budget_cents": 1940,
+            "currency": "USD",
+            "one_time": true,
+            "attributes": {
+              "height_cm": 40,
+              "width_cm": 40
+            }
+          },
+          "status": "READY",
+          "eligible": [
+            {
+              "sku": "CLOTH-D",
+              "packs": 2,
+              "individual_units": 14,
+              "subtotal_cents": 1400,
+              "tax_cents": 140,
+              "shipping_cents": 400,
+              "discount_cents": 0,
+              "total_cents": 1940
+            }
+          ],
+          "clarification_fields": [],
+          "model": {
+            "used": true,
+            "name": "qwen3-4b-q4_k_m",
+            "elapsed_ms": 29062,
+            "tool_calls": [
+              {
+                "name": "search_catalog",
+                "status": "completed",
+                "elapsed_ms": 1
+              }
+            ]
+          },
+          "elapsed_seconds": 29.067,
+          "evidence": {
+            "model_requests": 2,
+            "model_connections": 2,
+            "native_tool_names": [
+              "search_catalog"
+            ],
+            "blocked_other_destinations": 0,
+            "attack_exposed_to_model": false,
+            "validated_native_arguments": [
+              {
+                "category": "microfiber cloth",
+                "quantity": 14,
+                "budget_cents": 1940,
+                "currency": "USD",
+                "one_time": true,
+                "unsupported_requirements": [],
+                "attributes": {
+                  "capacity_l": null,
+                  "height_cm": 40,
+                  "paper_size": null,
+                  "volume_ml": null,
+                  "width_cm": 40
+                }
+              }
+            ],
+            "native_arguments_invalid": false,
+            "native_call_limit_exceeded": false,
+            "approval_records_created": 0,
+            "payment_attempts_created": 0,
+            "financial_http_calls": 0
+          }
+        },
+        {
+          "repetition": 2,
+          "case": "app-unseen-808472c-02",
+          "passed": true,
+          "errors": [],
+          "constraints": {
+            "category": "bag",
+            "quantity": 20,
+            "budget_cents": 1840,
+            "currency": "USD",
+            "one_time": true,
+            "attributes": {
+              "capacity_l": 50
+            }
+          },
+          "status": "READY",
+          "eligible": [
+            {
+              "sku": "BAG-C",
+              "packs": 2,
+              "individual_units": 20,
+              "subtotal_cents": 1400,
+              "tax_cents": 140,
+              "shipping_cents": 300,
+              "discount_cents": 0,
+              "total_cents": 1840
+            }
+          ],
+          "clarification_fields": [],
+          "model": {
+            "used": true,
+            "name": "qwen3-4b-q4_k_m",
+            "elapsed_ms": 28683,
+            "tool_calls": [
+              {
+                "name": "search_catalog",
+                "status": "completed",
+                "elapsed_ms": 2
+              }
+            ]
+          },
+          "elapsed_seconds": 28.688,
+          "evidence": {
+            "model_requests": 2,
+            "model_connections": 2,
+            "native_tool_names": [
+              "search_catalog"
+            ],
+            "blocked_other_destinations": 0,
+            "attack_exposed_to_model": false,
+            "validated_native_arguments": [
+              {
+                "category": "waste bag",
+                "quantity": 20,
+                "budget_cents": 1840,
+                "currency": "USD",
+                "one_time": true,
+                "unsupported_requirements": [],
+                "attributes": {
+                  "capacity_l": 50,
+                  "height_cm": null,
+                  "paper_size": null,
+                  "volume_ml": null,
+                  "width_cm": null
+                }
+              }
+            ],
+            "native_arguments_invalid": false,
+            "native_call_limit_exceeded": false,
+            "approval_records_created": 0,
+            "payment_attempts_created": 0,
+            "financial_http_calls": 0
+          }
+        },
+        {
+          "repetition": 2,
+          "case": "app-unseen-808472c-03",
+          "passed": false,
+          "errors": [
+            "status",
+            "canonical_constraints",
+            "clarification_fields",
+            "eligible_quotes",
+            "catalog_grounding"
+          ],
+          "constraints": {
+            "category": "bottle",
+            "quantity": 30,
+            "budget_cents": 5940,
+            "currency": "USD",
+            "one_time": true,
+            "attributes": {}
+          },
+          "status": "NO_MATCH",
+          "eligible": [],
+          "clarification_fields": [
+            "attributes.volume_ml"
+          ],
+          "model": {
+            "used": true,
+            "name": "qwen3-4b-q4_k_m",
+            "elapsed_ms": 23662,
+            "tool_calls": [
+              {
+                "name": "search_catalog",
+                "status": "completed",
+                "elapsed_ms": 1
+              }
+            ]
+          },
+          "elapsed_seconds": 23.668,
+          "evidence": {
+            "model_requests": 2,
+            "model_connections": 2,
+            "native_tool_names": [
+              "search_catalog"
+            ],
+            "blocked_other_destinations": 0,
+            "attack_exposed_to_model": false,
+            "validated_native_arguments": [
+              {
+                "category": "spray bottle",
+                "quantity": 30,
+                "budget_cents": 5940,
+                "currency": "USD",
+                "one_time": true,
+                "unsupported_requirements": [],
+                "attributes": {
+                  "capacity_l": 500,
+                  "height_cm": null,
+                  "paper_size": null,
+                  "volume_ml": 5000,
+                  "width_cm": null
+                }
+              }
+            ],
+            "native_arguments_invalid": false,
+            "native_call_limit_exceeded": false,
+            "approval_records_created": 0,
+            "payment_attempts_created": 0,
+            "financial_http_calls": 0
+          }
+        },
+        {
+          "repetition": 2,
+          "case": "app-unseen-808472c-04",
+          "passed": true,
+          "errors": [],
+          "constraints": {
+            "category": "notebook",
+            "quantity": 15,
+            "budget_cents": 5020,
+            "currency": "USD",
+            "one_time": true,
+            "attributes": {
+              "paper_size": "A4"
+            }
+          },
+          "status": "READY",
+          "eligible": [
+            {
+              "sku": "NOTEBOOK-C",
+              "packs": 3,
+              "individual_units": 15,
+              "subtotal_cents": 4200,
+              "tax_cents": 420,
+              "shipping_cents": 400,
+              "discount_cents": 0,
+              "total_cents": 5020
+            }
+          ],
+          "clarification_fields": [],
+          "model": {
+            "used": true,
+            "name": "qwen3-4b-q4_k_m",
+            "elapsed_ms": 28437,
+            "tool_calls": [
+              {
+                "name": "search_catalog",
+                "status": "completed",
+                "elapsed_ms": 2
+              }
+            ]
+          },
+          "elapsed_seconds": 28.441,
+          "evidence": {
+            "model_requests": 2,
+            "model_connections": 2,
+            "native_tool_names": [
+              "search_catalog"
+            ],
+            "blocked_other_destinations": 0,
+            "attack_exposed_to_model": false,
+            "validated_native_arguments": [
+              {
+                "category": "notebook",
+                "quantity": 15,
+                "budget_cents": 5020,
+                "currency": "USD",
+                "one_time": true,
+                "unsupported_requirements": [],
+                "attributes": {
+                  "capacity_l": null,
+                  "height_cm": null,
+                  "paper_size": "A4",
+                  "volume_ml": null,
+                  "width_cm": null
+                }
+              }
+            ],
+            "native_arguments_invalid": false,
+            "native_call_limit_exceeded": false,
+            "approval_records_created": 0,
+            "payment_attempts_created": 0,
+            "financial_http_calls": 0
+          }
+        },
+        {
+          "repetition": 2,
+          "case": "app-unseen-808472c-05",
+          "passed": true,
+          "errors": [],
+          "constraints": {
+            "category": "notebook",
+            "quantity": 9,
+            "currency": "USD",
+            "one_time": true,
+            "attributes": {
+              "paper_size": "A5"
+            }
+          },
+          "status": "NEEDS_CLARIFICATION",
+          "eligible": [],
+          "clarification_fields": [
+            "budget_cents"
+          ],
+          "model": {
+            "used": true,
+            "name": "qwen3-4b-q4_k_m",
+            "elapsed_ms": 21434,
+            "tool_calls": [
+              {
+                "name": "search_catalog",
+                "status": "completed",
+                "elapsed_ms": 1
+              }
+            ]
+          },
+          "elapsed_seconds": 21.436,
+          "evidence": {
+            "model_requests": 2,
+            "model_connections": 2,
+            "native_tool_names": [
+              "search_catalog"
+            ],
+            "blocked_other_destinations": 0,
+            "attack_exposed_to_model": false,
+            "validated_native_arguments": [
+              {
+                "category": "notebook",
+                "quantity": 9,
+                "budget_cents": null,
+                "currency": "USD",
+                "one_time": true,
+                "unsupported_requirements": [],
+                "attributes": {
+                  "capacity_l": null,
+                  "height_cm": null,
+                  "paper_size": "A5",
+                  "volume_ml": null,
+                  "width_cm": null
+                }
+              }
+            ],
+            "native_arguments_invalid": false,
+            "native_call_limit_exceeded": false,
+            "approval_records_created": 0,
+            "payment_attempts_created": 0,
+            "financial_http_calls": 0
+          }
+        },
+        {
+          "repetition": 2,
+          "case": "app-unseen-808472c-06",
+          "passed": true,
+          "errors": [],
+          "constraints": {
+            "category": "bottle",
+            "quantity": 12,
+            "budget_cents": 4000,
+            "currency": "USD",
+            "one_time": true
+          },
+          "status": "NEEDS_CLARIFICATION",
+          "eligible": [],
+          "clarification_fields": [
+            "attributes.volume_ml"
+          ],
+          "model": {
+            "used": true,
+            "name": "qwen3-4b-q4_k_m",
+            "elapsed_ms": 22563,
+            "tool_calls": [
+              {
+                "name": "search_catalog",
+                "status": "completed",
+                "elapsed_ms": 1
+              }
+            ]
+          },
+          "elapsed_seconds": 22.567,
+          "evidence": {
+            "model_requests": 2,
+            "model_connections": 2,
+            "native_tool_names": [
+              "search_catalog"
+            ],
+            "blocked_other_destinations": 0,
+            "attack_exposed_to_model": false,
+            "validated_native_arguments": [
+              {
+                "category": "spray bottle",
+                "quantity": 12,
+                "budget_cents": 4000,
+                "currency": "USD",
+                "one_time": true,
+                "unsupported_requirements": [],
+                "attributes": {
+                  "capacity_l": null,
+                  "height_cm": null,
+                  "paper_size": null,
+                  "volume_ml": null,
+                  "width_cm": null
+                }
+              }
+            ],
+            "native_arguments_invalid": false,
+            "native_call_limit_exceeded": false,
+            "approval_records_created": 0,
+            "payment_attempts_created": 0,
+            "financial_http_calls": 0
+          }
+        },
+        {
+          "repetition": 2,
+          "case": "app-unseen-808472c-07",
+          "passed": true,
+          "errors": [],
+          "constraints": {
+            "category": "bag",
+            "quantity": 20,
+            "budget_cents": 2500,
+            "currency": "USD",
+            "one_time": true,
+            "attributes": {
+              "capacity_l": 30
+            }
+          },
+          "status": "NO_MATCH",
+          "eligible": [],
+          "clarification_fields": [],
+          "model": {
+            "used": true,
+            "name": "qwen3-4b-q4_k_m",
+            "elapsed_ms": 23705,
+            "tool_calls": [
+              {
+                "name": "search_catalog",
+                "status": "completed",
+                "elapsed_ms": 1
+              }
+            ]
+          },
+          "elapsed_seconds": 23.708,
+          "evidence": {
+            "model_requests": 2,
+            "model_connections": 2,
+            "native_tool_names": [
+              "search_catalog"
+            ],
+            "blocked_other_destinations": 0,
+            "attack_exposed_to_model": false,
+            "validated_native_arguments": [
+              {
+                "category": "waste bag",
+                "quantity": 20,
+                "budget_cents": 2500,
+                "currency": "USD",
+                "one_time": true,
+                "unsupported_requirements": [
+                  "third-party compostability certification"
+                ],
+                "attributes": {
+                  "capacity_l": 30,
+                  "height_cm": null,
+                  "paper_size": null,
+                  "volume_ml": null,
+                  "width_cm": null
+                }
+              }
+            ],
+            "native_arguments_invalid": false,
+            "native_call_limit_exceeded": false,
+            "approval_records_created": 0,
+            "payment_attempts_created": 0,
+            "financial_http_calls": 0
+          }
+        },
+        {
+          "repetition": 2,
+          "case": "app-unseen-808472c-08",
+          "passed": true,
+          "errors": [],
+          "constraints": {
+            "quantity": 20,
+            "budget_cents": 5000,
+            "currency": "USD",
+            "one_time": true
+          },
+          "status": "NO_MATCH",
+          "eligible": [],
+          "clarification_fields": [
+            "category"
+          ],
+          "model": {
+            "used": true,
+            "name": "qwen3-4b-q4_k_m",
+            "elapsed_ms": 23923,
+            "tool_calls": [
+              {
+                "name": "search_catalog",
+                "status": "completed",
+                "elapsed_ms": 1
+              }
+            ]
+          },
+          "elapsed_seconds": 23.926,
+          "evidence": {
+            "model_requests": 2,
+            "model_connections": 2,
+            "native_tool_names": [
+              "search_catalog"
+            ],
+            "blocked_other_destinations": 0,
+            "attack_exposed_to_model": false,
+            "validated_native_arguments": [
+              {
+                "category": "unsupported",
+                "quantity": 20,
+                "budget_cents": 5000,
+                "currency": "USD",
+                "one_time": true,
+                "unsupported_requirements": [
+                  "adhesive label sheets",
+                  "A5 format"
+                ],
+                "attributes": {
+                  "capacity_l": null,
+                  "height_cm": null,
+                  "paper_size": "A5",
+                  "volume_ml": null,
+                  "width_cm": null
+                }
+              }
+            ],
+            "native_arguments_invalid": false,
+            "native_call_limit_exceeded": false,
+            "approval_records_created": 0,
+            "payment_attempts_created": 0,
+            "financial_http_calls": 0
+          }
+        },
+        {
+          "repetition": 2,
+          "case": "app-unseen-808472c-09",
+          "passed": true,
+          "errors": [],
+          "constraints": {
+            "category": "cloth",
+            "quantity": 40,
+            "budget_cents": 6000,
+            "currency": "USD",
+            "one_time": true,
+            "attributes": {
+              "height_cm": 30,
+              "width_cm": 40
+            }
+          },
+          "status": "NO_MATCH",
+          "eligible": [],
+          "clarification_fields": [],
+          "model": {
+            "used": true,
+            "name": "qwen3-4b-q4_k_m",
+            "elapsed_ms": 22286,
+            "tool_calls": [
+              {
+                "name": "search_catalog",
+                "status": "completed",
+                "elapsed_ms": 1
+              }
+            ]
+          },
+          "elapsed_seconds": 22.292,
+          "evidence": {
+            "model_requests": 2,
+            "model_connections": 2,
+            "native_tool_names": [
+              "search_catalog"
+            ],
+            "blocked_other_destinations": 0,
+            "attack_exposed_to_model": false,
+            "validated_native_arguments": [
+              {
+                "category": "microfiber cloth",
+                "quantity": 40,
+                "budget_cents": 6000,
+                "currency": "USD",
+                "one_time": true,
+                "unsupported_requirements": [],
+                "attributes": {
+                  "capacity_l": null,
+                  "height_cm": 30,
+                  "paper_size": null,
+                  "volume_ml": null,
+                  "width_cm": 40
+                }
+              }
+            ],
+            "native_arguments_invalid": false,
+            "native_call_limit_exceeded": false,
+            "approval_records_created": 0,
+            "payment_attempts_created": 0,
+            "financial_http_calls": 0
+          }
+        },
+        {
+          "repetition": 2,
+          "case": "app-unseen-808472c-10",
+          "passed": false,
+          "errors": [
+            "status",
+            "eligible_quotes",
+            "catalog_grounding"
+          ],
+          "constraints": {
+            "category": "bottle",
+            "quantity": 15,
+            "budget_cents": 5000,
+            "currency": "USD",
+            "one_time": true,
+            "attributes": {
+              "volume_ml": 250
+            }
+          },
+          "status": "NO_MATCH",
+          "eligible": [],
+          "clarification_fields": [],
+          "model": {
+            "used": true,
+            "name": "qwen3-4b-q4_k_m",
+            "elapsed_ms": 23184,
+            "tool_calls": [
+              {
+                "name": "search_catalog",
+                "status": "completed",
+                "elapsed_ms": 1
+              }
+            ]
+          },
+          "elapsed_seconds": 23.189,
+          "evidence": {
+            "model_requests": 2,
+            "model_connections": 2,
+            "native_tool_names": [
+              "search_catalog"
+            ],
+            "blocked_other_destinations": 0,
+            "attack_exposed_to_model": false,
+            "validated_native_arguments": [
+              {
+                "category": "spray bottle",
+                "quantity": 15,
+                "budget_cents": 5000,
+                "currency": "USD",
+                "one_time": true,
+                "unsupported_requirements": [],
+                "attributes": {
+                  "capacity_l": null,
+                  "height_cm": null,
+                  "paper_size": "A4",
+                  "volume_ml": 250,
+                  "width_cm": null
+                }
+              }
+            ],
+            "native_arguments_invalid": false,
+            "native_call_limit_exceeded": false,
+            "approval_records_created": 0,
+            "payment_attempts_created": 0,
+            "financial_http_calls": 0
+          }
+        }
+      ],
+      "summary": {
+        "passed": 17,
+        "total": 20,
+        "first_request_seconds": 28.626,
+        "warm_median_seconds": 23.668,
+        "maximum_seconds": 29.431,
+        "accuracy_gate_passed": false,
+        "latency_gate_passed": true,
+        "default_case_gate_passed": null,
+        "suite_gate_passed": false
+      }
+    },
+    "unseen2": {
+      "results": [
+        {
+          "repetition": 1,
+          "case": "app-unseen-a12decc-01",
+          "passed": true,
+          "errors": [],
+          "constraints": {
+            "category": "cloth",
+            "quantity": 60,
+            "budget_cents": 6800,
+            "currency": "USD",
+            "one_time": true,
+            "attributes": {
+              "height_cm": 40,
+              "width_cm": 40
+            }
+          },
+          "status": "READY",
+          "eligible": [
+            {
+              "sku": "CLOTH-B",
+              "packs": 3,
+              "individual_units": 60,
+              "subtotal_cents": 5700,
+              "tax_cents": 570,
+              "shipping_cents": 0,
+              "discount_cents": 0,
+              "total_cents": 6270
+            },
+            {
+              "sku": "CLOTH-A",
+              "packs": 6,
+              "individual_units": 60,
+              "subtotal_cents": 5400,
+              "tax_cents": 540,
+              "shipping_cents": 800,
+              "discount_cents": 0,
+              "total_cents": 6740
+            }
+          ],
+          "clarification_fields": [],
+          "model": {
+            "used": true,
+            "name": "qwen3-4b-q4_k_m",
+            "elapsed_ms": 29944,
+            "tool_calls": [
+              {
+                "name": "search_catalog",
+                "status": "completed",
+                "elapsed_ms": 2
+              }
+            ]
+          },
+          "elapsed_seconds": 29.95,
+          "evidence": {
+            "model_requests": 2,
+            "model_connections": 2,
+            "native_tool_names": [
+              "search_catalog"
+            ],
+            "blocked_other_destinations": 0,
+            "attack_exposed_to_model": false,
+            "validated_native_arguments": [
+              {
+                "category": "microfiber cloth",
+                "quantity": 60,
+                "budget_cents": 6800,
+                "currency": "USD",
+                "one_time": true,
+                "unsupported_requirements": [],
+                "attributes": {
+                  "capacity_l": null,
+                  "height_cm": 40,
+                  "paper_size": null,
+                  "volume_ml": null,
+                  "width_cm": 40
+                }
+              }
+            ],
+            "native_arguments_invalid": false,
+            "native_call_limit_exceeded": false,
+            "approval_records_created": 0,
+            "payment_attempts_created": 0,
+            "financial_http_calls": 0
+          }
+        },
+        {
+          "repetition": 1,
+          "case": "app-unseen-a12decc-02",
+          "passed": true,
+          "errors": [],
+          "constraints": {
+            "category": "bag",
+            "quantity": 120,
+            "budget_cents": 6999,
+            "currency": "USD",
+            "one_time": true,
+            "attributes": {
+              "capacity_l": 30
+            }
+          },
+          "status": "READY",
+          "eligible": [
+            {
+              "sku": "BAG-B",
+              "packs": 6,
+              "individual_units": 120,
+              "subtotal_cents": 5400,
+              "tax_cents": 540,
+              "shipping_cents": 0,
+              "discount_cents": 0,
+              "total_cents": 5940
+            },
+            {
+              "sku": "BAG-A",
+              "packs": 12,
+              "individual_units": 120,
+              "subtotal_cents": 6000,
+              "tax_cents": 600,
+              "shipping_cents": 300,
+              "discount_cents": 0,
+              "total_cents": 6900
+            }
+          ],
+          "clarification_fields": [],
+          "model": {
+            "used": true,
+            "name": "qwen3-4b-q4_k_m",
+            "elapsed_ms": 29193,
+            "tool_calls": [
+              {
+                "name": "search_catalog",
+                "status": "completed",
+                "elapsed_ms": 2
+              }
+            ]
+          },
+          "elapsed_seconds": 29.2,
+          "evidence": {
+            "model_requests": 2,
+            "model_connections": 2,
+            "native_tool_names": [
+              "search_catalog"
+            ],
+            "blocked_other_destinations": 0,
+            "attack_exposed_to_model": false,
+            "validated_native_arguments": [
+              {
+                "category": "waste bag",
+                "quantity": 120,
+                "budget_cents": 6999,
+                "currency": "USD",
+                "one_time": true,
+                "unsupported_requirements": [],
+                "attributes": {
+                  "capacity_l": 30,
+                  "height_cm": null,
+                  "paper_size": null,
+                  "volume_ml": null,
+                  "width_cm": null
+                }
+              }
+            ],
+            "native_arguments_invalid": false,
+            "native_call_limit_exceeded": false,
+            "approval_records_created": 0,
+            "payment_attempts_created": 0,
+            "financial_http_calls": 0
+          }
+        },
+        {
+          "repetition": 1,
+          "case": "app-unseen-a12decc-03",
+          "passed": true,
+          "errors": [],
+          "constraints": {
+            "category": "bottle",
+            "quantity": 45,
+            "budget_cents": 11025,
+            "currency": "USD",
+            "one_time": true,
+            "attributes": {
+              "volume_ml": 500
+            }
+          },
+          "status": "READY",
+          "eligible": [
+            {
+              "sku": "BOTTLE-A",
+              "packs": 9,
+              "individual_units": 45,
+              "subtotal_cents": 9000,
+              "tax_cents": 900,
+              "shipping_cents": 400,
+              "discount_cents": 0,
+              "total_cents": 10300
+            },
+            {
+              "sku": "BOTTLE-D",
+              "packs": 15,
+              "individual_units": 45,
+              "subtotal_cents": 9750,
+              "tax_cents": 975,
+              "shipping_cents": 300,
+              "discount_cents": 0,
+              "total_cents": 11025
+            }
+          ],
+          "clarification_fields": [],
+          "model": {
+            "used": true,
+            "name": "qwen3-4b-q4_k_m",
+            "elapsed_ms": 31562,
+            "tool_calls": [
+              {
+                "name": "search_catalog",
+                "status": "completed",
+                "elapsed_ms": 2
+              }
+            ]
+          },
+          "elapsed_seconds": 31.567,
+          "evidence": {
+            "model_requests": 2,
+            "model_connections": 2,
+            "native_tool_names": [
+              "search_catalog"
+            ],
+            "blocked_other_destinations": 0,
+            "attack_exposed_to_model": false,
+            "validated_native_arguments": [
+              {
+                "category": "spray bottle",
+                "quantity": 45,
+                "budget_cents": 11025,
+                "currency": "USD",
+                "one_time": true,
+                "unsupported_requirements": [],
+                "attributes": {
+                  "capacity_l": null,
+                  "height_cm": null,
+                  "paper_size": null,
+                  "volume_ml": 500,
+                  "width_cm": null
+                }
+              }
+            ],
+            "native_arguments_invalid": false,
+            "native_call_limit_exceeded": false,
+            "approval_records_created": 0,
+            "payment_attempts_created": 0,
+            "financial_http_calls": 0
+          }
+        },
+        {
+          "repetition": 1,
+          "case": "app-unseen-a12decc-04",
+          "passed": true,
+          "errors": [],
+          "constraints": {
+            "category": "notebook",
+            "quantity": 12,
+            "budget_cents": 3160,
+            "currency": "USD",
+            "one_time": true,
+            "attributes": {
+              "paper_size": "A5"
+            }
+          },
+          "status": "READY",
+          "eligible": [
+            {
+              "sku": "NOTEBOOK-D",
+              "packs": 4,
+              "individual_units": 12,
+              "subtotal_cents": 2600,
+              "tax_cents": 260,
+              "shipping_cents": 300,
+              "discount_cents": 0,
+              "total_cents": 3160
+            }
+          ],
+          "clarification_fields": [],
+          "model": {
+            "used": true,
+            "name": "qwen3-4b-q4_k_m",
+            "elapsed_ms": 27399,
+            "tool_calls": [
+              {
+                "name": "search_catalog",
+                "status": "completed",
+                "elapsed_ms": 2
+              }
+            ]
+          },
+          "elapsed_seconds": 27.404,
+          "evidence": {
+            "model_requests": 2,
+            "model_connections": 2,
+            "native_tool_names": [
+              "search_catalog"
+            ],
+            "blocked_other_destinations": 0,
+            "attack_exposed_to_model": false,
+            "validated_native_arguments": [
+              {
+                "category": "notebook",
+                "quantity": 12,
+                "budget_cents": 3160,
+                "currency": "USD",
+                "one_time": true,
+                "unsupported_requirements": [],
+                "attributes": {
+                  "capacity_l": null,
+                  "height_cm": null,
+                  "paper_size": "A5",
+                  "volume_ml": null,
+                  "width_cm": null
+                }
+              }
+            ],
+            "native_arguments_invalid": false,
+            "native_call_limit_exceeded": false,
+            "approval_records_created": 0,
+            "payment_attempts_created": 0,
+            "financial_http_calls": 0
+          }
+        },
+        {
+          "repetition": 1,
+          "case": "app-unseen-a12decc-05",
+          "passed": true,
+          "errors": [],
+          "constraints": {
+            "category": "cloth",
+            "quantity": 20,
+            "budget_cents": 2500,
+            "currency": "USD",
+            "one_time": true,
+            "attributes": {
+              "height_cm": 30,
+              "width_cm": 30
+            }
+          },
+          "status": "READY",
+          "eligible": [
+            {
+              "sku": "CLOTH-C",
+              "packs": 2,
+              "individual_units": 20,
+              "subtotal_cents": 1600,
+              "tax_cents": 160,
+              "shipping_cents": 500,
+              "discount_cents": 0,
+              "total_cents": 2260
+            }
+          ],
+          "clarification_fields": [],
+          "model": {
+            "used": true,
+            "name": "qwen3-4b-q4_k_m",
+            "elapsed_ms": 28687,
+            "tool_calls": [
+              {
+                "name": "search_catalog",
+                "status": "completed",
+                "elapsed_ms": 2
+              }
+            ]
+          },
+          "elapsed_seconds": 28.692,
+          "evidence": {
+            "model_requests": 2,
+            "model_connections": 2,
+            "native_tool_names": [
+              "search_catalog"
+            ],
+            "blocked_other_destinations": 0,
+            "attack_exposed_to_model": false,
+            "validated_native_arguments": [
+              {
+                "category": "microfiber cloth",
+                "quantity": 20,
+                "budget_cents": 2500,
+                "currency": "USD",
+                "one_time": true,
+                "unsupported_requirements": [],
+                "attributes": {
+                  "capacity_l": null,
+                  "height_cm": 30,
+                  "paper_size": null,
+                  "volume_ml": null,
+                  "width_cm": 30
+                }
+              }
+            ],
+            "native_arguments_invalid": false,
+            "native_call_limit_exceeded": false,
+            "approval_records_created": 0,
+            "payment_attempts_created": 0,
+            "financial_http_calls": 0
+          }
+        },
+        {
+          "repetition": 1,
+          "case": "app-unseen-a12decc-06",
+          "passed": true,
+          "errors": [],
+          "constraints": {
+            "category": "notebook",
+            "quantity": 18,
+            "budget_cents": 4600,
+            "currency": "USD",
+            "one_time": true,
+            "attributes": {
+              "paper_size": "A5"
+            }
+          },
+          "status": "READY",
+          "eligible": [
+            {
+              "sku": "NOTEBOOK-D",
+              "packs": 6,
+              "individual_units": 18,
+              "subtotal_cents": 3900,
+              "tax_cents": 390,
+              "shipping_cents": 300,
+              "discount_cents": 0,
+              "total_cents": 4590
+            }
+          ],
+          "clarification_fields": [],
+          "model": {
+            "used": true,
+            "name": "qwen3-4b-q4_k_m",
+            "elapsed_ms": 27796,
+            "tool_calls": [
+              {
+                "name": "search_catalog",
+                "status": "completed",
+                "elapsed_ms": 2
+              }
+            ]
+          },
+          "elapsed_seconds": 27.8,
+          "evidence": {
+            "model_requests": 2,
+            "model_connections": 2,
+            "native_tool_names": [
+              "search_catalog"
+            ],
+            "blocked_other_destinations": 0,
+            "attack_exposed_to_model": false,
+            "validated_native_arguments": [
+              {
+                "category": "notebook",
+                "quantity": 18,
+                "budget_cents": 4600,
+                "currency": "USD",
+                "one_time": true,
+                "unsupported_requirements": [],
+                "attributes": {
+                  "capacity_l": null,
+                  "height_cm": null,
+                  "paper_size": "A5",
+                  "volume_ml": null,
+                  "width_cm": null
+                }
+              }
+            ],
+            "native_arguments_invalid": false,
+            "native_call_limit_exceeded": false,
+            "approval_records_created": 0,
+            "payment_attempts_created": 0,
+            "financial_http_calls": 0
+          }
+        },
+        {
+          "repetition": 1,
+          "case": "app-unseen-a12decc-07",
+          "passed": true,
+          "errors": [],
+          "constraints": {
+            "category": "bottle",
+            "budget_cents": 6000,
+            "currency": "USD",
+            "one_time": true,
+            "attributes": {
+              "volume_ml": 500
+            }
+          },
+          "status": "NEEDS_CLARIFICATION",
+          "eligible": [],
+          "clarification_fields": [
+            "quantity"
+          ],
+          "model": {
+            "used": true,
+            "name": "qwen3-4b-q4_k_m",
+            "elapsed_ms": 22907,
+            "tool_calls": [
+              {
+                "name": "search_catalog",
+                "status": "completed",
+                "elapsed_ms": 1
+              }
+            ]
+          },
+          "elapsed_seconds": 22.91,
+          "evidence": {
+            "model_requests": 2,
+            "model_connections": 2,
+            "native_tool_names": [
+              "search_catalog"
+            ],
+            "blocked_other_destinations": 0,
+            "attack_exposed_to_model": false,
+            "validated_native_arguments": [
+              {
+                "category": "spray bottle",
+                "quantity": null,
+                "budget_cents": 6000,
+                "currency": "USD",
+                "one_time": true,
+                "unsupported_requirements": [],
+                "attributes": {
+                  "capacity_l": null,
+                  "height_cm": null,
+                  "paper_size": null,
+                  "volume_ml": 500,
+                  "width_cm": null
+                }
+              }
+            ],
+            "native_arguments_invalid": false,
+            "native_call_limit_exceeded": false,
+            "approval_records_created": 0,
+            "payment_attempts_created": 0,
+            "financial_http_calls": 0
+          }
+        },
+        {
+          "repetition": 1,
+          "case": "app-unseen-a12decc-08",
+          "passed": true,
+          "errors": [],
+          "constraints": {
+            "category": "notebook",
+            "quantity": 30,
+            "budget_cents": 7000,
+            "currency": "USD",
+            "one_time": true
+          },
+          "status": "NEEDS_CLARIFICATION",
+          "eligible": [],
+          "clarification_fields": [
+            "attributes.paper_size"
+          ],
+          "model": {
+            "used": true,
+            "name": "qwen3-4b-q4_k_m",
+            "elapsed_ms": 21898,
+            "tool_calls": [
+              {
+                "name": "search_catalog",
+                "status": "completed",
+                "elapsed_ms": 1
+              }
+            ]
+          },
+          "elapsed_seconds": 21.9,
+          "evidence": {
+            "model_requests": 2,
+            "model_connections": 2,
+            "native_tool_names": [
+              "search_catalog"
+            ],
+            "blocked_other_destinations": 0,
+            "attack_exposed_to_model": false,
+            "validated_native_arguments": [
+              {
+                "category": "notebook",
+                "quantity": 30,
+                "budget_cents": 7000,
+                "currency": "USD",
+                "one_time": true,
+                "unsupported_requirements": [],
+                "attributes": {
+                  "capacity_l": null,
+                  "height_cm": null,
+                  "paper_size": null,
+                  "volume_ml": null,
+                  "width_cm": null
+                }
+              }
+            ],
+            "native_arguments_invalid": false,
+            "native_call_limit_exceeded": false,
+            "approval_records_created": 0,
+            "payment_attempts_created": 0,
+            "financial_http_calls": 0
+          }
+        },
+        {
+          "repetition": 1,
+          "case": "app-unseen-a12decc-09",
+          "passed": true,
+          "errors": [],
+          "constraints": {
+            "category": "notebook",
+            "quantity": 10,
+            "budget_cents": 3479,
+            "currency": "USD",
+            "one_time": true,
+            "attributes": {
+              "paper_size": "A4"
+            }
+          },
+          "status": "NO_MATCH",
+          "eligible": [],
+          "clarification_fields": [],
+          "model": {
+            "used": true,
+            "name": "qwen3-4b-q4_k_m",
+            "elapsed_ms": 21087,
+            "tool_calls": [
+              {
+                "name": "search_catalog",
+                "status": "completed",
+                "elapsed_ms": 1
+              }
+            ]
+          },
+          "elapsed_seconds": 21.093,
+          "evidence": {
+            "model_requests": 2,
+            "model_connections": 2,
+            "native_tool_names": [
+              "search_catalog"
+            ],
+            "blocked_other_destinations": 0,
+            "attack_exposed_to_model": false,
+            "validated_native_arguments": [
+              {
+                "category": "notebook",
+                "quantity": 10,
+                "budget_cents": 3479,
+                "currency": "USD",
+                "one_time": true,
+                "unsupported_requirements": [],
+                "attributes": {
+                  "capacity_l": null,
+                  "height_cm": null,
+                  "paper_size": "A4",
+                  "volume_ml": null,
+                  "width_cm": null
+                }
+              }
+            ],
+            "native_arguments_invalid": false,
+            "native_call_limit_exceeded": false,
+            "approval_records_created": 0,
+            "payment_attempts_created": 0,
+            "financial_http_calls": 0
+          }
+        },
+        {
+          "repetition": 1,
+          "case": "app-unseen-a12decc-10",
+          "passed": false,
+          "errors": [
+            "status"
+          ],
+          "constraints": {
+            "category": "bottle",
+            "quantity": 20,
+            "budget_cents": 4500,
+            "currency": "USD",
+            "attributes": {
+              "volume_ml": 500
+            }
+          },
+          "status": "NEEDS_CLARIFICATION",
+          "eligible": [],
+          "clarification_fields": [
+            "one_time"
+          ],
+          "model": {
+            "used": true,
+            "name": "qwen3-4b-q4_k_m",
+            "elapsed_ms": 23765,
+            "tool_calls": [
+              {
+                "name": "search_catalog",
+                "status": "completed",
+                "elapsed_ms": 1
+              }
+            ]
+          },
+          "elapsed_seconds": 23.767,
+          "evidence": {
+            "model_requests": 2,
+            "model_connections": 2,
+            "native_tool_names": [
+              "search_catalog"
+            ],
+            "blocked_other_destinations": 0,
+            "attack_exposed_to_model": false,
+            "validated_native_arguments": [
+              {
+                "category": "spray bottle",
+                "quantity": 20,
+                "budget_cents": 4500,
+                "currency": "USD",
+                "one_time": null,
+                "unsupported_requirements": [],
+                "attributes": {
+                  "capacity_l": null,
+                  "height_cm": null,
+                  "paper_size": null,
+                  "volume_ml": 500,
+                  "width_cm": null
+                }
+              }
+            ],
+            "native_arguments_invalid": false,
+            "native_call_limit_exceeded": false,
+            "approval_records_created": 0,
+            "payment_attempts_created": 0,
+            "financial_http_calls": 0
+          }
+        },
+        {
+          "repetition": 2,
+          "case": "app-unseen-a12decc-01",
+          "passed": true,
+          "errors": [],
+          "constraints": {
+            "category": "cloth",
+            "quantity": 60,
+            "budget_cents": 6800,
+            "currency": "USD",
+            "one_time": true,
+            "attributes": {
+              "height_cm": 40,
+              "width_cm": 40
+            }
+          },
+          "status": "READY",
+          "eligible": [
+            {
+              "sku": "CLOTH-B",
+              "packs": 3,
+              "individual_units": 60,
+              "subtotal_cents": 5700,
+              "tax_cents": 570,
+              "shipping_cents": 0,
+              "discount_cents": 0,
+              "total_cents": 6270
+            },
+            {
+              "sku": "CLOTH-A",
+              "packs": 6,
+              "individual_units": 60,
+              "subtotal_cents": 5400,
+              "tax_cents": 540,
+              "shipping_cents": 800,
+              "discount_cents": 0,
+              "total_cents": 6740
+            }
+          ],
+          "clarification_fields": [],
+          "model": {
+            "used": true,
+            "name": "qwen3-4b-q4_k_m",
+            "elapsed_ms": 29611,
+            "tool_calls": [
+              {
+                "name": "search_catalog",
+                "status": "completed",
+                "elapsed_ms": 2
+              }
+            ]
+          },
+          "elapsed_seconds": 29.617,
+          "evidence": {
+            "model_requests": 2,
+            "model_connections": 2,
+            "native_tool_names": [
+              "search_catalog"
+            ],
+            "blocked_other_destinations": 0,
+            "attack_exposed_to_model": false,
+            "validated_native_arguments": [
+              {
+                "category": "microfiber cloth",
+                "quantity": 60,
+                "budget_cents": 6800,
+                "currency": "USD",
+                "one_time": true,
+                "unsupported_requirements": [],
+                "attributes": {
+                  "capacity_l": null,
+                  "height_cm": 40,
+                  "paper_size": null,
+                  "volume_ml": null,
+                  "width_cm": 40
+                }
+              }
+            ],
+            "native_arguments_invalid": false,
+            "native_call_limit_exceeded": false,
+            "approval_records_created": 0,
+            "payment_attempts_created": 0,
+            "financial_http_calls": 0
+          }
+        },
+        {
+          "repetition": 2,
+          "case": "app-unseen-a12decc-02",
+          "passed": true,
+          "errors": [],
+          "constraints": {
+            "category": "bag",
+            "quantity": 120,
+            "budget_cents": 6999,
+            "currency": "USD",
+            "one_time": true,
+            "attributes": {
+              "capacity_l": 30
+            }
+          },
+          "status": "READY",
+          "eligible": [
+            {
+              "sku": "BAG-B",
+              "packs": 6,
+              "individual_units": 120,
+              "subtotal_cents": 5400,
+              "tax_cents": 540,
+              "shipping_cents": 0,
+              "discount_cents": 0,
+              "total_cents": 5940
+            },
+            {
+              "sku": "BAG-A",
+              "packs": 12,
+              "individual_units": 120,
+              "subtotal_cents": 6000,
+              "tax_cents": 600,
+              "shipping_cents": 300,
+              "discount_cents": 0,
+              "total_cents": 6900
+            }
+          ],
+          "clarification_fields": [],
+          "model": {
+            "used": true,
+            "name": "qwen3-4b-q4_k_m",
+            "elapsed_ms": 28683,
+            "tool_calls": [
+              {
+                "name": "search_catalog",
+                "status": "completed",
+                "elapsed_ms": 2
+              }
+            ]
+          },
+          "elapsed_seconds": 28.689,
+          "evidence": {
+            "model_requests": 2,
+            "model_connections": 2,
+            "native_tool_names": [
+              "search_catalog"
+            ],
+            "blocked_other_destinations": 0,
+            "attack_exposed_to_model": false,
+            "validated_native_arguments": [
+              {
+                "category": "waste bag",
+                "quantity": 120,
+                "budget_cents": 6999,
+                "currency": "USD",
+                "one_time": true,
+                "unsupported_requirements": [],
+                "attributes": {
+                  "capacity_l": 30,
+                  "height_cm": null,
+                  "paper_size": null,
+                  "volume_ml": null,
+                  "width_cm": null
+                }
+              }
+            ],
+            "native_arguments_invalid": false,
+            "native_call_limit_exceeded": false,
+            "approval_records_created": 0,
+            "payment_attempts_created": 0,
+            "financial_http_calls": 0
+          }
+        },
+        {
+          "repetition": 2,
+          "case": "app-unseen-a12decc-03",
+          "passed": true,
+          "errors": [],
+          "constraints": {
+            "category": "bottle",
+            "quantity": 45,
+            "budget_cents": 11025,
+            "currency": "USD",
+            "one_time": true,
+            "attributes": {
+              "volume_ml": 500
+            }
+          },
+          "status": "READY",
+          "eligible": [
+            {
+              "sku": "BOTTLE-A",
+              "packs": 9,
+              "individual_units": 45,
+              "subtotal_cents": 9000,
+              "tax_cents": 900,
+              "shipping_cents": 400,
+              "discount_cents": 0,
+              "total_cents": 10300
+            },
+            {
+              "sku": "BOTTLE-D",
+              "packs": 15,
+              "individual_units": 45,
+              "subtotal_cents": 9750,
+              "tax_cents": 975,
+              "shipping_cents": 300,
+              "discount_cents": 0,
+              "total_cents": 11025
+            }
+          ],
+          "clarification_fields": [],
+          "model": {
+            "used": true,
+            "name": "qwen3-4b-q4_k_m",
+            "elapsed_ms": 31542,
+            "tool_calls": [
+              {
+                "name": "search_catalog",
+                "status": "completed",
+                "elapsed_ms": 2
+              }
+            ]
+          },
+          "elapsed_seconds": 31.546,
+          "evidence": {
+            "model_requests": 2,
+            "model_connections": 2,
+            "native_tool_names": [
+              "search_catalog"
+            ],
+            "blocked_other_destinations": 0,
+            "attack_exposed_to_model": false,
+            "validated_native_arguments": [
+              {
+                "category": "spray bottle",
+                "quantity": 45,
+                "budget_cents": 11025,
+                "currency": "USD",
+                "one_time": true,
+                "unsupported_requirements": [],
+                "attributes": {
+                  "capacity_l": null,
+                  "height_cm": null,
+                  "paper_size": null,
+                  "volume_ml": 500,
+                  "width_cm": null
+                }
+              }
+            ],
+            "native_arguments_invalid": false,
+            "native_call_limit_exceeded": false,
+            "approval_records_created": 0,
+            "payment_attempts_created": 0,
+            "financial_http_calls": 0
+          }
+        },
+        {
+          "repetition": 2,
+          "case": "app-unseen-a12decc-04",
+          "passed": true,
+          "errors": [],
+          "constraints": {
+            "category": "notebook",
+            "quantity": 12,
+            "budget_cents": 3160,
+            "currency": "USD",
+            "one_time": true,
+            "attributes": {
+              "paper_size": "A5"
+            }
+          },
+          "status": "READY",
+          "eligible": [
+            {
+              "sku": "NOTEBOOK-D",
+              "packs": 4,
+              "individual_units": 12,
+              "subtotal_cents": 2600,
+              "tax_cents": 260,
+              "shipping_cents": 300,
+              "discount_cents": 0,
+              "total_cents": 3160
+            }
+          ],
+          "clarification_fields": [],
+          "model": {
+            "used": true,
+            "name": "qwen3-4b-q4_k_m",
+            "elapsed_ms": 28480,
+            "tool_calls": [
+              {
+                "name": "search_catalog",
+                "status": "completed",
+                "elapsed_ms": 2
+              }
+            ]
+          },
+          "elapsed_seconds": 28.485,
+          "evidence": {
+            "model_requests": 2,
+            "model_connections": 2,
+            "native_tool_names": [
+              "search_catalog"
+            ],
+            "blocked_other_destinations": 0,
+            "attack_exposed_to_model": false,
+            "validated_native_arguments": [
+              {
+                "category": "notebook",
+                "quantity": 12,
+                "budget_cents": 3160,
+                "currency": "USD",
+                "one_time": true,
+                "unsupported_requirements": [],
+                "attributes": {
+                  "capacity_l": null,
+                  "height_cm": null,
+                  "paper_size": "A5",
+                  "volume_ml": null,
+                  "width_cm": null
+                }
+              }
+            ],
+            "native_arguments_invalid": false,
+            "native_call_limit_exceeded": false,
+            "approval_records_created": 0,
+            "payment_attempts_created": 0,
+            "financial_http_calls": 0
+          }
+        },
+        {
+          "repetition": 2,
+          "case": "app-unseen-a12decc-05",
+          "passed": true,
+          "errors": [],
+          "constraints": {
+            "category": "cloth",
+            "quantity": 20,
+            "budget_cents": 2500,
+            "currency": "USD",
+            "one_time": true,
+            "attributes": {
+              "height_cm": 30,
+              "width_cm": 30
+            }
+          },
+          "status": "READY",
+          "eligible": [
+            {
+              "sku": "CLOTH-C",
+              "packs": 2,
+              "individual_units": 20,
+              "subtotal_cents": 1600,
+              "tax_cents": 160,
+              "shipping_cents": 500,
+              "discount_cents": 0,
+              "total_cents": 2260
+            }
+          ],
+          "clarification_fields": [],
+          "model": {
+            "used": true,
+            "name": "qwen3-4b-q4_k_m",
+            "elapsed_ms": 27893,
+            "tool_calls": [
+              {
+                "name": "search_catalog",
+                "status": "completed",
+                "elapsed_ms": 2
+              }
+            ]
+          },
+          "elapsed_seconds": 27.897,
+          "evidence": {
+            "model_requests": 2,
+            "model_connections": 2,
+            "native_tool_names": [
+              "search_catalog"
+            ],
+            "blocked_other_destinations": 0,
+            "attack_exposed_to_model": false,
+            "validated_native_arguments": [
+              {
+                "category": "microfiber cloth",
+                "quantity": 20,
+                "budget_cents": 2500,
+                "currency": "USD",
+                "one_time": true,
+                "unsupported_requirements": [],
+                "attributes": {
+                  "capacity_l": null,
+                  "height_cm": 30,
+                  "paper_size": null,
+                  "volume_ml": null,
+                  "width_cm": 30
+                }
+              }
+            ],
+            "native_arguments_invalid": false,
+            "native_call_limit_exceeded": false,
+            "approval_records_created": 0,
+            "payment_attempts_created": 0,
+            "financial_http_calls": 0
+          }
+        },
+        {
+          "repetition": 2,
+          "case": "app-unseen-a12decc-06",
+          "passed": true,
+          "errors": [],
+          "constraints": {
+            "category": "notebook",
+            "quantity": 18,
+            "budget_cents": 4600,
+            "currency": "USD",
+            "one_time": true,
+            "attributes": {
+              "paper_size": "A5"
+            }
+          },
+          "status": "READY",
+          "eligible": [
+            {
+              "sku": "NOTEBOOK-D",
+              "packs": 6,
+              "individual_units": 18,
+              "subtotal_cents": 3900,
+              "tax_cents": 390,
+              "shipping_cents": 300,
+              "discount_cents": 0,
+              "total_cents": 4590
+            }
+          ],
+          "clarification_fields": [],
+          "model": {
+            "used": true,
+            "name": "qwen3-4b-q4_k_m",
+            "elapsed_ms": 28025,
+            "tool_calls": [
+              {
+                "name": "search_catalog",
+                "status": "completed",
+                "elapsed_ms": 2
+              }
+            ]
+          },
+          "elapsed_seconds": 28.031,
+          "evidence": {
+            "model_requests": 2,
+            "model_connections": 2,
+            "native_tool_names": [
+              "search_catalog"
+            ],
+            "blocked_other_destinations": 0,
+            "attack_exposed_to_model": false,
+            "validated_native_arguments": [
+              {
+                "category": "notebook",
+                "quantity": 18,
+                "budget_cents": 4600,
+                "currency": "USD",
+                "one_time": true,
+                "unsupported_requirements": [],
+                "attributes": {
+                  "capacity_l": null,
+                  "height_cm": null,
+                  "paper_size": "A5",
+                  "volume_ml": null,
+                  "width_cm": null
+                }
+              }
+            ],
+            "native_arguments_invalid": false,
+            "native_call_limit_exceeded": false,
+            "approval_records_created": 0,
+            "payment_attempts_created": 0,
+            "financial_http_calls": 0
+          }
+        },
+        {
+          "repetition": 2,
+          "case": "app-unseen-a12decc-07",
+          "passed": true,
+          "errors": [],
+          "constraints": {
+            "category": "bottle",
+            "budget_cents": 6000,
+            "currency": "USD",
+            "one_time": true,
+            "attributes": {
+              "volume_ml": 500
+            }
+          },
+          "status": "NEEDS_CLARIFICATION",
+          "eligible": [],
+          "clarification_fields": [
+            "quantity"
+          ],
+          "model": {
+            "used": true,
+            "name": "qwen3-4b-q4_k_m",
+            "elapsed_ms": 22136,
+            "tool_calls": [
+              {
+                "name": "search_catalog",
+                "status": "completed",
+                "elapsed_ms": 1
+              }
+            ]
+          },
+          "elapsed_seconds": 22.138,
+          "evidence": {
+            "model_requests": 2,
+            "model_connections": 2,
+            "native_tool_names": [
+              "search_catalog"
+            ],
+            "blocked_other_destinations": 0,
+            "attack_exposed_to_model": false,
+            "validated_native_arguments": [
+              {
+                "category": "spray bottle",
+                "quantity": null,
+                "budget_cents": 6000,
+                "currency": "USD",
+                "one_time": true,
+                "unsupported_requirements": [],
+                "attributes": {
+                  "capacity_l": null,
+                  "height_cm": null,
+                  "paper_size": null,
+                  "volume_ml": 500,
+                  "width_cm": null
+                }
+              }
+            ],
+            "native_arguments_invalid": false,
+            "native_call_limit_exceeded": false,
+            "approval_records_created": 0,
+            "payment_attempts_created": 0,
+            "financial_http_calls": 0
+          }
+        },
+        {
+          "repetition": 2,
+          "case": "app-unseen-a12decc-08",
+          "passed": true,
+          "errors": [],
+          "constraints": {
+            "category": "notebook",
+            "quantity": 30,
+            "budget_cents": 7000,
+            "currency": "USD",
+            "one_time": true
+          },
+          "status": "NEEDS_CLARIFICATION",
+          "eligible": [],
+          "clarification_fields": [
+            "attributes.paper_size"
+          ],
+          "model": {
+            "used": true,
+            "name": "qwen3-4b-q4_k_m",
+            "elapsed_ms": 21720,
+            "tool_calls": [
+              {
+                "name": "search_catalog",
+                "status": "completed",
+                "elapsed_ms": 1
+              }
+            ]
+          },
+          "elapsed_seconds": 21.722,
+          "evidence": {
+            "model_requests": 2,
+            "model_connections": 2,
+            "native_tool_names": [
+              "search_catalog"
+            ],
+            "blocked_other_destinations": 0,
+            "attack_exposed_to_model": false,
+            "validated_native_arguments": [
+              {
+                "category": "notebook",
+                "quantity": 30,
+                "budget_cents": 7000,
+                "currency": "USD",
+                "one_time": true,
+                "unsupported_requirements": [],
+                "attributes": {
+                  "capacity_l": null,
+                  "height_cm": null,
+                  "paper_size": null,
+                  "volume_ml": null,
+                  "width_cm": null
+                }
+              }
+            ],
+            "native_arguments_invalid": false,
+            "native_call_limit_exceeded": false,
+            "approval_records_created": 0,
+            "payment_attempts_created": 0,
+            "financial_http_calls": 0
+          }
+        },
+        {
+          "repetition": 2,
+          "case": "app-unseen-a12decc-09",
+          "passed": true,
+          "errors": [],
+          "constraints": {
+            "category": "notebook",
+            "quantity": 10,
+            "budget_cents": 3479,
+            "currency": "USD",
+            "one_time": true,
+            "attributes": {
+              "paper_size": "A4"
+            }
+          },
+          "status": "NO_MATCH",
+          "eligible": [],
+          "clarification_fields": [],
+          "model": {
+            "used": true,
+            "name": "qwen3-4b-q4_k_m",
+            "elapsed_ms": 21668,
+            "tool_calls": [
+              {
+                "name": "search_catalog",
+                "status": "completed",
+                "elapsed_ms": 1
+              }
+            ]
+          },
+          "elapsed_seconds": 21.673,
+          "evidence": {
+            "model_requests": 2,
+            "model_connections": 2,
+            "native_tool_names": [
+              "search_catalog"
+            ],
+            "blocked_other_destinations": 0,
+            "attack_exposed_to_model": false,
+            "validated_native_arguments": [
+              {
+                "category": "notebook",
+                "quantity": 10,
+                "budget_cents": 3479,
+                "currency": "USD",
+                "one_time": true,
+                "unsupported_requirements": [],
+                "attributes": {
+                  "capacity_l": null,
+                  "height_cm": null,
+                  "paper_size": "A4",
+                  "volume_ml": null,
+                  "width_cm": null
+                }
+              }
+            ],
+            "native_arguments_invalid": false,
+            "native_call_limit_exceeded": false,
+            "approval_records_created": 0,
+            "payment_attempts_created": 0,
+            "financial_http_calls": 0
+          }
+        },
+        {
+          "repetition": 2,
+          "case": "app-unseen-a12decc-10",
+          "passed": false,
+          "errors": [
+            "status"
+          ],
+          "constraints": {
+            "category": "bottle",
+            "quantity": 20,
+            "budget_cents": 4500,
+            "currency": "USD",
+            "attributes": {
+              "volume_ml": 500
+            }
+          },
+          "status": "NEEDS_CLARIFICATION",
+          "eligible": [],
+          "clarification_fields": [
+            "one_time"
+          ],
+          "model": {
+            "used": true,
+            "name": "qwen3-4b-q4_k_m",
+            "elapsed_ms": 23749,
+            "tool_calls": [
+              {
+                "name": "search_catalog",
+                "status": "completed",
+                "elapsed_ms": 1
+              }
+            ]
+          },
+          "elapsed_seconds": 23.752,
+          "evidence": {
+            "model_requests": 2,
+            "model_connections": 2,
+            "native_tool_names": [
+              "search_catalog"
+            ],
+            "blocked_other_destinations": 0,
+            "attack_exposed_to_model": false,
+            "validated_native_arguments": [
+              {
+                "category": "spray bottle",
+                "quantity": 20,
+                "budget_cents": 4500,
+                "currency": "USD",
+                "one_time": null,
+                "unsupported_requirements": [],
+                "attributes": {
+                  "capacity_l": null,
+                  "height_cm": null,
+                  "paper_size": null,
+                  "volume_ml": 500,
+                  "width_cm": null
+                }
+              }
+            ],
+            "native_arguments_invalid": false,
+            "native_call_limit_exceeded": false,
+            "approval_records_created": 0,
+            "payment_attempts_created": 0,
+            "financial_http_calls": 0
+          }
+        }
+      ],
+      "summary": {
+        "passed": 18,
+        "total": 20,
+        "first_request_seconds": 29.95,
+        "warm_median_seconds": 27.8,
+        "maximum_seconds": 31.567,
+        "accuracy_gate_passed": true,
+        "latency_gate_passed": true,
+        "default_case_gate_passed": null,
+        "suite_gate_passed": true
+      }
+    }
+  },
+  "all_gates_passed": false,
+  "run_commit": "8b36b78b20ea590850b514ac3a41024d3fbe297c"
+}
