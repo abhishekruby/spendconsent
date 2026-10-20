@@ -25,8 +25,8 @@ verified PRIVATE today. Deadline 12 Nov 2026 noon PST (13 Nov 01:30 IST).
 3. Model server now runs `--parallel 2` (same memory) so the extraction prefix
    stays cached: ~25–30 s per case instead of ~70 s. Command in
    docs/ai-application-evaluation.md (last sections).
-4. Runner supports four suites; 808472c unseen suite is now exposed regression;
-   new blind suite `ai-application-unseen-a12decc.json` (implementer never read it).
+4. Runner supports five suites (`scripts/ai_application_eval.py`); each blind
+   suite is authored by a separate agent and becomes exposed once run.
 
 ## AI evidence (never pool, never erase failures)
 
@@ -77,7 +77,6 @@ public repo/Devpost submission (each needs user approval).
 
 ## Known limits
 
-Grounding checks number presence, not role. Single-process inference lock: run
-one API process. ~2.2 GB free RAM with the model loaded; close heavy apps.
-Untracked dotfiles at repo root (`.bashrc`, `.mcp.json`...) are Claude sandbox
-placeholder devices — never commit them.
+Grounding checks number presence, not role. Run one API process (inference
+lock). Untracked root dotfiles (`.bashrc`, `.mcp.json`...) are Claude sandbox
+placeholders — never commit them.
