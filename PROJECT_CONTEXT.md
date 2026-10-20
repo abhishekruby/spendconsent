@@ -1,6 +1,6 @@
 # SpendConsent — compact handoff
 
-Updated 21 Oct 2026, 00:30 IST, by Claude Code. Claude and ChatGPT/Codex
+Updated 21 Oct 2026, 01:10 IST, by Claude Code. Claude and ChatGPT/Codex
 alternate on this repo: read AGENTS.md, then this file. History:
 PROJECT_CONTEXT_HISTORY.md, docs/progress.md, docs/ai-application-evaluation.md.
 
@@ -41,8 +41,12 @@ Deadline 12 Nov 2026 noon PST (13 Nov 01:30 IST).
   checkout disabled → re-confirm → fresh AI 24.7 s at $45.43 → Review 2
   (quote v2). Fix d46bdda: stale approvals now display as REVOKED. CLOTH-B
   price restored (quote version 3).
-- PayPal runtime still OFF: enabling `SPENDCONSENT_PAYPAL_ENABLED` was denied by
-  the auto-mode safety check; it needs the user's explicit go-ahead.
+- **FIRST VERIFIED SANDBOX PURCHASE (PAID):** CLOTH-A USD 47.60, capture
+  22B63989RB170984H, full state flow + independent read-back, stock 100→96.
+  Evidence: docs/evidence/sandbox-purchase-2026-10-21.md. Fixes on the way:
+  no shipping.options (SHIPPING_OPTIONS_NOT_SUPPORTED), definitive create
+  declines, advisory SDK eligibility; `.env` now uses a **US** sandbox business
+  account (India one gave UNSUPPORTED_PAYEE_CURRENCY). API runs with AI+PayPal on.
 
 ## Live processes (detached; logs in .runtime/logs/)
 
@@ -52,10 +56,9 @@ Project PostgreSQL (`scripts/local_postgres.py --start`), model 127.0.0.1:11435
 
 ## Next actions (in order)
 
-1. **User:** approve enabling the PayPal sandbox runtime, then give concrete
-   consent for one exact sandbox purchase (approval id + amount). Only then write
-   `.runtime/backend/paypal-permission.json`; the user signs in as sandbox buyer.
-   Verify SDK load, capture and server read-back; then recovery checks.
+1. Recovery checks against the real sandbox (cancel in popup, refresh mid-flow,
+   double click), each with fresh user consent; resolve leftover attempts
+   b9f38bd9 (UNKNOWN, no order) and 0db00f4d (expired, unpaid) and document.
 2. Next AI round (batch, then re-qualify with a NEW blind suite): pass
    `recommended_offer_id` to the final call (52ad168-01 copied the 3rd offer);
    >1 paper size in text → unknown (a12decc-08); unitless number with several

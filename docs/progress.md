@@ -1,5 +1,11 @@
 # Progress — project log
 
+## 21 October 2026, 01:10 IST: first verified PayPal sandbox purchase
+
+- With per-cart user consent: CLOTH-A USD 47.60 PAID, server-verified capture
+  and read-back. Fixed SHIPPING_OPTIONS_NOT_SUPPORTED, advisory SDK eligibility,
+  US sandbox shop. See docs/evidence/sandbox-purchase-2026-10-21.md.
+
 ## 21 October 2026, 00:30 IST: AI qualified; first real browser journey
 
 - As-written native protocol (model copies amounts/sizes; code converts). Report

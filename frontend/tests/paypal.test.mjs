@@ -13,12 +13,13 @@ const { preparePayPal } = await import('../.test-build/paypal/paypal.js');
 
 test('sandbox SDK preparation keeps one persisted order and gates approval callbacks', async () => {
   const old = { window: globalThis.window, document: globalThis.document, fetch: globalThis.fetch };
-  let appended = 0, eligible = true, callbacks, startError = false, createError = false;
+  let appended = 0, eligible = true, eligibilityError = false, callbacks, startError = false, createError = false;
   const starts = [], approved = [], canceled = [], errors = [];
   const handlers = { onApprove: async id => approved.push(id), onCancel: id => canceled.push(id), onError: code => errors.push(code) };
   const sdk = {
     async findEligibleMethods(options) {
       assert.deepEqual(options, { currencyCode: 'USD', amount: '41.80' });
+      if (eligibilityError) throw new Error('something went wrong when fetching eligible methods');
       return { isEligible(method) { assert.equal(method, 'paypal'); return eligible; } };
     },
     createPayPalOneTimePaymentSession(options) {
@@ -89,6 +90,13 @@ test('sandbox SDK preparation keeps one persisted order and gates approval callb
     eligible = false;
     await assert.rejects(preparePayPal(session, attempt, handlers), e => e.code === 'PAYPAL_INELIGIBLE');
     eligible = true;
+    // A failed eligibility lookup is advisory: the persisted order can still open.
+    eligibilityError = true;
+    const advisory = await preparePayPal(session, attempt, handlers);
+    await advisory.start();
+    assert.deepEqual(starts.at(-1)[1], { orderId: attempt.provider_order_id });
+    advisory.dispose();
+    eligibilityError = false;
     createError = true;
     await assert.rejects(preparePayPal(session, attempt, handlers), e => e.message === 'SDK_UNAVAILABLE');
     createError = false;

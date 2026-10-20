@@ -61,10 +61,17 @@ export async function preparePayPal(session: Session, attempt: Attempt, callback
   let sdk: SDK;
   try {
     sdk = await (await loadCore()).createInstance({ clientId: session.paypal.client_id, components: ['paypal-payments'], pageType: 'checkout' });
+  } catch {
+    throw new PayPalError('SDK_UNAVAILABLE');
+  }
+  // Eligibility is advisory for showing the button: an explicit "not eligible" stops,
+  // but a failed lookup (seen in sandbox with clientId) falls through to PayPal's own
+  // session, which fails cleanly if PayPal truly cannot pay. The server verifies capture.
+  try {
     const eligible = await sdk.findEligibleMethods({ currencyCode: 'USD', amount: (attempt.total_cents / 100).toFixed(2) });
-    if (!eligible.isEligible('paypal')) throw new PayPalError('PAYPAL_INELIGIBLE');
+    if (eligible.isEligible('paypal') === false) throw new PayPalError('PAYPAL_INELIGIBLE');
   } catch (error) {
-    throw error instanceof PayPalError ? error : new PayPalError('SDK_UNAVAILABLE');
+    if (error instanceof PayPalError) throw error;
   }
   let active = true;
   let started = false;
