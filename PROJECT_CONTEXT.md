@@ -1,6 +1,6 @@
 # SpendConsent — compact handoff
 
-Updated 20 Oct 2026, 23:05 IST, by Claude Code. Claude and ChatGPT/Codex
+Updated 21 Oct 2026, 00:30 IST, by Claude Code. Claude and ChatGPT/Codex
 alternate on this repo: read AGENTS.md, then this file. History:
 PROJECT_CONTEXT_HISTORY.md, docs/progress.md, docs/ai-application-evaluation.md.
 
@@ -22,22 +22,27 @@ Deadline 12 Nov 2026 noon PST (13 Nov 01:30 IST).
   anything else becomes unknown → buyer is asked. Whole-cent budgets only.
 - Foreign-dollar markers never become USD; recurring phrases → unsupported.
 - Model server `--parallel 2` (prefix cache): ~20–30 s per request.
-- Independent reviews passed through 168eee7; 52ad168 review found two blockers,
-  fixed in ef89dff; **re-review of ef89dff not completed** (reviewer hit limit).
+- Independent reviews passed for every change through ef89dff (re-review PASS).
 
 ## AI evidence (never pool, never erase failures)
 
 - 9b459c6: 20, 18, unseen 16 → failed. 8b36b78: 20, 20, 17, blind 18 → failed.
 - 2d1279b: 20, 20, exposed 16, exposed 20, blind 168eee7 20/20 → failed on an
   exposed suite (model unit arithmetic) — the reason for the as-written protocol.
-- ef89dff partial: 20/20 + 15/15 then interrupted by session end (preserved).
-- **Running now:** six suites, 120 outcomes, report
-  `docs/evidence/ai-application-qualification-4158aba.json` (same sources as
-  ef89dff; blind suite `unseen4` = ai-application-unseen-52ad168.json, unread by
-  the implementer). Evaluator PID 12579, detached; ETA ~23:55 IST. Check:
-  `python3 -c "import json;d=json.load(open('docs/evidence/ai-application-qualification-4158aba.json'));print(d['phase'],d['all_gates_passed'])"`.
-  When complete: commit the report, then decide readiness.
-- Readiness marker NOT granted; runtime AI and payments remain off.
+- ef89dff partial (session end) preserved.
+- **4158aba (= ef89dff sources): ALL SIX SUITE GATES PASSED** — original 20/20,
+  regression 20/20, exposed 808472c 18/20, a12decc 18/20, 168eee7 20/20, blind
+  52ad168 18/20; warm medians 26–38 s, max 55.3 s.
+- **AI readiness marker granted** (`.runtime/backend/ai-ready.json`, bound to
+  the agent.py hash — any agent.py edit disables AI until re-qualified).
+- **First real browser journey verified (API with `SPENDCONSENT_AI_ENABLED=1`
+  only):** sample request → actual AI 35.7 s → CLOTH-B $41.80 / CLOTH-A $47.60 →
+  exact review → app approval → `set_offer_price` → approval shown REVOKED,
+  checkout disabled → re-confirm → fresh AI 24.7 s at $45.43 → Review 2
+  (quote v2). Fix d46bdda: stale approvals now display as REVOKED. CLOTH-B
+  price restored (quote version 3).
+- PayPal runtime still OFF: enabling `SPENDCONSENT_PAYPAL_ENABLED` was denied by
+  the auto-mode safety check; it needs the user's explicit go-ahead.
 
 ## Live processes (detached; logs in .runtime/logs/)
 
@@ -47,19 +52,18 @@ Project PostgreSQL (`scripts/local_postgres.py --start`), model 127.0.0.1:11435
 
 ## Next actions (in order)
 
-1. Finish/commit the 4158aba report. If all six suites pass: get an independent
-   re-review of ef89dff, then (with the user's OK) write
-   `.runtime/backend/ai-ready.json` per `inference.ready()`. If not: preserve,
-   diagnose exposed failures generally, new blind suite by a separate agent.
-2. Restart API with `SPENDCONSENT_AI_ENABLED=1 SPENDCONSENT_PAYPAL_ENABLED=1`;
-   run the real browser journey request → comparison → review → approval.
-3. Changed-price demo: `.venv/bin/python backend/manage.py set_offer_price
-   CLOTH-B <cents>` (CLI only; bumps version, blocks old review).
-4. Ask the user for action-time consent to one exact sandbox purchase; the
-   permission file `.runtime/backend/paypal-permission.json` only after an exact
-   yes; the user signs in as the sandbox buyer. Verify read-back.
-5. Usability study (docs/usability-evaluation.md), accessibility pass, demo
-   video (draft docs/demo-script.md), public repo + Devpost — each needs approval.
+1. **User:** approve enabling the PayPal sandbox runtime, then give concrete
+   consent for one exact sandbox purchase (approval id + amount). Only then write
+   `.runtime/backend/paypal-permission.json`; the user signs in as sandbox buyer.
+   Verify SDK load, capture and server read-back; then recovery checks.
+2. Next AI round (batch, then re-qualify with a NEW blind suite): pass
+   `recommended_offer_id` to the final call (52ad168-01 copied the 3rd offer);
+   >1 paper size in text → unknown (a12decc-08); unitless number with several
+   fitting units → unknown; drop category when buyer says "not notebooks".
+3. UI polish: "One-time purchase." is duplicated on the review card; consider
+   hiding a superseded review once a newer one exists.
+4. Usability study, accessibility pass, demo video (docs/demo-script.md),
+   public repo + Devpost — each needs user approval.
 
 ## Known limits
 

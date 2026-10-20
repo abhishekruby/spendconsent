@@ -1,5 +1,13 @@
 # Progress — project log
 
+## 21 October 2026, 00:30 IST: AI qualified; first real browser journey
+
+- As-written native protocol (model copies amounts/sizes; code converts). Report
+  4158aba: all six suite gates passed (114/120; blind 52ad168 18/20). Reviews PASS.
+- AI readiness marker granted. Real browser: request → actual AI comparison →
+  exact review → approval → price change → approval revoked → fresh comparison
+  → new review. Stale approvals now display REVOKED (d46bdda). PayPal still off.
+
 ## Claude session — 20 October 2026 evening: AI extraction root causes fixed
 
 - Root cause of recent AI failures: the per-product `oneOf` tool schema made the
