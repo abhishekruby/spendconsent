@@ -37,7 +37,7 @@ def arguments(constraints=None, **changes):
 def described(value):
     """Synthetic request text stating every number the mocked model extracts."""
     numbers = [value.get("quantity"), value["budget_cents"] / 100 if value.get("budget_cents") else None,
-               *[item for item in (value.get("attributes") or {}).values() if type(item) is int]]
+               *[item for item in (value.get("attributes") or {}).values() if item is not None]]
     return "Synthetic one-time supply request: " + ", ".join(str(item) for item in numbers if item is not None) + "."
 
 
@@ -217,6 +217,29 @@ class AgentTests(TransactionTestCase):
         self.assertEqual(result["status"], "NEEDS_CLARIFICATION")
         self.assertEqual(result["clarification"]["missing_fields"], ["attributes.width_cm"])
 
+    def test_units_paper_size_and_recurrence_are_grounded_in_text(self):
+        wrong_units = arguments(category="bottle", quantity=30, budget_cents=5940,
+                                attributes={"capacity_l": 500, "volume_ml": 5000})
+        with self.http(wrong_units):
+            result = agent.compare("Thirty spray bottles of 0.5-litre volume, at most USD 59.40, one-time.")
+        self.assertEqual(result["status"], "NEEDS_CLARIFICATION")
+        self.assertEqual(result["clarification"]["missing_fields"], ["attributes.volume_ml"])
+        with self.http(arguments(category="bottle", quantity=30, budget_cents=5940, attributes={"volume_ml": 500})):
+            result = agent.compare("Thirty spray bottles of 0.5-litre volume, at most USD 59.40, one-time.")
+        self.assertEqual(result["constraints"]["attributes"], {"volume_ml": 500})
+        stray = arguments(category="bottle", quantity=15, budget_cents=5000,
+                          attributes={"volume_ml": 250, "paper_size": "A4"})
+        with self.http(stray):
+            result = agent.compare("Fifteen 250 ml spray bottles within USD 50.00, one-time.")
+        self.assertEqual(result["constraints"]["attributes"], {"volume_ml": 250})
+        for text in ("Standing order: twenty 500 ml bottles every two weeks within USD 45.00.",
+                     "Twenty 500 ml bottles, fortnightly deliveries, USD 45.00 each."):
+            with self.subTest(text=text), self.http(arguments(category="bottle", quantity=20, budget_cents=4500,
+                                                              one_time=None, attributes={"volume_ml": 500})):
+                result = agent.compare(text)
+            self.assertEqual(result["status"], "NO_MATCH")
+            self.assertNotIn("one_time", result["constraints"])
+
     def test_complete_attribute_protocol_preserves_unknowns_and_dimension_order(self):
         with self.http(arguments(attributes={"width_cm": 35})):
             result = agent.compare("Exactly 40 microfiber cloths, width 35 cm, at most $60 delivered, one-time only.")
@@ -244,7 +267,7 @@ class AgentTests(TransactionTestCase):
                 ({"unsupported_requirements": ["must be red and organic"]}, None),
                 ({"category": "notebook", "attributes": {"paper_size": "LETTER"}}, "attributes.paper_size")):
             with self.subTest(changes=changes), self.http(arguments(**changes)):
-                result = agent.compare("Synthetic unsupported supply request.")
+                result = agent.compare("Synthetic unsupported supply request on LETTER paper.")
             self.assertEqual(result["status"], "NO_MATCH")
             self.assertFalse(result["candidates"])
             self.assertTrue(result["clarification"]["question"])

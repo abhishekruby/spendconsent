@@ -71,6 +71,8 @@ height_cm; waste bag capacity_l; spray bottle volume_ml; notebook paper_size;
 unsupported or null category uses {}. Missing applicable values stay null.
 For cloth dimensions, preserve both stated dimensions in order as width_cm and
 height_cm. Never infer an unstated dimension from another dimension.
+Units: width_cm/height_cm in centimetres, capacity_l in litres, volume_ml in
+millilitres (1 litre = 1000 ml). Non-applicable attribute keys stay null.
 The confirmed_constraints object is human authority: preserve every confirmed
 value, expressing its canonical category as the corresponding product label.
 Never substitute another item, currency, size, quantity, budget or terms.
@@ -236,7 +238,9 @@ def _raw_policy(text, confirmed):
     if "currency" not in confirmed and re.search(_FOREIGN, text, re.I):
         (ambiguous if re.search(r"\$|\b(?:USD|US dollars?)\b", text, re.I) else unsupported).append("currency")
     if "one_time" not in confirmed:
-        for match in re.finditer(r"\b(?:subscriptions?|recurring|monthly|weekly|annually)\b", text, re.I):
+        for match in re.finditer(r"\b(?:subscriptions?|recurring|monthly|weekly|annually|daily|quarterly|fortnightly|bi-?weekly|"
+            r"standing orders?|auto-?renew\w*|automatic(?:ally)? renew\w*|repeat(?:ing)? (?:orders?|deliver\w*)|"
+            r"every (?:\w+ )?(?:days?|weeks?|months?|years?))\b", text, re.I):
             clause = re.split(r"[,;.!?]", text[:match.start()])[-1]
             # Negated recurrence is compatible with one-time purchasing. An
             # affirmative/ambiguous mention asks the buyer; it never guesses.
@@ -249,7 +253,22 @@ def _raw_policy(text, confirmed):
 _USD = {"$", "US$", "USD", "US DOLLAR", "US DOLLARS", "DOLLAR", "DOLLARS"}
 _FOREIGN = (r"€|£|₹|\b(?:C|CA|A|AU|NZ|NT|HK|S|SG|MX|R|J|TT|B)\$|\b(?:EUR|euros?|GBP|pounds?|INR|rupees?|CAD|AUD|NZD|HKD|SGD|MXN|JPY|yen)\b"
             r"|\b(?:Canadian|Australian|Aussie|Kiwi|New Zealand|Hong Kong|Singapore|Mexican|Taiwan(?:ese)?|Jamaican)\s+dollars?\b")
-_METRIC = r"(\d{1,6}(?:\.\d{1,6})?)\s*-?\s*(?:l|lt|litres?|liters?|ml|millilitres?|milliliters?|m|metres?|meters?|cm|centimetres?|centimeters?|mm|millimetres?|millimeters?)\b"
+_METRIC = r"(\d{1,6}(?:\.\d{1,6})?)\s*-?\s*(l|lt|litres?|liters?|ml|millilitres?|milliliters?|m|metres?|meters?|cm|centimetres?|centimeters?|mm|millimetres?|millimeters?)\b"
+# Unit-aware conversion: a stated unit only grounds the attribute it can measure.
+_UNIT_FACTORS = {"l": {"volume_ml": 1000, "capacity_l": 1}, "ml": {"volume_ml": 1, "capacity_l": 0.001},
+                 "m": {"width_cm": 100, "height_cm": 100}, "cm": {"width_cm": 1, "height_cm": 1},
+                 "mm": {"width_cm": 0.1, "height_cm": 0.1}}
+
+
+def _unit(word):
+    word = word.lower()
+    if word.startswith(("ml", "milli")) and "lit" in word or word == "ml":
+        return "ml"
+    if word.startswith(("mm", "millim")):
+        return "mm"
+    if word.startswith(("cm", "centi")):
+        return "cm"
+    return "l" if word.startswith("l") else "m"
 _UNITS = {word: index for index, word in enumerate(
     "zero one two three four five six seven eight nine ten eleven twelve thirteen "
     "fourteen fifteen sixteen seventeen eighteen nineteen".split())}
@@ -291,12 +310,19 @@ def _grounded(arguments, text):
         arguments["quantity"] = None
     if arguments["budget_cents"] not in cents | {item - 1 for item in cents}:
         arguments["budget_cents"] = None
-    # A specification written next to a metric unit may be converted (0.5 L = 500 ml).
-    metric = {float(item) for item in re.findall(_METRIC, text, re.I)}
-    scaled = integers | {round(item * factor) for item in metric for factor in (0.1, 10, 100, 1000)
-                         if abs(item * factor - round(item * factor)) < 1e-9}
+    # A specification written next to a metric unit may be converted (0.5 L = 500 ml),
+    # but only into an attribute that measures that dimension.
+    converted = {}
+    for number, unit in re.findall(_METRIC, text, re.I):
+        for key, factor in _UNIT_FACTORS[_unit(unit)].items():
+            value = float(number) * factor
+            if abs(value - round(value)) < 1e-9:
+                converted.setdefault(key, set()).add(round(value))
     for key, item in arguments["attributes"].items():
-        if type(item) is int and item not in scaled:
+        if type(item) is int and item not in integers | converted.get(key, set()):
+            arguments["attributes"][key] = None
+        # A paper size is grounded only when the buyer wrote it (A4, A5, A6).
+        elif type(item) is str and not re.search(rf"\b{re.escape(item)}\b", text, re.I):
             arguments["attributes"][key] = None
     if (isinstance(arguments["currency"], str) and arguments["currency"].strip().upper() in _USD
             and not re.search(_FOREIGN, text, re.I)):
