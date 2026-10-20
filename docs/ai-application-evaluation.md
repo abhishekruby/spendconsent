@@ -201,3 +201,11 @@ This independence is narrower than a separate external benchmark.
   --device none --gpu-layers 0 --jinja --chat-template-file .ai-cache/qwen3.jinja \
   --reasoning off --offline --log-disable --no-webui
 ```
+
+After `9b459c6` (original 20/20, regression 18/20, unseen 16/20; gate failed),
+the 808472c suite became exposed regression evidence. Exposed case
+`app-holdout-06` showed the flat grammar emitting `0`/`""` placeholders for
+non-applicable attributes; `a12decc` treats those as unset. A separate agent then
+authored `ai-application-unseen-a12decc.json` (suite `unseen2`) against frozen
+adapter `a12decc`; the implementer has not read it. Qualification now requires
+all four suites to pass independently (80 outcomes, default cap 80).

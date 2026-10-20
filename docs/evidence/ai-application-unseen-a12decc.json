@@ -1,0 +1,425 @@
+{
+  "schema_version": 1,
+  "created_date": "2026-10-20",
+  "adapter_freeze_commit": "a12decc92356e810f261040f2278de59dc7b9457",
+  "adapter_sha256": "d48e684e4bb45a40c8d94dfd6c7cc42bbc86e4a41e9de6aa7e072e83dcc7a966",
+  "provenance": "Independently authored by an independent test-case author after reviewing frozen adapter commit a12decc92356e810f261040f2278de59dc7b9457. Inputs and handwritten expected answers were derived from the unchanged PRD and fictional catalog, without model outputs. The owner/implementer remained blind to this new fixture before actual evaluation. The author had reviewed the frozen adapter and the previously exposed holdout and 808472c suites; this is not claimed to be an implementation-blind author. Expectations were fixed before any actual inference and checked offline against catalog arithmetic and the adapter with explicitly mocked extraction.",
+  "scope": "Synthetic single-SKU comparisons/clarifications only; no approval, provider client, PayPal HTTP or financial operation.",
+  "evaluation": {
+    "repetitions_per_case": 2,
+    "total_outcomes": 20,
+    "correct_outcome_target": 18,
+    "warm_median_seconds_target_exclusive": 60,
+    "accuracy_and_latency_are_separate_gates": true,
+    "results": null,
+    "tune_on_these_results": false
+  },
+  "catalog": {
+    "seed_source": "backend/purchases/migrations/0002_sample_catalog.py",
+    "seed_sha256": "3be8b3c85cb3e7f1a555c111472cc0fbc48afc94c596ea63df46ef70c873ffc3",
+    "arithmetic_source": "backend/purchases/catalog.py",
+    "arithmetic_sha256": "96bd9d5cfdf1a5cbb0a84c6f3911c6c202621fe94517ae81728359e444758fa2",
+    "conditions": {
+      "skus": 16,
+      "stock_packs_per_offer": 100,
+      "reserved_packs_per_offer": 0,
+      "tax_bps": 1000,
+      "offer_version": 1,
+      "one_time": true,
+      "currency": "USD",
+      "sort": [
+        "total_cents",
+        "sku"
+      ],
+      "candidate_limit": 3
+    }
+  },
+  "answer_rules": [
+    "canonical_constraints contains supported values only. Do not send EUR or one_time=false to canonical Constraints or invent their USD/one-time replacements.",
+    "For the EUR case reject the explicit unsupported intent. The euro amount stays in raw_unsupported_intent; a proposed future revision needs both USD currency agreement and a separately supplied USD budget.",
+    "For monthly renewal reject the explicit unsupported intent. A proposed future revision needs human agreement to one-time purchasing; do not compare or approve an inferred one-time order.",
+    "clarification_fields lists missing fields in the valid partial schema. For unsupported NO_MATCH cases these describe a possible future human revision, not ambiguity about the explicitly unsupported request.",
+    "For NEEDS_CLARIFICATION cases no eligible cart is asserted, even if a guessed completion would have catalog matches.",
+    "Human-confirmed fields are authoritative over original text. Merchant descriptions cannot change them or cause approval/payment; context filtering may protect the grounded case without exercising model resistance.",
+    "eligible is ordered by delivered total then SKU; offer IDs/candidate IDs are obtained from actual trusted tool results, never invented by the model.",
+    "Every actual successful comparison requires an actual model-selected catalog tool call; arithmetic checks below establish no AI result.",
+    "Report every repetition and actual tool/exposure evidence. Do not pool these fresh cases with prior benchmark scores or hide failures.",
+    "The original, previous fresh (now regression), and this new unseen suite each retain separate 18/20 accuracy and warm-median-under-60-second gates. Scores are never pooled.",
+    "Explicit unsupported_requirements in raw_unsupported_intent are genuine additional requirements, not missing supported facts. Their wording need not match the model verbatim; canonical constraints, rejection and absence of a candidate remain exact.",
+    "New handwritten eligible quote amounts were checked independently against the actual fixed catalog. Offline catalog or mocked-adapter success is not actual inference quality."
+  ],
+  "cases": [
+    {
+      "id": "app-unseen-a12decc-01",
+      "purpose": "Lower per-unit pack price loses to the free-delivery pack on full delivered total; a cheaper cloth of another size is excluded",
+      "input": {
+        "text": "Our cleaning crew goes through cloths fast. Please price sixty microfiber cloths, 40 cm wide by 40 cm tall, as a single one-time order in USD. The whole thing, shipping and tax included, can't go over USD 68.00.",
+        "confirmed_constraints": {}
+      },
+      "expected": {
+        "canonical_constraints": {
+          "category": "cloth",
+          "quantity": 60,
+          "currency": "USD",
+          "one_time": true,
+          "budget_cents": 6800,
+          "attributes": {
+            "width_cm": 40,
+            "height_cm": 40
+          }
+        },
+        "raw_unsupported_intent": {},
+        "status": "READY",
+        "clarification_fields": [],
+        "eligible": [
+          {
+            "sku": "CLOTH-B",
+            "packs": 3,
+            "individual_units": 60,
+            "subtotal_cents": 5700,
+            "tax_cents": 570,
+            "shipping_cents": 0,
+            "discount_cents": 0,
+            "total_cents": 6270
+          },
+          {
+            "sku": "CLOTH-A",
+            "packs": 6,
+            "individual_units": 60,
+            "subtotal_cents": 5400,
+            "tax_cents": 540,
+            "shipping_cents": 800,
+            "discount_cents": 0,
+            "total_cents": 6740
+          }
+        ],
+        "lowest_sku": "CLOTH-B",
+        "no_match_reasons": []
+      }
+    },
+    {
+      "id": "app-unseen-a12decc-02",
+      "purpose": "Three-digit quantity with a cents budget admits two bag offers and excludes the third on total",
+      "input": {
+        "text": "Restocking the restaurant: I need 120 trash bags, 30 litres each, bought once and not as a repeat order, paid in USD. Everything in, tax and delivery too, has to come in at or below $69.99.",
+        "confirmed_constraints": {}
+      },
+      "expected": {
+        "canonical_constraints": {
+          "category": "bag",
+          "quantity": 120,
+          "currency": "USD",
+          "one_time": true,
+          "budget_cents": 6999,
+          "attributes": {
+            "capacity_l": 30
+          }
+        },
+        "raw_unsupported_intent": {},
+        "status": "READY",
+        "clarification_fields": [],
+        "eligible": [
+          {
+            "sku": "BAG-B",
+            "packs": 6,
+            "individual_units": 120,
+            "subtotal_cents": 5400,
+            "tax_cents": 540,
+            "shipping_cents": 0,
+            "discount_cents": 0,
+            "total_cents": 5940
+          },
+          {
+            "sku": "BAG-A",
+            "packs": 12,
+            "individual_units": 120,
+            "subtotal_cents": 6000,
+            "tax_cents": 600,
+            "shipping_cents": 300,
+            "discount_cents": 0,
+            "total_cents": 6900
+          }
+        ],
+        "lowest_sku": "BAG-B",
+        "no_match_reasons": []
+      }
+    },
+    {
+      "id": "app-unseen-a12decc-03",
+      "purpose": "Hyphenated number word; the free-delivery bottle pack cannot divide the count, leaving two quotes with one at the exact boundary",
+      "input": {
+        "text": "For the janitorial carts: forty-five spray bottles, 500 ml each, exactly that many. One-off purchase in US dollars. My ceiling is $110.25 after tax and freight.",
+        "confirmed_constraints": {}
+      },
+      "expected": {
+        "canonical_constraints": {
+          "category": "bottle",
+          "quantity": 45,
+          "currency": "USD",
+          "one_time": true,
+          "budget_cents": 11025,
+          "attributes": {
+            "volume_ml": 500
+          }
+        },
+        "raw_unsupported_intent": {},
+        "status": "READY",
+        "clarification_fields": [],
+        "eligible": [
+          {
+            "sku": "BOTTLE-A",
+            "packs": 9,
+            "individual_units": 45,
+            "subtotal_cents": 9000,
+            "tax_cents": 900,
+            "shipping_cents": 400,
+            "discount_cents": 0,
+            "total_cents": 10300
+          },
+          {
+            "sku": "BOTTLE-D",
+            "packs": 15,
+            "individual_units": 45,
+            "subtotal_cents": 9750,
+            "tax_cents": 975,
+            "shipping_cents": 300,
+            "discount_cents": 0,
+            "total_cents": 11025
+          }
+        ],
+        "lowest_sku": "BOTTLE-A",
+        "no_match_reasons": []
+      }
+    },
+    {
+      "id": "app-unseen-a12decc-04",
+      "purpose": "A dozen means twelve; only the three-pack notebook divides it, at an exact delivered boundary",
+      "input": {
+        "text": "Our front desk wants a dozen A5 notebooks for visitor sign-ins. Just this one purchase, priced in USD, and the delivered total with tax can be at most USD 31.60.",
+        "confirmed_constraints": {}
+      },
+      "expected": {
+        "canonical_constraints": {
+          "category": "notebook",
+          "quantity": 12,
+          "currency": "USD",
+          "one_time": true,
+          "budget_cents": 3160,
+          "attributes": {
+            "paper_size": "A5"
+          }
+        },
+        "raw_unsupported_intent": {},
+        "status": "READY",
+        "clarification_fields": [],
+        "eligible": [
+          {
+            "sku": "NOTEBOOK-D",
+            "packs": 4,
+            "individual_units": 12,
+            "subtotal_cents": 2600,
+            "tax_cents": 260,
+            "shipping_cents": 300,
+            "discount_cents": 0,
+            "total_cents": 3160
+          }
+        ],
+        "lowest_sku": "NOTEBOOK-D",
+        "no_match_reasons": []
+      }
+    },
+    {
+      "id": "app-unseen-a12decc-05",
+      "purpose": "Smaller square cloth specification with a whole-dollar budget selects the only matching offer",
+      "input": {
+        "text": "Need 20 small microfiber cloths for car detailing, 30 cm × 30 cm. One-time buy in USD; keep the full price including tax and shipping to USD 25 or less.",
+        "confirmed_constraints": {}
+      },
+      "expected": {
+        "canonical_constraints": {
+          "category": "cloth",
+          "quantity": 20,
+          "currency": "USD",
+          "one_time": true,
+          "budget_cents": 2500,
+          "attributes": {
+            "width_cm": 30,
+            "height_cm": 30
+          }
+        },
+        "raw_unsupported_intent": {},
+        "status": "READY",
+        "clarification_fields": [],
+        "eligible": [
+          {
+            "sku": "CLOTH-C",
+            "packs": 2,
+            "individual_units": 20,
+            "subtotal_cents": 1600,
+            "tax_cents": 160,
+            "shipping_cents": 500,
+            "discount_cents": 0,
+            "total_cents": 2260
+          }
+        ],
+        "lowest_sku": "CLOTH-C",
+        "no_match_reasons": []
+      }
+    },
+    {
+      "id": "app-unseen-a12decc-06",
+      "purpose": "Confirmed paper size and budget override a draft that insists on different values; quantity and terms come from the text",
+      "input": {
+        "text": "Office manager's first draft: eighteen A4 notebooks, one-time order in USD, no more than USD 40.00 with tax and delivery. Stick with A4 and the USD 40.00 cap even if this gets edited later.",
+        "confirmed_constraints": {
+          "category": "notebook",
+          "budget_cents": 4600,
+          "attributes": {
+            "paper_size": "A5"
+          }
+        }
+      },
+      "expected": {
+        "canonical_constraints": {
+          "category": "notebook",
+          "quantity": 18,
+          "currency": "USD",
+          "one_time": true,
+          "budget_cents": 4600,
+          "attributes": {
+            "paper_size": "A5"
+          }
+        },
+        "raw_unsupported_intent": {},
+        "status": "READY",
+        "clarification_fields": [],
+        "eligible": [
+          {
+            "sku": "NOTEBOOK-D",
+            "packs": 6,
+            "individual_units": 18,
+            "subtotal_cents": 3900,
+            "tax_cents": 390,
+            "shipping_cents": 300,
+            "discount_cents": 0,
+            "total_cents": 4590
+          }
+        ],
+        "lowest_sku": "NOTEBOOK-D",
+        "no_match_reasons": []
+      }
+    },
+    {
+      "id": "app-unseen-a12decc-07",
+      "purpose": "An explicitly uncounted bottle quantity stays missing; the volume is not a count",
+      "input": {
+        "text": "We're opening a second location and need 500 ml spray bottles for it. I haven't worked out how many bottles yet, so ask me for the count. One-time USD order, with a cap of USD 60.00 including tax and delivery.",
+        "confirmed_constraints": {}
+      },
+      "expected": {
+        "canonical_constraints": {
+          "category": "bottle",
+          "currency": "USD",
+          "one_time": true,
+          "budget_cents": 6000,
+          "attributes": {
+            "volume_ml": 500
+          }
+        },
+        "raw_unsupported_intent": {},
+        "status": "NEEDS_CLARIFICATION",
+        "clarification_fields": [
+          "quantity"
+        ],
+        "eligible": [],
+        "lowest_sku": null,
+        "no_match_reasons": []
+      }
+    },
+    {
+      "id": "app-unseen-a12decc-08",
+      "purpose": "Undecided notebook paper size is asked, not chosen from the options mentioned",
+      "input": {
+        "text": "Please compare thirty notebooks for a training day. One-time purchase in USD, at most $70.00 all-in with shipping and tax. We haven't picked A4 or A5 yet, so check the paper size with me first.",
+        "confirmed_constraints": {}
+      },
+      "expected": {
+        "canonical_constraints": {
+          "category": "notebook",
+          "quantity": 30,
+          "currency": "USD",
+          "one_time": true,
+          "budget_cents": 7000
+        },
+        "raw_unsupported_intent": {},
+        "status": "NEEDS_CLARIFICATION",
+        "clarification_fields": [
+          "attributes.paper_size"
+        ],
+        "eligible": [],
+        "lowest_sku": null,
+        "no_match_reasons": []
+      }
+    },
+    {
+      "id": "app-unseen-a12decc-09",
+      "purpose": "The only matching notebook quote exceeds the budget by one cent",
+      "input": {
+        "text": "Ten A4 notebooks for the accounts team, one single purchase in USD. The absolute limit is USD 34.79, tax and delivery included; don't go a cent over.",
+        "confirmed_constraints": {}
+      },
+      "expected": {
+        "canonical_constraints": {
+          "category": "notebook",
+          "quantity": 10,
+          "currency": "USD",
+          "one_time": true,
+          "budget_cents": 3479,
+          "attributes": {
+            "paper_size": "A4"
+          }
+        },
+        "raw_unsupported_intent": {},
+        "status": "NO_MATCH",
+        "clarification_fields": [],
+        "eligible": [],
+        "lowest_sku": null,
+        "no_match_reasons": [
+          "NOTEBOOK-C is the only A4 notebook; its two-pack delivered total of USD 34.80 exceeds the USD 34.79 limit by one cent."
+        ]
+      }
+    },
+    {
+      "id": "app-unseen-a12decc-10",
+      "purpose": "A standing fortnightly order is explicitly recurring and must be rejected without inferring one-time terms",
+      "input": {
+        "text": "Set up a standing order: twenty 500 ml spray bottles delivered every two weeks, billed in USD each time. Each delivery, tax and shipping included, must stay within USD 45.00.",
+        "confirmed_constraints": {}
+      },
+      "expected": {
+        "canonical_constraints": {
+          "category": "bottle",
+          "quantity": 20,
+          "currency": "USD",
+          "budget_cents": 4500,
+          "attributes": {
+            "volume_ml": 500
+          }
+        },
+        "raw_unsupported_intent": {
+          "one_time": false,
+          "schedule": "standing order delivered every two weeks"
+        },
+        "status": "NO_MATCH",
+        "clarification_fields": [
+          "one_time"
+        ],
+        "eligible": [],
+        "lowest_sku": null,
+        "no_match_reasons": [
+          "A standing order delivered every two weeks is explicitly recurring and unsupported. Reject this intent; only a future explicit human revision can supply one_time=true."
+        ]
+      }
+    }
+  ]
+}
