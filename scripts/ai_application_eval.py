@@ -46,11 +46,13 @@ UNSEEN2 = "docs/evidence/ai-application-unseen-a12decc.json"
 UNSEEN3 = "docs/evidence/ai-application-unseen-168eee7.json"
 # 168eee7 became exposed after its 2d1279b run; 52ad168 is the current blind suite.
 UNSEEN4 = "docs/evidence/ai-application-unseen-52ad168.json"
-SUITES = ("original", "fresh", "unseen", "unseen2", "unseen3", "unseen4")
+# 52ad168 became exposed after its 4158aba run; e069354 is the current blind suite.
+UNSEEN5 = "docs/evidence/ai-application-unseen-e069354.json"
+SUITES = ("original", "fresh", "unseen", "unseen2", "unseen3", "unseen4", "unseen5")
 SEED = "backend/purchases/migrations/0002_sample_catalog.py"
 SOURCES = ("scripts/ai_application_eval.py", "scripts/ai_probe.py", "backend/purchases/agent.py",
            "backend/purchases/catalog.py", "backend/purchases/serializers.py",
-           "backend/purchases/models.py", SEED, FRESH, UNSEEN, UNSEEN2, UNSEEN3, UNSEEN4)
+           "backend/purchases/models.py", SEED, FRESH, UNSEEN, UNSEEN2, UNSEEN3, UNSEEN4, UNSEEN5)
 QUOTE_FIELDS = ("sku", "packs", "individual_units", "subtotal_cents", "tax_cents",
                 "shipping_cents", "discount_cents", "total_cents")
 SAFE_ERRORS = {"MODEL_ERROR", "MODEL_TIMEOUT", "MODEL_BUSY", "MODEL_TRANSACTION", "INVALID_MODEL_INPUT"}
@@ -125,7 +127,7 @@ def original_cases(rows):
 def load_cases():
     rows = offers()
     suites = {"original": original_cases(rows)}
-    for name, filename in (("fresh", FRESH), ("unseen", UNSEEN), ("unseen2", UNSEEN2), ("unseen3", UNSEEN3), ("unseen4", UNSEEN4)):
+    for name, filename in (("fresh", FRESH), ("unseen", UNSEEN), ("unseen2", UNSEEN2), ("unseen3", UNSEEN3), ("unseen4", UNSEEN4), ("unseen5", UNSEEN5)):
         fixture = json.loads((ROOT / filename).read_text())
         assert fixture["evaluation"]["results"] is None
         assert fixture["evaluation"]["repetitions_per_case"] == 2
@@ -440,12 +442,12 @@ def self_test():
         with patch.dict(run.__globals__, evaluate=offline_outcome, require_committed_sources=lambda: None), patch("builtins.print"):
             run(path, 1)
             assert json.loads(path.read_text())["phase"] == "partial" and len(called) == 1
-            run(path, 120)
+            run(path, 140)
         restored = json.loads(path.read_text())
-        assert restored["phase"] == "complete" and len(called) == 120
+        assert restored["phase"] == "complete" and len(called) == 140
         assert restored["suites"]["original"]["results"][0]["passed"] is False
         assert restored["suites"]["original"]["summary"]["passed"] == 19
-        assert all(restored["suites"][name]["summary"]["passed"] == 20 for name in ("fresh", "unseen", "unseen2", "unseen3", "unseen4"))
+        assert all(restored["suites"][name]["summary"]["passed"] == 20 for name in ("fresh", "unseen", "unseen2", "unseen3", "unseen4", "unseen5"))
         assert not restored["all_gates_passed"]
         assert not restored["suites"]["original"]["summary"]["default_case_gate_passed"]
     trace = {"model_requests": 0, "model_connections": 0, "native_tool_names": [], "blocked_other_destinations": 0,
@@ -459,7 +461,7 @@ def self_test():
         else:
             raise AssertionError("Non-model network destination was permitted")
     assert trace["blocked_other_destinations"] == 1 and trace["model_connections"] == 0
-    print("PASS: 60 frozen semantic cases, real catalog checks, rejection scoring and separate gates; mocked inference, no DB/network.")
+    print("PASS: 70 frozen semantic cases, real catalog checks, rejection scoring and separate gates; mocked inference, no DB/network.")
 
 
 def main():
@@ -469,13 +471,13 @@ def main():
     mode.add_argument("--prepare", action="store_true")
     mode.add_argument("--run", action="store_true")
     parser.add_argument("--output", type=Path)
-    parser.add_argument("--max-cases", type=int, default=120, help="Run at most this many additional cases; preserve and resume partial evidence.")
+    parser.add_argument("--max-cases", type=int, default=140, help="Run at most this many additional cases; preserve and resume partial evidence.")
     args = parser.parse_args()
     if args.self_test:
         self_test()
         return
-    if args.output is None or not 1 <= args.max_cases <= 120:
-        parser.error("--output and a --max-cases value in 1..120 are required")
+    if args.output is None or not 1 <= args.max_cases <= 140:
+        parser.error("--output and a --max-cases value in 1..140 are required")
     load_cases()
     if args.prepare:
         report = {"schema_version": 1, "phase": "prepared", "prepared_at": datetime.now(timezone.utc).isoformat(),

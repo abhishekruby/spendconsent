@@ -1,5 +1,21 @@
 # Progress — project log
 
+## 21 October 2026, 02:40 IST: AI round 2, accessibility re-check
+
+- Adapter e069354 + review fixes eaaa3f9 (independent review PASS, no blockers):
+  final call gets `recommended_offer_id`; undecided/negated paper sizes are
+  asked; a bare size among several written units is asked; an explicitly
+  excluded product ("labels, not notebooks") is NO_MATCH. AI readiness is off
+  until re-qualified on all suites plus a new blind suite (unseen5).
+- Review terms text no longer repeats "One-time purchase." (5ed46b1).
+- Leftover attempts b9f38bd9 (UNKNOWN, no order) and 0db00f4d (expired approval)
+  are documented in the sandbox evidence; neither can capture. Left as is.
+- Accessibility re-check (R11) on the live app: all text tokens ≥ 5.5:1 in both
+  themes, form borders 6.5:1; no unlabeled controls; heading order h1→h3;
+  `lang=en`; Tab starts at the skip link with a 3 px focus outline; no
+  horizontal scroll at 375 px. Automated/manual spot check only, not a
+  certification.
+
 ## 21 October 2026, 01:10 IST: first verified PayPal sandbox purchase
 
 - With per-cart user consent: CLOTH-A USD 47.60 PAID, server-verified capture
