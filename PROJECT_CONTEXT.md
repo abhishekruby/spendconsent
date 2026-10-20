@@ -4,12 +4,10 @@ Updated 20 October 2026. Read once after AGENTS.md; load references only as need
 
 ## Scope and authorization
 
-A small-business owner requests supplies; genuine local AI interprets requirements
-and calls the fictional catalog. Server code owns exact packs/full USD totals.
-The buyer reviews and approves an immutable cart before explicitly permitted
-PayPal sandbox purchasing. One merchant, one SKU, 16 cloth/bag/bottle/notebook
-SKUs, fixed synthetic delivery/tax, one-time USD. Preserve the full
-[PRD](docs/PRD.md). No market-fit or prize guarantees.
+Real local AI interprets supply requests; server code owns exact USD totals.
+Buyers approve immutable carts before explicitly permitted sandbox purchasing.
+Preserve the full [PRD](docs/PRD.md): one merchant/SKU, 16 fictional SKUs,
+fixed synthetic tax/delivery, one-time USD.
 
 The full completion goal is **active in this fresh project chat** by explicit
 user instruction; the old chat's goal stays paused. Build/review/private commits
@@ -62,13 +60,10 @@ answers/gates as regression suites. After adapter freeze, independently author
 new unseen cases; all three suites must independently pass 18/20, warm <60s,
 with both original defaults correct. No inference before review/private commit.
 
-Fresh artifact docs reviewed. Verified cached archive extraction/runtime version
-and exact pinned template/hash/overwrite refusal. Isolated fresh backend venv
-passes locked install/check/migration drift; a fresh tracked checkout/isolated
-PostgreSQL database passed all 91 backend tests (48.726s); fresh frontend install passes nine
-core groups, SDK offline check and build using installed Node22. Model download
-and complete clean-machine setup remain unverified. One mistaken npm-exec
-installer invocation was stopped; repo locks/global Node are unchanged.
+Reproduction: cached runtime/template hashes verified. Fresh dependency installs,
+frontend tests/build and a fresh checkout/isolated PostgreSQL 91-test run passed
+(48.726s). Full clean-machine setup/model redownload remain unverified. Mistaken
+npm-exec installer stopped; repo locks/global Node unchanged.
 
 ## Remaining delivery
 
