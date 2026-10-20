@@ -39,6 +39,8 @@ _CONVERT = {"width_cm": {"cm": 1, "m": 100, "mm": 0.1}, "height_cm": {"cm": 1, "
 _DEFAULT_UNIT = {"width_cm": "cm", "height_cm": "cm", "capacity_l": "l", "volume_ml": "ml"}
 _NATIVE_CATEGORIES = {"microfiber cloth": "cloth", "waste bag": "bag", "spray bottle": "bottle",
                       "notebook": "notebook", "unsupported": "unsupported", None: None}
+_NEGATABLE = {"cloth": r"(?:microfib(?:er|re) )?cloths?", "bag": r"(?:waste |trash |bin )?bags?",
+              "bottle": r"(?:spray )?bottles?", "notebook": r"notebooks?"}
 _ATTRIBUTE_SCHEMA = {
     key: {"type": ["string" if key == "paper_size" else "number", "null"]}
     for key in sorted(_NATIVE_ATTRIBUTES)}
@@ -68,8 +70,8 @@ FINAL_SCHEMA = {"type": "object", "properties": {
     "offer_id": {"type": ["string", "null"]}},
     "required": ["status", "offer_id"], "additionalProperties": False}
 FINAL_SYSTEM = """Return exactly status and offer_id as JSON using only the validated
-catalog result. Copy its status and first eligible offer_id when READY; otherwise
-offer_id is null. No other text."""
+catalog result. Copy its status, and its recommended_offer_id as offer_id
+(null unless READY). No other text."""
 SYSTEM = """You are SpendConsent, a read-only purchasing assistant. Call search_catalog
 exactly once using only the buyer's stated requirements; missing facts stay null.
 Use category microfiber cloth, waste bag, spray bottle, notebook, unsupported for
@@ -337,8 +339,12 @@ def _grounded(native, text):
         if item is None:
             value = None
         elif key == "paper_size":
-            # A paper size is grounded only when the buyer wrote it (A4, A5, A6).
-            value = item if re.search(rf"\b{re.escape(item)}\b", text, re.I) else None
+            # A paper size is grounded only when the buyer wrote it and no other
+            # size ("A4 or A5" is undecided, so the buyer is asked; "not A5" is not).
+            sizes = {size.upper() for size in re.findall(r"\bA[0-9]\b", text, re.I)}
+            excluded = {size.upper() for size in re.findall(r"\b(?:not|no|never)\s+(A[0-9])\b", text, re.I)}
+            value = item if (re.search(rf"\b{re.escape(item)}\b", text, re.I) and item.upper() not in excluded
+                             and sizes - excluded <= {item.upper()}) else None
         elif float(item) not in numbers:
             value = None
         else:
@@ -350,11 +356,16 @@ def _grounded(native, text):
                 unit = native["size_unit"] if native["size_unit"] in fitting else (
                     next(iter(fitting)) if len(fitting) == 1 else None)
             else:
-                unit = native["size_unit"] if native["size_unit"] in options else (
-                    next(iter(options)) if len(options) == 1 else _DEFAULT_UNIT[canonical])
+                # A bare number among several written units is ambiguous: ask.
+                unit = (None if len(options) > 1 else next(iter(options)) if options
+                        else _DEFAULT_UNIT[canonical])
             converted = item * _CONVERT[canonical][unit] if unit else 0.5
             value = round(converted) if abs(converted - round(converted)) < 1e-9 and 1 <= round(converted) <= 10000 else None
         arguments["attributes"][canonical] = value
+    # "These are labels, not notebooks": an excluded product is not a match.
+    if arguments["category"] in _NEGATABLE and re.search(
+            rf"\b(?:not|no|never)\s+(?:an?\s+|any\s+)?(?:{_NEGATABLE[arguments['category']]})\b\s*(?:[.,;:!)]|$)", text, re.I):
+        arguments["category"] = "unsupported"
     if (isinstance(arguments["currency"], str) and arguments["currency"].strip().upper() in _USD
             and not re.search(_FOREIGN, text, re.I)):
         arguments["currency"] = "USD"
@@ -488,7 +499,9 @@ def compare(text, confirmed=None):
         _remaining(deadline)
         # Descriptions are unnecessary for this structured comparison and are
         # never sent to the model. Keep quotes compact within the local context.
-        facts = {"status": result["status"], "eligible": [
+        # The 4B model sometimes copied a later offer; name the one to copy.
+        facts = {"status": result["status"], "recommended_offer_id": result["candidates"][0]["offer_id"]
+                 if result["status"] == "READY" else None, "eligible": [
             {key: item[key] for key in ("offer_id", "packs", "individual_units", "currency", "total_cents")}
             for item in result["candidates"]]}
         # The decision needs canonical tool facts, not the extraction prompt or
