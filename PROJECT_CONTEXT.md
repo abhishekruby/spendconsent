@@ -68,12 +68,9 @@ backend/README.md, frontend/README.md and the model command above.
 
 ## Remaining delivery
 
-Integrated browser request → comparison → review → approval; actual SDK and
-seller read-back; one concrete user-approved sandbox purchase (permission file
-`.runtime/backend/paypal-permission.json` is written only after the user says yes
-to an exact approval id/amount); recovery checks; five-task usability study
-(docs/usability-evaluation.md); accessibility pass; under-3-minute demo video;
-public repo/Devpost submission (each needs user approval).
+Browser journey, SDK and seller read-back, one user-approved sandbox purchase
+(`.runtime/backend/paypal-permission.json` only after an exact yes), recovery,
+usability study, accessibility, demo video, submission (each needs approval).
 
 ## Known limits
 
