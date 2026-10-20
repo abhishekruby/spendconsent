@@ -1,67 +1,83 @@
 # SpendConsent — compact handoff
 
-Updated 20 October 2026. Read after AGENTS.md; load references only as needed.
+Updated 20 October 2026, 21:00 IST, by Claude Code (Claude and ChatGPT/Codex now
+alternate on this repo; read AGENTS.md, then this file). Earlier context:
+PROJECT_CONTEXT_HISTORY.md and docs/progress.md.
 
 ## Scope and authorization
 
-Full PRD completion goal is active in this fresh chat; the old chat remains paused.
-Implementation, independent review and private commits/pushes are authorized.
-Zero cost, secrets, sandbox, action-time financial consent and no-publication
-boundaries remain. Preserve the full [PRD](docs/PRD.md): actual local AI,
-server-owned exact USD packs/totals, immutable human approval, one merchant/SKU,
-16 fictional SKUs, fixed synthetic tax/delivery, one-time USD.
+Unchanged: full [PRD](docs/PRD.md) — actual local AI, server-owned exact USD
+totals, immutable human approval, one merchant/SKU, 16 fictional SKUs, one-time
+USD, PayPal sandbox only. Zero cost, secrets, action-time financial consent and
+no-publication boundaries remain. Private commits/pushes authorized; repo
+verified PRIVATE today. Deadline 12 Nov 2026 noon PST (13 Nov 01:30 IST).
 
-## Verified checkpoint
+## What changed this session (commits a37ae31..HEAD, all pushed)
 
-Private repository: https://github.com/abhishekruby/paypal-ai-hackathon-2026.
-Visibility reverified PRIVATE today. Source `808472c` freezes the reviewed native
-product/attribute protocol; prior failed evidence is committed in `6db8760`.
-All 91 PostgreSQL backend tests pass on revised source (25.750s). Independent
-review passed native validation and evaluator selftest. Payment/runtime review
-previously passed 11 runtime +26 checkout/race tests. Frontend nine groups,
-SDK offline check and build passed; full actual browser flow remains unverified.
+1. Root cause of every recent AI failure: the per-product `oneOf` tool schema
+   made llama.cpp's grammar emit only `category`/`attributes`. Fixed with one flat
+   schema (all five attribute keys nullable); server still rejects foreign specs.
+2. `_grounded` in `backend/purchases/agent.py`: extracted quantity/budget/spec
+   numbers must appear in buyer text (digits, number words, unit-adjacent metric
+   conversion) or become unknown → buyer is asked. `$`/dollars → USD unless a
+   foreign-dollar marker (C$, NT$, "Canadian dollars"...) is present. `0`/`""`
+   attribute placeholders mean unset. Independently reviewed: PASS.
+3. Model server now runs `--parallel 2` (same memory) so the extraction prefix
+   stays cached: ~25–30 s per case instead of ~70 s. Command in
+   docs/ai-application-evaluation.md (last sections).
+4. Runner supports four suites; 808472c unseen suite is now exposed regression;
+   new blind suite `ai-application-unseen-a12decc.json` (implementer never read it).
 
-User privately supplied Merchant ID; sandbox configuration validates. Actual
-sandbox OAuth returned HTTP 200. Seller/order binding and actual SDK remain
-unverified. No financial action or action-time purchase consent. Runtime,
-financial dispatch and AI readiness remain off; no readiness marker granted.
-Original saved request version3, 16 offers and zero attempts preserved.
+## AI evidence (never pool, never erase failures)
 
-## AI evidence and next action
+- `...-a37ae31.json` invalid args; `...-199392d.json` timeout; `...-684afca.json`
+  partial (10/10 then stopped for latency fix).
+- `...-9b459c6.json`: original 20/20 (warm 23.7 s), regression 18/20, unseen
+  16/20 → gate failed.
+- `...-8b36b78.json`: 20/20, 20/20, exposed 808472c 17/20, blind a12decc 18/20.
+- **Latest `...-2d1279b.json` (five suites, 100 outcomes):** original 20/20,
+  regression 20/20, exposed 808472c **16/20**, exposed a12decc 20/20, **new blind
+  168eee7 20/20**; every warm median 24–34 s (gate <60 s). `all_gates_passed`
+  is false only because of exposed 808472c cases 03 (0.5-litre → model emits an
+  invalid/decimal value) and 09 (model wrote 60000 cents for USD 60.00; grounding
+  nulled it and asked the buyer). All four failures were safe: no wrong cart.
+- Readiness marker NOT granted; runtime AI and payments remain off.
 
-Pinned Qwen3-4B Q4_K_M/template/llama.cpp hashes verified. Model session `13779`
-on11435 and API `88346` on8000 remain live; Vite `6828` on5173; main PostgreSQL
-PID185944. Model health HTTP200 rechecked. Resume live handles before restart.
-API still loads prior source with default-off flags; restart only for qualified
-integration. Evaluator `47821` is stopped, not a live job.
+## Live processes (verify before restarting)
 
-Failed reports preserved: `ai-application-qualification-a9fdb54.json` (14/20),
-`...-a7f7904.json` (mandatory default timeout), `...-2f05695.json` (original18/20,
-warm55.952s, both defaults correct; fresh7/11 completed, four failures plus one
-interrupted/unknown-time attempt). Last run spans a model-process break/shared
-verification load. Never pool those outcomes or erase failures.
+Project PostgreSQL (`scripts/local_postgres.py --start`), model on
+127.0.0.1:11435 (`--parallel 2`), Django API on 127.0.0.1:8000, Vite on
+127.0.0.1:5173. All started by Claude; a reboot kills them — restart with
+backend/README.md, frontend/README.md and the model command above.
 
-Frozen source `808472c` retains two actual model calls/preset/deadline/strict final
-validation. Native full labels remain truthful in evidence; catalog search maps
-to canonical codes. Exact category-specific nullable attributes distinguish missing
-facts from explicit unsupported extras. No actual-model success yet.
+## Next actions (in order)
 
-**Next:** independently author ten unseen cases after adapter freeze; owner stays
-blind to inputs/answers. Runner extension adds a third suite. Review/selftest,
-private commit, verify health200, then one mandatory default before full trial.
-Original, exposed-fresh regression and unseen suites each require18/20 and warm
-median<60s; both original defaults must pass. Old answers/gates unchanged.
+1. **User decision needed:** accept 2d1279b (96/100, blind 20/20, all failures
+   safe) to grant the AI readiness marker, or require one more round. Do not
+   write `.runtime/backend/ai-ready.json` without that decision.
+2. Structural AI fix (recommended either way): the 4B model is unreliable at unit
+   arithmetic. Change the tool to copy amounts as written — `budget` as the
+   stated decimal amount, specification `value` + `unit` — and convert to cents/
+   ml/cm in code. Then independent review, a NEW blind suite authored by a
+   separate agent after the freeze, and a full re-qualification (all suites).
+3. Once readiness is granted: restart the API with `SPENDCONSENT_AI_ENABLED=1
+   SPENDCONSENT_PAYPAL_ENABLED=1`, run the real browser journey request →
+   comparison → review → approval, then ask the user for action-time consent
+   to one exact sandbox purchase (they sign in as the sandbox buyer themselves).
+4. Then usability study, accessibility, demo video, submission prep.
 
 ## Remaining delivery
 
-Actual browser request/comparison/exact review/approval; real SDK/seller verification;
-concrete action-time consent before sandbox purchase/read-back/recovery; five
-usability pairs (30% active-effort improvement unachieved); full accessibility,
-performance, honest under-three-minute demo and whole-PRD audit/private sync.
+Integrated browser request → comparison → review → approval; actual SDK and
+seller read-back; one concrete user-approved sandbox purchase (permission file
+`.runtime/backend/paypal-permission.json` is written only after the user says yes
+to an exact approval id/amount); recovery checks; five-task usability study
+(docs/usability-evaluation.md); accessibility pass; under-3-minute demo video;
+public repo/Devpost submission (each needs user approval).
 
-Reproduction: cached archive/template hashes and overwrite refusal verified.
-Fresh dependencies/frontend checks/build and fresh tracked checkout/isolated
-PostgreSQL91tests passed48.726s. Full clean-machine setup/model redownload
-unverified. Mistaken npm-exec installer stopped; repo locks/global Node unchanged.
-Details: docs/ai-application-evaluation.md, ai-feasibility.md,
-paypal-runtime-plan.md, usability-evaluation.md and progress.md.
+## Known limits
+
+Grounding checks number presence, not role. Single-process inference lock: run
+one API process. ~2.2 GB free RAM with the model loaded; close heavy apps.
+Untracked dotfiles at repo root (`.bashrc`, `.mcp.json`...) are Claude sandbox
+placeholder devices — never commit them.

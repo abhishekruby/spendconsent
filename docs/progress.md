@@ -1,5 +1,17 @@
 # Progress — project log
 
+## Claude session — 20 October 2026 evening: AI extraction root causes fixed
+
+- Root cause of recent AI failures: the per-product `oneOf` tool schema made the
+  llama.cpp grammar emit only `category`/`attributes`. Flat schema, number/unit/
+  paper-size grounding in buyer text, foreign-dollar rejection, broader recurring
+  detection and `--parallel 2` prefix caching. Two independent reviews passed.
+- Evidence (all preserved): `9b459c6` original 20/20, regression 18/20, unseen
+  16/20; `8b36b78` 20/20, 20/20, exposed 17/20, blind 18/20. Warm medians 24–31 s
+  (previously ~56 s or timeouts). `2d1279b` five suites: 20, 20, exposed 16,
+  exposed 20, new blind 20/20 — formal gate failed on one exposed suite; all
+  failures safe. Readiness not granted; awaiting user decision. No financial action.
+
 ## Follow-up — 20 October 2026: compact default passes; fresh setup clarified
 
 - Reviewed source `2f05695` privately pushed; compact native two-call default passed in 72.978s. Remaining 39 outcomes resumed in evaluator `47821` after model process handles disappeared, hashes were reverified and health returned200. The report spans a process break; preserve this limit and every outcome. Gates remain unachieved while running.
