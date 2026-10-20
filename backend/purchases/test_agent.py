@@ -189,7 +189,8 @@ class AgentTests(TransactionTestCase):
             self.assertEqual(grounded["constraints"]["currency"], "USD")
 
     def test_foreign_dollars_overflow_and_unitless_scaling_are_rejected(self):
-        for text in ("C$50 for 40 cloths, 40 by 40 cm, one-time.", "50 Canadian dollars for 40 cloths, 40 by 40 cm, one-time."):
+        for text in ("C$50 for 40 cloths, 40 by 40 cm, one-time.", "50 Canadian dollars for 40 cloths, 40 by 40 cm, one-time.",
+                     "NT$50 for 40 cloths, 40 by 40 cm, one-time.", "50 Aussie dollars for 40 cloths, 40 by 40 cm, one-time."):
             with self.subTest(text=text), self.http(arguments(budget_cents=5000, currency="$")):
                 result = agent.compare(text)
             self.assertIn(result["status"], {"NO_MATCH", "NEEDS_CLARIFICATION"})

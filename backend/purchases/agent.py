@@ -243,8 +243,8 @@ def _raw_policy(text, confirmed):
 
 
 _USD = {"$", "US$", "USD", "US DOLLAR", "US DOLLARS", "DOLLAR", "DOLLARS"}
-_FOREIGN = (r"€|£|₹|\b(?:C|CA|A|AU|NZ|HK|S|SG|MX)\$|\b(?:EUR|euros?|GBP|pounds?|INR|rupees?|CAD|AUD|NZD|HKD|SGD|MXN|JPY|yen)\b"
-            r"|\b(?:Canadian|Australian|New Zealand|Hong Kong|Singapore|Mexican)\s+dollars?\b")
+_FOREIGN = (r"€|£|₹|\b(?:C|CA|A|AU|NZ|NT|HK|S|SG|MX|R|J|TT|B)\$|\b(?:EUR|euros?|GBP|pounds?|INR|rupees?|CAD|AUD|NZD|HKD|SGD|MXN|JPY|yen)\b"
+            r"|\b(?:Canadian|Australian|Aussie|Kiwi|New Zealand|Hong Kong|Singapore|Mexican|Taiwan(?:ese)?|Jamaican)\s+dollars?\b")
 _METRIC = r"(\d{1,6}(?:\.\d{1,6})?)\s*-?\s*(?:l|lt|litres?|liters?|ml|millilitres?|milliliters?|m|metres?|meters?|cm|centimetres?|centimeters?|mm|millimetres?|millimeters?)\b"
 _UNITS = {word: index for index, word in enumerate(
     "zero one two three four five six seven eight nine ten eleven twelve thirteen "

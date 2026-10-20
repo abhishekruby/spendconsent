@@ -168,3 +168,36 @@ checkpoints. The default run cap becomes 60; atomic attempt recording and
 resumption behavior remain unchanged. The case author reviewed the adapter; the
 implementation owner remains blind to new case inputs/answers before inference.
 This independence is narrower than a separate external benchmark.
+
+## 20 October evening (Claude session): grammar, grounding and slot fixes
+
+- `a37ae31` default failed in 41.7s with invalid native arguments: the per-product
+  `oneOf` let llama.cpp compile branches holding only `category`/`attributes`, so
+  every actual call omitted five required fields. Preserved in
+  `ai-application-qualification-a37ae31.json`.
+- `199392d` made each branch complete and added number grounding; its default
+  timed out at 90.093s (prompt 2,849 tokens, ~350 ms/token grammar sampling).
+  Preserved in `ai-application-qualification-199392d.json`.
+- `684afca` flattened the schema (1,024 prompt tokens, ~180 ms/token). Default
+  passed READY in 40.889s; the next nine original cases also passed but took
+  67–75s because one model slot alternates two prompts and evicts the cached
+  prefix. Stopped deliberately after 10/10 passed + 1 interrupted; preserved as
+  partial `ai-application-qualification-684afca.json` (latency gate unachievable).
+- Grounding: extracted quantity, budget and integer specifications must appear in
+  the buyer text (digits, number words, unit-adjacent metric conversion), else
+  they become unknown and the buyer is asked. It checks presence, not role.
+  Non-USD dollar markers (C$, NT$, "Canadian dollars", ...) never become USD.
+- Current model runtime adds `--parallel 2` (same 4096 total context and memory)
+  so the extraction prefix stays cached: warm full cases measured ~30s versus
+  ~70s. Unseen cases remain unread by the implementer; one generic format class
+  (decimal litres to millilitres) was learned from an offline self-test failure
+  via a separate agent, without case text or values.
+
+```bash
+.runtime/llama-b11696/llama-server \
+  --model .ai-cache/qwen3-4b-q4_k_m.gguf --alias qwen3-4b-q4_k_m \
+  --host 127.0.0.1 --port 11435 --threads 4 --threads-batch 4 \
+  --ctx-size 4096 --parallel 2 --cache-ram 0 --batch-size 128 --ubatch-size 128 \
+  --device none --gpu-layers 0 --jinja --chat-template-file .ai-cache/qwen3.jinja \
+  --reasoning off --offline --log-disable --no-webui
+```
