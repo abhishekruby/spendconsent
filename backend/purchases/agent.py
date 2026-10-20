@@ -40,21 +40,18 @@ _TOOL_PROPERTIES = {
         "one_time": {"type": ["boolean", "null"], "description": "True only if buyer requires one-time terms; false for recurring; null when unspecified."},
         "unsupported_requirements": {"type": "array", "items": {"type": "string"}, "maxItems": 8,
                                      "description": "Only explicitly stated extra must-haves not representable by the other fields (brand, color, certification, delivery date, etc.). Never list missing or unspecified facts. Empty when no extra requirements were stated."}}
-# Each oneOf branch is a complete object schema: llama.cpp compiles every branch
-# into its own grammar and ignores sibling properties/required on the parent.
+# One flat object keeps the llama.cpp grammar small: a per-product oneOf tripled
+# prompt tokens and doubled per-token sampling time on this CPU. The server, not
+# the grammar, rejects specifications that do not belong to the product.
 TOOL = {"type": "function", "function": {
     "name": "search_catalog",
     "description": "Interpret exact buyer requirements and compare fictional catalog quotes. Missing facts are null, never unsupported requirements or guesses.",
-    "parameters": {"oneOf": [
-        {"type": "object", "properties": {
-            **_TOOL_PROPERTIES,
-            "category": {**_TOOL_PROPERTIES["category"], "const": native},
-            "attributes": {"type": "object", "properties": {
-                key: _ATTRIBUTE_SCHEMA[key] for key in ATTRIBUTES.get(canonical, ())},
-                "required": list(ATTRIBUTES.get(canonical, ())), "additionalProperties": False,
-                "description": "Include exactly this product's attribute keys. Missing values are null; preserve both stated cloth dimensions in order."}},
-         "required": list(_FIELDS), "additionalProperties": False}
-        for native, canonical in _NATIVE_CATEGORIES.items()]}}}
+    "parameters": {"type": "object", "properties": {
+        **_TOOL_PROPERTIES, "category": {**_TOOL_PROPERTIES["category"], "enum": list(_NATIVE_CATEGORIES)},
+        "attributes": {"type": "object", "properties": _ATTRIBUTE_SCHEMA,
+                       "required": sorted(_ATTRIBUTE_NAMES), "additionalProperties": False,
+                       "description": "All five keys. Only the requested product's keys may be non-null; missing values are null. Preserve both stated cloth dimensions in order."}},
+        "required": list(_FIELDS), "additionalProperties": False}}}
 FINAL_SCHEMA = {"type": "object", "properties": {
     "status": {"type": "string", "enum": ["READY", "NO_MATCH", "NEEDS_CLARIFICATION"]},
     "offer_id": {"type": ["string", "null"]}},
@@ -212,8 +209,7 @@ def _arguments(value):
     if value["one_time"] is not None and type(value["one_time"]) is not bool:
         raise AgentError()
     attributes = value["attributes"]
-    applicable = ATTRIBUTES.get(_NATIVE_CATEGORIES[value["category"]], ())
-    if not isinstance(attributes, dict) or set(attributes) != set(applicable):
+    if not isinstance(attributes, dict) or set(attributes) != _ATTRIBUTE_NAMES:
         raise AgentError()
     for key, item in attributes.items():
         if item is None:
@@ -233,7 +229,7 @@ def _arguments(value):
 def _raw_policy(text, confirmed):
     """Conservative policy flags, not a replacement for model interpretation."""
     unsupported, ambiguous = [], []
-    if "currency" not in confirmed and re.search(r"€|£|₹|\b(?:EUR|euros?|GBP|pounds?|INR|rupees?|CAD|AUD|JPY|yen)\b", text, re.I):
+    if "currency" not in confirmed and re.search(_FOREIGN, text, re.I):
         (ambiguous if re.search(r"\$|\b(?:USD|US dollars?)\b", text, re.I) else unsupported).append("currency")
     if "one_time" not in confirmed:
         for match in re.finditer(r"\b(?:subscriptions?|recurring|monthly|weekly|annually)\b", text, re.I):
@@ -247,6 +243,9 @@ def _raw_policy(text, confirmed):
 
 
 _USD = {"$", "US$", "USD", "US DOLLAR", "US DOLLARS", "DOLLAR", "DOLLARS"}
+_FOREIGN = (r"€|£|₹|\b(?:C|CA|A|AU|NZ|HK|S|SG|MX)\$|\b(?:EUR|euros?|GBP|pounds?|INR|rupees?|CAD|AUD|NZD|HKD|SGD|MXN|JPY|yen)\b"
+            r"|\b(?:Canadian|Australian|New Zealand|Hong Kong|Singapore|Mexican)\s+dollars?\b")
+_METRIC = r"(\d{1,6}(?:\.\d{1,6})?)\s*-?\s*(?:l|lt|litres?|liters?|ml|millilitres?|milliliters?|m|metres?|meters?|cm|centimetres?|centimeters?|mm|millimetres?|millimeters?)\b"
 _UNITS = {word: index for index, word in enumerate(
     "zero one two three four five six seven eight nine ten eleven twelve thirteen "
     "fourteen fifteen sixteen seventeen eighteen nineteen".split())}
@@ -275,8 +274,11 @@ def _grounded(arguments, text):
 
     The model proposes values; only numbers literally present in the request
     text survive. Budgets match $N as N*100 cents, or N*100-1 for "under $N".
+    Limit: this checks presence, not role; a number stated for another field can
+    still pass, so the human-confirmed requirements and exact review remain final.
     """
-    numbers = {float(item.replace(",", "")) for item in re.findall(r"\d[\d,]*(?:\.\d+)?", text)}
+    # Bounded digit runs: no float overflow from pathological input.
+    numbers = {float(item.replace(",", "")) for item in re.findall(r"\d[\d,]{0,15}(?:\.\d{1,6})?", text)}
     words = _number_words(text)
     integers = {int(item) for item in numbers if item == int(item)} | words
     cents = {round(item * 100) for item in numbers} | {item * 100 for item in words}
@@ -285,13 +287,15 @@ def _grounded(arguments, text):
         arguments["quantity"] = None
     if arguments["budget_cents"] not in cents | {item - 1 for item in cents}:
         arguments["budget_cents"] = None
-    # Specifications may be stated in another metric unit (0.5 L = 500 ml, 0.4 m = 40 cm).
-    scaled = integers | {round(item * factor) for item in numbers | words for factor in (0.1, 10, 100, 1000)
+    # A specification written next to a metric unit may be converted (0.5 L = 500 ml).
+    metric = {float(item) for item in re.findall(_METRIC, text, re.I)}
+    scaled = integers | {round(item * factor) for item in metric for factor in (0.1, 10, 100, 1000)
                          if abs(item * factor - round(item * factor)) < 1e-9}
     for key, item in arguments["attributes"].items():
         if type(item) is int and item not in scaled:
             arguments["attributes"][key] = None
-    if isinstance(arguments["currency"], str) and arguments["currency"].strip().upper() in _USD:
+    if (isinstance(arguments["currency"], str) and arguments["currency"].strip().upper() in _USD
+            and not re.search(_FOREIGN, text, re.I)):
         arguments["currency"] = "USD"
     return arguments
 

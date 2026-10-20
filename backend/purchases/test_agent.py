@@ -30,8 +30,7 @@ def arguments(constraints=None, **changes):
     value.update(changes)
     native = {"cloth": "microfiber cloth", "bag": "waste bag", "bottle": "spray bottle"}
     value["category"] = native.get(value["category"], value["category"])
-    applicable = agent.ATTRIBUTES.get(agent._NATIVE_CATEGORIES.get(value["category"]), ())
-    value["attributes"] = {**dict.fromkeys(applicable), **(value["attributes"] or {})} if applicable else {}
+    value["attributes"] = {**dict.fromkeys(agent._ATTRIBUTE_NAMES), **(value["attributes"] or {})}
     return value
 
 
@@ -115,18 +114,11 @@ class AgentTests(TransactionTestCase):
                 self.assertEqual(len(fake.bodies), 2)
                 self.assertEqual(fake.bodies[0]["tools"], [agent.TOOL])
                 parameters = fake.bodies[0]["tools"][0]["function"]["parameters"]
-                self.assertEqual(set(parameters), {"oneOf"})
-                branches = parameters["oneOf"]
-                # Every branch must be complete: llama.cpp ignores parent properties.
-                for branch in branches:
-                    self.assertEqual(set(branch["required"]), set(agent._FIELDS))
-                    self.assertEqual(set(branch["properties"]), set(agent._FIELDS))
-                    self.assertFalse(branch["additionalProperties"])
-                self.assertEqual({branch["properties"]["category"]["const"] for branch in branches},
-                                 {"microfiber cloth", "waste bag", "spray bottle", "notebook", "unsupported", None})
-                branch = next(branch for branch in branches if branch["properties"]["category"]["const"] == fake.value["category"])
-                schema = branch["properties"]["attributes"]
-                self.assertEqual(set(schema["required"]), set(attributes))
+                self.assertEqual(set(parameters["required"]), set(agent._FIELDS))
+                self.assertFalse(parameters["additionalProperties"])
+                self.assertNotIn("oneOf", json.dumps(parameters))
+                schema = parameters["properties"]["attributes"]
+                self.assertEqual(set(schema["required"]), agent._ATTRIBUTE_NAMES)
                 self.assertEqual(set(schema["properties"]), set(schema["required"]))
                 self.assertFalse(schema["additionalProperties"])
                 self.assertEqual({key: item for key, item in fake.value["attributes"].items() if item is not None}, attributes)
@@ -195,6 +187,23 @@ class AgentTests(TransactionTestCase):
                 grounded = agent.compare(f"Exactly 40 cloths, 40 by 40 cm, {text} delivered, one-time.")
             self.assertEqual(grounded["constraints"]["budget_cents"], budget)
             self.assertEqual(grounded["constraints"]["currency"], "USD")
+
+    def test_foreign_dollars_overflow_and_unitless_scaling_are_rejected(self):
+        for text in ("C$50 for 40 cloths, 40 by 40 cm, one-time.", "50 Canadian dollars for 40 cloths, 40 by 40 cm, one-time."):
+            with self.subTest(text=text), self.http(arguments(budget_cents=5000, currency="$")):
+                result = agent.compare(text)
+            self.assertIn(result["status"], {"NO_MATCH", "NEEDS_CLARIFICATION"})
+            self.assertNotIn("currency", result["constraints"])
+            self.assertNotIn("budget_cents", result["constraints"])
+        with self.http(arguments()):
+            self.assertIn(agent.compare(TEXT + " " + "9" * 400)["status"], {"READY", "NEEDS_CLARIFICATION", "NO_MATCH"})
+        bottle = arguments(category="bottle", quantity=5, budget_cents=2000, attributes={"volume_ml": 500})
+        with self.http(bottle):
+            result = agent.compare("Buy 5 spray bottles under $20, one-time.")
+        self.assertNotIn("attributes", result["constraints"])
+        with self.http(bottle):
+            result = agent.compare("Buy 5 spray bottles of 0.5 L, $20 maximum, one-time.")
+        self.assertEqual(result["constraints"]["attributes"], {"volume_ml": 500})
 
     def test_complete_attribute_protocol_preserves_unknowns_and_dimension_order(self):
         with self.http(arguments(attributes={"width_cm": 35})):
@@ -315,10 +324,11 @@ class AgentTests(TransactionTestCase):
         for changes in ({"quantity": True}, {"quantity": 10001}, {"budget_cents": 1000001},
                         {"attributes": {"width_cm": True}}, {"one_time": "true"},
                         {"approved": True}, {"unsupported_requirements": "none"}, {"category": "nitrile gloves"},
-                        {"attributes": {"width_cm": 40, "height_cm": 40, "volume_ml": None}}):
+                        {"attributes": {"width_cm": 40, "height_cm": 40, "length_cm": None}}):
             bad.append(native_call(arguments(**changes)))
-        for category in ("cloth", "unsupported", None):
-            bad.append(native_call({**arguments(), "category": category}))
+        # Every attribute key is required; canonical (non-native) category names are invalid.
+        bad.append(native_call({**arguments(), "attributes": {"width_cm": 40, "height_cm": 40}}))
+        bad.append(native_call({**arguments(), "category": "cloth"}))
         for message in bad:
             with self.subTest(message=message), self.http() as fake:
                 fake.first = response(message, "tool_calls")

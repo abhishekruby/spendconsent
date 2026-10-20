@@ -352,7 +352,7 @@ def self_test():
             category = native.get(value["category"], "unsupported" if value["category"] is not None else None)
             applicable = agent.ATTRIBUTES.get(agent._NATIVE_CATEGORIES[category], ())
             value = {**value, "category": category, "attributes": {
-                **dict.fromkeys(applicable), **value["attributes"]} if applicable else {}}
+                **dict.fromkeys(agent._ATTRIBUTE_NAMES), **(value["attributes"] if applicable else {})}}
             return {"role": "assistant", "content": None, "tool_calls": [{"id": "offline_1", "type": "function",
                     "function": {"name": "search_catalog", "arguments": json.dumps(value)}}]}
         facts = json.loads(payload["messages"][-1]["content"])
