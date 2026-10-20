@@ -216,3 +216,12 @@ failures led to `168eee7` (unit-aware conversion per attribute, paper size must
 appear in text, more recurring phrases) and a recurrence/number-boundary
 follow-up after independent review. A separate agent authored blind suite
 `ai-application-unseen-168eee7.json` (`unseen3`); five suites, 100 outcomes.
+
+`2d1279b` (five suites): 20, 20, exposed 808472c 16, exposed a12decc 20, blind
+168eee7 20/20 — gate failed on an exposed suite (model unit arithmetic). `52ad168`
+changes the native protocol: the model copies budget and sizes as written
+(`budget`, unit-free `width/height/capacity/volume`, `size_unit`); `_grounded`
+checks the literal values against the text and converts in code. Review fixes:
+each number takes the unit written right after it, budgets must be whole cents
+of at least 1, raw sizes may be in a smaller unit. Blind suite `unseen4`
+(`ai-application-unseen-52ad168.json`) by a separate agent; six suites, 120 outcomes.

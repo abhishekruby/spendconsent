@@ -252,6 +252,25 @@ class AgentTests(TransactionTestCase):
             self.assertEqual(result["status"], "NO_MATCH")
             self.assertNotIn("one_time", result["constraints"])
 
+    def test_each_size_uses_the_unit_written_after_it_and_budgets_are_whole_cents(self):
+        cloth = {**arguments(quantity=40, budget_cents=6000), "size_unit": "m",
+                 "attributes": {**dict.fromkeys(agent._NATIVE_ATTRIBUTES), "width": 40, "height": 0.3}}
+        with self.http(cloth):
+            result = agent.compare("Forty cloths, 40 cm by 0.3 m, at most $60, one-time.")
+        self.assertEqual(result["constraints"]["attributes"], {"width_cm": 40, "height_cm": 30})
+        cloth = {**cloth, "size_unit": "mm", "attributes": {**cloth["attributes"], "height": 40}}
+        with self.http(cloth):
+            result = agent.compare("Forty cloths, 40 by 40 cm, 5 mm thick, at most $60, one-time.")
+        self.assertEqual(result["constraints"]["attributes"], {"width_cm": 40, "height_cm": 40})
+        for budget, text in ((10.995, "$10.995"), (0.001, "zero fees")):
+            with self.subTest(budget=budget), self.http({**arguments(), "budget": budget}):
+                try:
+                    result = agent.compare(f"Exactly 40 cloths, 40 by 40 cm, {text}, one-time.")
+                except agent.AgentError as error:
+                    self.assertEqual(error.code, "MODEL_ERROR")
+                else:
+                    self.assertNotIn("budget_cents", result["constraints"])
+
     def test_complete_attribute_protocol_preserves_unknowns_and_dimension_order(self):
         with self.http(arguments(attributes={"width_cm": 35})):
             result = agent.compare("Exactly 40 microfiber cloths, width 35 cm, at most $60 delivered, one-time only.")

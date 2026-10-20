@@ -3,10 +3,12 @@ from concurrent.futures import ThreadPoolExecutor
 from copy import deepcopy
 from datetime import timedelta
 import importlib
+import io
 import threading
 import uuid
 from unittest.mock import patch
 from django.apps import apps
+from django.core.management import CommandError, call_command
 from django.db import IntegrityError, close_old_connections, connection, transaction
 from django.test import Client, TestCase, TransactionTestCase
 from django.utils import timezone
@@ -180,6 +182,18 @@ class CatalogAndAuthorityTests(TestCase):
             make_review(request)
         self.assertEqual(error.exception.code, "REVIEW_CHANGED")
         self.assertFalse(Review.objects.exists())
+
+    def test_operator_price_change_bumps_version_and_blocks_existing_review(self):
+        request = ready_request()
+        review = make_review(request)
+        offer = Offer.objects.get(id=review.snapshot["item"]["offer_id"])
+        call_command("set_offer_price", offer.sku, offer.price_cents + 165, stdout=io.StringIO())
+        offer.refresh_from_db()
+        self.assertEqual(offer.version, review.quote_version + 1)
+        with self.assertRaises(services.DomainError):
+            make_approval(review)
+        with self.assertRaises(CommandError):
+            call_command("set_offer_price", "NO-SUCH-SKU", 100, stdout=io.StringIO())
 
     def test_pending_paid_and_mismatched_payment_review_block_edits(self):
         for state in ("CREATING", "UNKNOWN", "PAYMENT_REVIEW", "PAID"):

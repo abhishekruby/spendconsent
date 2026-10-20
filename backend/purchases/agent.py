@@ -26,7 +26,6 @@ PRESET = {"model": MODEL, "temperature": 0.7, "top_p": 0.8, "top_k": 20,
 _INFERENCE = threading.Lock()
 _FIELDS = ("category", "quantity", "budget_cents", "currency", "one_time",
            "attributes", "unsupported_requirements")
-_ATTRIBUTE_NAMES = {name for names in ATTRIBUTES.values() for name in names}
 # The model copies amounts and sizes exactly as written; code does every unit and
 # cents conversion (the 4B model repeatedly mis-scaled 60.00 USD or 0.5 litre).
 _NATIVE_FIELDS = ("category", "quantity", "budget", "currency", "one_time", "size_unit",
@@ -221,7 +220,7 @@ def _arguments(value):
         raise AgentError()
     if value["quantity"] is not None and (type(value["quantity"]) is not int or not 1 <= value["quantity"] <= 10000):
         raise AgentError()
-    if value["budget"] is not None and not _number(value["budget"], 10000):
+    if value["budget"] is not None and (not _number(value["budget"], 10000) or round(value["budget"] * 100) < 1):
         raise AgentError()
     if value["size_unit"] is not None and value["size_unit"] not in _SIZE_UNITS:
         raise AgentError()
@@ -240,7 +239,8 @@ def _arguments(value):
         if key == "paper_size":
             if not isinstance(item, str) or not 1 <= len(item) <= 20:
                 raise AgentError()
-        elif not _number(item, 10000):
+        # Raw sizes may be in a smaller unit (20000 ml); the converted value is range-checked.
+        elif not _number(item, 1_000_000):
             raise AgentError()
     extra = value["unsupported_requirements"]
     if not isinstance(extra, list) or len(extra) > 8 or any(
@@ -323,11 +323,15 @@ def _grounded(native, text):
                  "one_time": native["one_time"], "unsupported_requirements": native["unsupported_requirements"],
                  "quantity": native["quantity"] if native["quantity"] in numbers else None,
                  "budget_cents": None, "attributes": {}}
-    if native["budget"] is not None and round(native["budget"] * 100) in cents | {item - 1 for item in cents}:
-        arguments["budget_cents"] = round(native["budget"] * 100)
-    # The unit must be one the buyer wrote next to a number; otherwise use the only
-    # written unit that measures this dimension, else the attribute's own unit.
-    written = {_unit(unit) for _, unit in re.findall(_METRIC, text, re.I)}
+    budget = None if native["budget"] is None else native["budget"] * 100
+    # Whole cents only: "10.995" is not a price the buyer can be held to.
+    if budget is not None and abs(budget - round(budget)) < 1e-6 and round(budget) in cents | {item - 1 for item in cents}:
+        arguments["budget_cents"] = round(budget)
+    # Each number takes the unit the buyer wrote right after it ("40 cm by 0.3 m").
+    # A bare number uses the model's size_unit when the buyer wrote that unit,
+    # else the only written unit measuring this dimension, else the key's own unit.
+    metric = [(float(number), _unit(unit)) for number, unit in re.findall(_METRIC, text, re.I)]
+    written = {unit for _, unit in metric}
     for key, item in native["attributes"].items():
         canonical = _NATIVE_ATTRIBUTES[key]
         if item is None:
@@ -339,9 +343,16 @@ def _grounded(native, text):
             value = None
         else:
             options = written & set(_CONVERT[canonical])
-            unit = native["size_unit"] if native["size_unit"] in options else (
-                next(iter(options)) if len(options) == 1 else _DEFAULT_UNIT[canonical])
-            converted = item * _CONVERT[canonical][unit]
+            after = {unit for number, unit in metric if number == float(item)}
+            if after:
+                # Prefer the model's unit if the buyer wrote it after this number.
+                fitting = after & set(_CONVERT[canonical])
+                unit = native["size_unit"] if native["size_unit"] in fitting else (
+                    next(iter(fitting)) if len(fitting) == 1 else None)
+            else:
+                unit = native["size_unit"] if native["size_unit"] in options else (
+                    next(iter(options)) if len(options) == 1 else _DEFAULT_UNIT[canonical])
+            converted = item * _CONVERT[canonical][unit] if unit else 0.5
             value = round(converted) if abs(converted - round(converted)) < 1e-9 and 1 <= round(converted) <= 10000 else None
         arguments["attributes"][canonical] = value
     if (isinstance(arguments["currency"], str) and arguments["currency"].strip().upper() in _USD
