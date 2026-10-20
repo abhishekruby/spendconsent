@@ -58,7 +58,8 @@ class Command(BaseCommand):
             f"  Item:     {item['name']} ({item['sku']})\n"
             f"  Quantity: {item['packs']} packs x {item['pack_units']} = {item['individual_units']} units\n"
             f"  Total:    USD {total} (items, delivery and fixture tax)\n"
-            f"  Valid until {timezone.localtime(expires):%H:%M:%S}; one create and one capture only.")
+            f"  Valid for {int((expires - now).total_seconds()) // 60} min {int((expires - now).total_seconds()) % 60} s more; "
+            f"one create and one capture only.")
         if input(f"Type {total} to allow this one sandbox purchase (anything else cancels): ").strip() != total:
             raise CommandError("Cancelled; nothing written.")
         if timezone.now() >= expires:

@@ -24,3 +24,22 @@ and amount before each one-time permission was written (then removed after use).
    could not receive USD. User created a US sandbox business account + app and
    updated `.env` privately. Attempt `0db00f4d` stays AWAITING_BUYER with an
    expired approval; capture is impossible.
+
+## Recovery checks against the real sandbox — 21 Oct 2026, 03:17–03:22 IST
+
+One user-consented purchase (consent typed via `authorize_sandbox_purchase`):
+CLOTH-B, 2 packs × 20, **USD 41.80**, attempt `7c626969`, capture
+`97F67458GU342961X`.
+
+| Check | Observed |
+| --- | --- |
+| Double click "Start sandbox checkout" | 1 create POST, 1 attempt for the approval, 1 PayPal order (button disabled while busy; server idempotency covered by tests) |
+| API restart while AWAITING_BUYER (21:50:08 UTC) | Attempt and order id persisted; flow continued on the same attempt |
+| Page refresh mid-flow | Same attempt restored as "awaiting buyer" |
+| Cancel in PayPal window | Client-side only (SDK onCancel); no server call, attempt unchanged — user-reported |
+| Final payment | CREATING 21:49:04 → AWAITING_BUYER 21:49:08 → CAPTURING 21:51:57 → VERIFYING 21:51:59 → PAID 21:52:01 (UTC); 1 capture POST; CLOTH-B stock 98 (−2 packs) |
+
+First consent attempt expired before the command was run; the command refused
+an expired approval and nothing was written (as designed). Used permission
+file deleted. Not yet exercised for real: API decline and timeout after request
+transmission (covered by fake-transport tests only).

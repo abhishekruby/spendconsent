@@ -1,6 +1,6 @@
 # SpendConsent — compact handoff
 
-Updated 21 Oct 2026, 04:00 IST, by Claude Code. Claude and ChatGPT/Codex
+Updated 21 Oct 2026, 03:30 IST, by Claude Code. Claude and ChatGPT/Codex
 alternate on this repo: read AGENTS.md, then this file. History:
 PROJECT_CONTEXT_HISTORY.md, docs/progress.md, docs/ai-application-evaluation.md.
 
@@ -62,9 +62,9 @@ Project PostgreSQL (`scripts/local_postgres.py --start`), model 127.0.0.1:11435
 
 ## Next actions (in order)
 
-1. Recovery checks against the real sandbox (cancel in popup, refresh mid-flow,
-   double click), each with fresh user consent. Leftover attempts b9f38bd9 /
-   0db00f4d are documented and cannot capture; left as is.
+1. DONE 03:22 IST: real-sandbox recovery checks (double click → 1 order,
+   API restart + refresh mid-flow → same attempt, cancel, then PAID USD 41.80,
+   capture 97F67458GU342961X). See docs/evidence/sandbox-purchase-2026-10-21.md.
 2. Usability study (docs/usability-evaluation.md, needs real participants),
    demo video (docs/demo-script.md), public repo + Devpost — each needs user
    approval. Accessibility spot check (R11) passed 21 Oct; UI duplicate fixed;
