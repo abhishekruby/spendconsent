@@ -40,19 +40,20 @@ _TOOL_PROPERTIES = {
         "one_time": {"type": ["boolean", "null"], "description": "True only if buyer requires one-time terms; false for recurring; null when unspecified."},
         "unsupported_requirements": {"type": "array", "items": {"type": "string"}, "maxItems": 8,
                                      "description": "Only explicitly stated extra must-haves not representable by the other fields (brand, color, certification, delivery date, etc.). Never list missing or unspecified facts. Empty when no extra requirements were stated."}}
+# Each oneOf branch is a complete object schema: llama.cpp compiles every branch
+# into its own grammar and ignores sibling properties/required on the parent.
 TOOL = {"type": "function", "function": {
     "name": "search_catalog",
     "description": "Interpret exact buyer requirements and compare fictional catalog quotes. Missing facts are null, never unsupported requirements or guesses.",
-    "parameters": {"type": "object", "properties": {
-        **_TOOL_PROPERTIES, "category": {**_TOOL_PROPERTIES["category"], "enum": list(_NATIVE_CATEGORIES)},
-        "attributes": {"type": "object"}},
-        "required": list(_FIELDS), "additionalProperties": False, "oneOf": [
-        {"properties": {
-            "category": {"const": native},
+    "parameters": {"oneOf": [
+        {"type": "object", "properties": {
+            **_TOOL_PROPERTIES,
+            "category": {**_TOOL_PROPERTIES["category"], "const": native},
             "attributes": {"type": "object", "properties": {
                 key: _ATTRIBUTE_SCHEMA[key] for key in ATTRIBUTES.get(canonical, ())},
                 "required": list(ATTRIBUTES.get(canonical, ())), "additionalProperties": False,
-                "description": "Include exactly this product's attribute keys. Missing values are null; preserve both stated cloth dimensions in order."}}}
+                "description": "Include exactly this product's attribute keys. Missing values are null; preserve both stated cloth dimensions in order."}},
+         "required": list(_FIELDS), "additionalProperties": False}
         for native, canonical in _NATIVE_CATEGORIES.items()]}}}
 FINAL_SCHEMA = {"type": "object", "properties": {
     "status": {"type": "string", "enum": ["READY", "NO_MATCH", "NEEDS_CLARIFICATION"]},
@@ -245,8 +246,58 @@ def _raw_policy(text, confirmed):
     return unsupported, ambiguous
 
 
+_USD = {"$", "US$", "USD", "US DOLLAR", "US DOLLARS", "DOLLAR", "DOLLARS"}
+_UNITS = {word: index for index, word in enumerate(
+    "zero one two three four five six seven eight nine ten eleven twelve thirteen "
+    "fourteen fifteen sixteen seventeen eighteen nineteen".split())}
+_TENS = {word: 10 * index for index, word in enumerate(
+    "twenty thirty forty fifty sixty seventy eighty ninety".split(), 2)}
+
+
+def _number_words(text):
+    """English counts up to 999 ("seventy", "twenty-eight", "two hundred", "a dozen")."""
+    found = set()
+    units, tens = "|".join(_UNITS), "|".join(_TENS)
+    for match in re.finditer(rf"\b(?:(a|{units})\s+hundred(?:\s+and)?\s+)?(?:({tens})(?:[\s-]+({units}))?|({units}))?\b", text, re.I):
+        hundreds, ten, unit, small = (item and item.lower() for item in match.groups())
+        value = (100 * (1 if hundreds == "a" else _UNITS[hundreds]) if hundreds else 0) + (
+            _TENS[ten] + (_UNITS[unit] if unit else 0) if ten else _UNITS.get(small, 0))
+        # "one-time"/"one-off" describe purchase terms, not a count.
+        if match.group(0).strip() and not re.match(r"[\s-]*(?:time|off)\b", text[match.end():], re.I):
+            found.add(value)
+    for match in re.finditer(rf"\b(a|{units})\s+dozens?\b|\bdozen\b", text, re.I):
+        found.add(12 * (_UNITS.get((match.group(1) or "one").lower(), 1)))
+    return found
+
+
+def _grounded(arguments, text):
+    """Null any extracted number the buyer never wrote; the buyer is then asked.
+
+    The model proposes values; only numbers literally present in the request
+    text survive. Budgets match $N as N*100 cents, or N*100-1 for "under $N".
+    """
+    numbers = {float(item.replace(",", "")) for item in re.findall(r"\d[\d,]*(?:\.\d+)?", text)}
+    words = _number_words(text)
+    integers = {int(item) for item in numbers if item == int(item)} | words
+    cents = {round(item * 100) for item in numbers} | {item * 100 for item in words}
+    arguments = {**arguments, "attributes": dict(arguments["attributes"])}
+    if arguments["quantity"] not in integers:
+        arguments["quantity"] = None
+    if arguments["budget_cents"] not in cents | {item - 1 for item in cents}:
+        arguments["budget_cents"] = None
+    # Specifications may be stated in another metric unit (0.5 L = 500 ml, 0.4 m = 40 cm).
+    scaled = integers | {round(item * factor) for item in numbers | words for factor in (0.1, 10, 100, 1000)
+                         if abs(item * factor - round(item * factor)) < 1e-9}
+    for key, item in arguments["attributes"].items():
+        if type(item) is int and item not in scaled:
+            arguments["attributes"][key] = None
+    if isinstance(arguments["currency"], str) and arguments["currency"].strip().upper() in _USD:
+        arguments["currency"] = "USD"
+    return arguments
+
+
 def _search(arguments, confirmed, text):
-    arguments = {**arguments, "category": _NATIVE_CATEGORIES[arguments["category"]]}
+    arguments = _grounded({**arguments, "category": _NATIVE_CATEGORIES[arguments["category"]]}, text)
     raw_unsupported, ambiguous = _raw_policy(text, confirmed)
     proposed = {key: value for key, value in arguments.items()
                 if key not in ("attributes", "unsupported_requirements") and value is not None}

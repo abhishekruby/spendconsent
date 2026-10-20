@@ -35,6 +35,13 @@ def arguments(constraints=None, **changes):
     return value
 
 
+def described(value):
+    """Synthetic request text stating every number the mocked model extracts."""
+    numbers = [value.get("quantity"), value["budget_cents"] / 100 if value.get("budget_cents") else None,
+               *[item for item in (value.get("attributes") or {}).values() if type(item) is int]]
+    return "Synthetic one-time supply request: " + ", ".join(str(item) for item in numbers if item is not None) + "."
+
+
 def native_call(value):
     return {"role": "assistant", "content": None, "tool_calls": [{
         "id": "call_1", "type": "function", "function": {
@@ -98,7 +105,7 @@ class AgentTests(TransactionTestCase):
             with self.subTest(category=category):
                 constraints = {**CONSTRAINTS, "category": category, "attributes": attributes, "quantity": quantity}
                 with self.http(arguments(constraints)) as fake:
-                    result = agent.compare("Synthetic one-time supply request.")
+                    result = agent.compare(described(constraints))
                 expected, excluded = catalog.compare_quotes(constraints)
                 self.assertEqual(result["constraints"], constraints)
                 self.assertEqual(result["candidates"], expected)
@@ -108,10 +115,13 @@ class AgentTests(TransactionTestCase):
                 self.assertEqual(len(fake.bodies), 2)
                 self.assertEqual(fake.bodies[0]["tools"], [agent.TOOL])
                 parameters = fake.bodies[0]["tools"][0]["function"]["parameters"]
-                self.assertEqual(set(parameters["required"]), set(agent._FIELDS))
-                self.assertFalse(parameters["additionalProperties"])
+                self.assertEqual(set(parameters), {"oneOf"})
                 branches = parameters["oneOf"]
-                self.assertTrue(all("additionalProperties" not in branch for branch in branches))
+                # Every branch must be complete: llama.cpp ignores parent properties.
+                for branch in branches:
+                    self.assertEqual(set(branch["required"]), set(agent._FIELDS))
+                    self.assertEqual(set(branch["properties"]), set(agent._FIELDS))
+                    self.assertFalse(branch["additionalProperties"])
                 self.assertEqual({branch["properties"]["category"]["const"] for branch in branches},
                                  {"microfiber cloth", "waste bag", "spray bottle", "notebook", "unsupported", None})
                 branch = next(branch for branch in branches if branch["properties"]["category"]["const"] == fake.value["category"])
@@ -128,7 +138,7 @@ class AgentTests(TransactionTestCase):
                 self.assertEqual(final_messages[0], {"role": "system", "content": agent.FINAL_SYSTEM})
                 self.assertEqual([row["role"] for row in final_messages], ["system", "user", "assistant", "tool"])
                 self.assertEqual(final_messages[2]["tool_calls"][0]["id"], final_messages[3]["tool_call_id"])
-                self.assertNotIn("Synthetic one-time supply request.", json.dumps(final_messages))
+                self.assertNotIn(described(constraints), json.dumps(final_messages))
                 self.assertNotIn("confirmed_constraints", json.dumps(final_messages))
                 self.assertNotIn("private_reasoning_marker", json.dumps(fake.bodies))
                 for body in fake.bodies:
@@ -147,7 +157,7 @@ class AgentTests(TransactionTestCase):
             with self.subTest(field=field):
                 value = arguments(**{field: {} if field == "attributes" else None})
                 with self.http(value):
-                    result = agent.compare("Synthetic supply request.")
+                    result = agent.compare(described(CONSTRAINTS))
                 self.assertEqual(result["status"], "NEEDS_CLARIFICATION")
                 self.assertFalse(result["candidates"])
                 if field == "attributes":
@@ -167,10 +177,24 @@ class AgentTests(TransactionTestCase):
         self.assertEqual(result["constraints"], CONSTRAINTS)
         self.assertEqual(result["status"], "READY")
         with self.http(arguments(quantity=1, attributes={"width_cm": 30, "height_cm": 30})):
-            partial = agent.compare(TEXT, {"quantity": 40, "category": "cloth", "attributes": {"width_cm": 40}})
+            partial = agent.compare(TEXT.replace("40 by 40", "30 by 30"), {"quantity": 40, "category": "cloth", "attributes": {"width_cm": 40}})
         self.assertEqual(partial["constraints"]["quantity"], 40)
         self.assertEqual(partial["constraints"]["attributes"], {"width_cm": 40, "height_cm": 30})
         self.assertEqual(partial["status"], "NO_MATCH")
+
+    def test_numbers_absent_from_request_text_become_unknown(self):
+        invented = arguments(quantity=1, budget_cents=1400, attributes={"width_cm": 40, "height_cm": 40})
+        with self.http(invented):
+            result = agent.compare("Microfiber cloths, 40 cm wide, for at most $35 delivered, one-time only.")
+        self.assertEqual(result["status"], "NEEDS_CLARIFICATION")
+        self.assertNotIn("quantity", result["constraints"])
+        self.assertNotIn("budget_cents", result["constraints"])
+        self.assertEqual(result["constraints"]["attributes"], {"width_cm": 40, "height_cm": 40})
+        for budget, text in ((3500, "$35"), (3499, "under $35"), (2750, "$27.50"), (100000, "$1,000")):
+            with self.subTest(text=text), self.http(arguments(budget_cents=budget, currency="$")):
+                grounded = agent.compare(f"Exactly 40 cloths, 40 by 40 cm, {text} delivered, one-time.")
+            self.assertEqual(grounded["constraints"]["budget_cents"], budget)
+            self.assertEqual(grounded["constraints"]["currency"], "USD")
 
     def test_complete_attribute_protocol_preserves_unknowns_and_dimension_order(self):
         with self.http(arguments(attributes={"width_cm": 35})):
@@ -251,7 +275,7 @@ class AgentTests(TransactionTestCase):
         for changes, expected in (({"budget_cents": 4180}, "READY"), ({"budget_cents": 4179}, "NO_MATCH"),
                                   ({"quantity": 15}, "NO_MATCH")):
             with self.subTest(changes=changes), self.http(arguments(**changes)):
-                result = agent.compare(TEXT)
+                result = agent.compare(described(arguments(**changes)))
             self.assertEqual(result["status"], expected)
             if expected == "READY":
                 self.assertEqual([(row["total_cents"], row["packs"], row["individual_units"]) for row in result["candidates"]], [(4180, 2, 40)])

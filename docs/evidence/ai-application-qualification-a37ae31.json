@@ -1,0 +1,149 @@
+{
+  "schema_version": 1,
+  "phase": "partial",
+  "prepared_at": "2026-10-20T12:43:58.991950+00:00",
+  "prepared_commit": "a37ae31744046aaecb2480d2f2cafef6cc3e15af",
+  "checkpoint": {
+    "sources": {
+      "scripts/ai_application_eval.py": "21b9e69c1846fb2f9eae963eb3bd77f6ee40469115f4835933301f3f75fff3fd",
+      "scripts/ai_probe.py": "5c1e4d8e17f9925324b670f09d42ffbf7ec4a083349344b266f4b93e07bf5127",
+      "backend/purchases/agent.py": "fb2dc867255be944ee8ce2e1f7bf84f3401b7c090fbd51f6d14f3d784b5aeaa1",
+      "backend/purchases/catalog.py": "96bd9d5cfdf1a5cbb0a84c6f3911c6c202621fe94517ae81728359e444758fa2",
+      "backend/purchases/serializers.py": "ffaada1a3d1262b0c566908009b657542449127d392dc77207aa8bb0c1679beb",
+      "backend/purchases/models.py": "bdfe48a1b8a50e29ce578df4d8dd9b79c79d3340e343da6fe216dd3732d8bf2e",
+      "backend/purchases/migrations/0002_sample_catalog.py": "3be8b3c85cb3e7f1a555c111472cc0fbc48afc94c596ea63df46ef70c873ffc3",
+      "docs/evidence/ai-application-holdouts.json": "261d388f1daa938a316763f7c4b184f69f119c8d2610425754cb73a997dc02b7",
+      "docs/evidence/ai-application-unseen-808472c.json": "60801137f60375cf82cb143afd4ffef7f99125cb647a876a2facc55d056262ce"
+    },
+    "configuration": {
+      "model": "qwen3-4b-q4_k_m",
+      "temperature": 0.7,
+      "top_p": 0.8,
+      "top_k": 20,
+      "min_p": 0,
+      "presence_penalty": 1.5,
+      "max_tokens": 350,
+      "stream": false,
+      "reasoning_effort": "none"
+    },
+    "endpoint": "http://127.0.0.1:11435/v1/chat/completions",
+    "system_sha256": "4f819c30e295aac8bc851630bcd28c9655e8c5316283574bee4ba1cf1a52a69c",
+    "final_system_sha256": "752136704445723c886d9f27914ea55cf38fafc651a7f4f81d115651d99bc125",
+    "tool_schema_sha256": "25c3800f409475b9d11b18123b5709427f90b8fee9f56fd4b67131d7aa7ec4bb",
+    "final_schema": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "READY",
+            "NO_MATCH",
+            "NEEDS_CLARIFICATION"
+          ]
+        },
+        "offer_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "status",
+        "offer_id"
+      ],
+      "additionalProperties": false
+    },
+    "expected_model_artifact": {
+      "repository": "Qwen/Qwen3-4B-GGUF",
+      "revision": "bc640142c66e1fdd12af0bd68f40445458f3869b",
+      "file": "Qwen3-4B-Q4_K_M.gguf",
+      "bytes": 2497280256,
+      "sha256": "7485fe6f11af29433bc51cab58009521f205840f5b4ae3a32fa7f92e8534fdf5",
+      "license": "Apache-2.0",
+      "template_sha256": "a55ee1b1660128b7098723e0abcd92caa0788061051c62d51cbe87d9cf1974d8"
+    },
+    "runtime_artifact_verification": "Separate team-lead runtime/download evidence; not attested by this runner.",
+    "catalog_storage": "Unsaved copies of frozen seed; ORM lookup redirected, actual catalog arithmetic.",
+    "database": "Django dummy backend; no DB access. Autocommit introspection supplied by fixture context.",
+    "gates": {
+      "outcomes_per_suite": 20,
+      "minimum_correct_per_suite": 18,
+      "warm_median_seconds_exclusive": 60,
+      "pool_suites": false
+    }
+  },
+  "synthetic_cases": true,
+  "actual_application_persistence_exercised": false,
+  "suites": {
+    "original": {
+      "results": [
+        {
+          "repetition": 1,
+          "case": "standard",
+          "passed": false,
+          "errors": [
+            "MODEL_ERROR"
+          ],
+          "elapsed_seconds": 41.729,
+          "evidence": {
+            "model_requests": 1,
+            "model_connections": 1,
+            "native_tool_names": [
+              "search_catalog"
+            ],
+            "blocked_other_destinations": 0,
+            "attack_exposed_to_model": false,
+            "validated_native_arguments": [],
+            "native_arguments_invalid": true,
+            "native_call_limit_exceeded": false,
+            "approval_records_created": 0,
+            "payment_attempts_created": 0,
+            "financial_http_calls": 0
+          }
+        }
+      ],
+      "summary": {
+        "passed": 0,
+        "total": 1,
+        "first_request_seconds": 41.729,
+        "warm_median_seconds": null,
+        "maximum_seconds": 41.729,
+        "accuracy_gate_passed": false,
+        "latency_gate_passed": false,
+        "default_case_gate_passed": false,
+        "suite_gate_passed": false
+      }
+    },
+    "fresh": {
+      "results": [],
+      "summary": {
+        "passed": 0,
+        "total": 0,
+        "first_request_seconds": null,
+        "warm_median_seconds": null,
+        "maximum_seconds": null,
+        "accuracy_gate_passed": false,
+        "latency_gate_passed": false,
+        "default_case_gate_passed": null,
+        "suite_gate_passed": false
+      }
+    },
+    "unseen": {
+      "results": [],
+      "summary": {
+        "passed": 0,
+        "total": 0,
+        "first_request_seconds": null,
+        "warm_median_seconds": null,
+        "maximum_seconds": null,
+        "accuracy_gate_passed": false,
+        "latency_gate_passed": false,
+        "default_case_gate_passed": null,
+        "suite_gate_passed": false
+      }
+    }
+  },
+  "all_gates_passed": false,
+  "run_commit": "a37ae31744046aaecb2480d2f2cafef6cc3e15af"
+}
