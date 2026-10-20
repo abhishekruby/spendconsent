@@ -1,5 +1,12 @@
 # Progress — project log
 
+## Latest status — 20 October 2026: token-efficient workflow; build remains paused
+
+- Startup now reads AGENTS.md plus compact PROJECT_CONTEXT.md; detailed specifications/evidence are on demand. Previous context is preserved unchanged in PROJECT_CONTEXT_HISTORY.md. Master safety/permission instructions are unchanged.
+- Default to one implementer and one combined reviewer; no separate workers for routine docs/commits. Use narrow fresh handoffs, bounded reads, focused checks and verified live handles. Full PRD and required financial/AI gates remain intact.
+- Prescribed startup text decreased from 72,019 to 10,864 characters (84.9% reduction). This measures reading volume, not actual token billing or a guaranteed usage reduction. Historical progress is excluded from default startup.
+- Existing PayPal WIP and interrupted AI report hashes are unchanged. No model/test process started, secret read, financial action or goal-status change occurred.
+
 ## Latest status — 19 October 2026: default-off AI wiring independently verified; first qualification case failed
 
 - The actual local-model adapter, default-off application wiring and evaluation runner passed independent review and were privately committed/pushed as `1cd99bcd1e05c6674fb7d153c8c726d7b801005e`; HEAD, origin/main and remote main matched. Exact reviewed hashes were unchanged and only the eleven authorized source/evaluation files were included. Human-confirmed constraints remain separate from inferred values; short claims release locks before model HTTP, and version/claim checks reject stale completion/failure. No readiness marker is granted: normal requests remain MODEL_UNAVAILABLE and all readiness/financial capabilities stay false.
