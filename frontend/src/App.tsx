@@ -730,7 +730,14 @@ export function PayPalCheckout({ session, attempt, busy, onApprove }: { session:
   const flow = useRef<Awaited<ReturnType<typeof preparePayPal>> | null>(null);
   const approve = useRef(onApprove);
   approve.current = onApprove;
+  const latest = useRef({ session, attempt });
+  latest.current = { session, attempt };
+  // Re-prepare only when the payment itself changes. Background status refreshes
+  // create new objects every few seconds; reacting to those disposed the open
+  // PayPal session, so the buyer's approval was ignored and nothing was captured.
+  const flowKey = [session.paypal?.client_id, session.capabilities.financial_actions_enabled, attempt.id, attempt.state, attempt.provider_order_id].join('|');
   useEffect(() => {
+    const { session, attempt } = latest.current;
     let active = true;
     let preparedFlow: Awaited<ReturnType<typeof preparePayPal>> | null = null;
     flow.current = null;
@@ -746,7 +753,7 @@ export function PayPalCheckout({ session, attempt, busy, onApprove }: { session:
       if (active) setStatus(error instanceof PayPalError && error.code === 'PAYPAL_INELIGIBLE' ? 'PayPal is not eligible for this sandbox checkout. The existing order remains saved.' : 'Sandbox checkout could not load. Check the existing payment status before retrying.');
     });
     return () => { active = false; preparedFlow?.dispose(); flow.current = null; };
-  }, [session, attempt]);
+  }, [flowKey]);
   function open() {
     const prepared = flow.current;
     if (!prepared || busy) return;
@@ -893,7 +900,7 @@ export function OwnerApproval({ token }: { token: string }) {
     })();
   }, []);
   const attempt = view?.request.attempt ?? null;
-  const pollable = !!attempt && (pending(attempt) || attempt.state === 'AWAITING_BUYER');
+  const pollable = pending(attempt);
   useEffect(() => {
     if (!pollable || busy) return;
     const timer = setInterval(() => void load().catch(() => {}), 3000);
