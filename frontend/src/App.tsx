@@ -4,7 +4,7 @@ import { Api, ApiError } from './api.js';
 import type { Attempt, Candidate, Charges, Constraints, Evidence, Progress, PurchaseRequest, Review, Session } from './contract.js';
 import { canStartNew, locksRequest, money, newerAttempt, newerRequest, parseCents, pending, permitted, purchaseDisplay, unitCost } from './logic.js';
 import { PayPalError, preparePayPal } from './paypal.js';
-import { play, setSoundOn, soundOn } from './sound.js';
+import { play, setSoundOn, soundOn, unlockAudio } from './sound.js';
 
 const sample = 'Find exactly 40 microfiber cloths, 40 × 40 cm, under $60 including delivery and tax. One-time purchase only.';
 const sampleRequests = [
@@ -57,6 +57,7 @@ export function App() {
     if (focusRequested.current) { heading.current?.focus(); focusRequested.current = false; }
   }, [stage, request?.id, request?.version, request?.status, request?.review?.id, draftMode]);
   useEffect(() => { void connect(); return () => { generation.current++; operation.current?.abort(); }; }, []);
+  useEffect(unlockAudio, []);
   // Notices are announced immediately; the visible toast fades after a few seconds.
   useEffect(() => {
     if (!notice) return;
@@ -311,7 +312,7 @@ export function App() {
     <header className="topbar">
       <a className="brand" href="#main" aria-label="SpendConsent home"><Mark /><span>SpendConsent</span></a>
       <div className="topbar-end">
-        <span className="sandbox-chip" title="PayPal sandbox: test money only"><span className="pulse-dot" aria-hidden="true" />Sandbox</span>
+        <span className="sandbox-chip" title="PayPal sandbox: test money only, no real charges"><span className="test-dot" aria-hidden="true" />Sandbox · test money</span>
         {request && !draftMode && <a className="ghost-link" href="#history">Activity</a>}
         <button type="button" className="icon-button" aria-pressed={sound} aria-label={sound ? 'Mute interface sounds' : 'Turn interface sounds on'}
           onClick={() => { const next = !sound; setSound(next); setSoundOn(next); if (next) play('tick'); }}><Icon name={sound ? 'sound' : 'mute'} /></button>
@@ -429,8 +430,10 @@ function journey({ request, drafting, thinking, stage, currentReview, currentApp
   request: PurchaseRequest | null; drafting: boolean; thinking: boolean; stage: string; currentReview: Review | null;
   currentApproval: PurchaseRequest['approval']; attempt: Attempt | null; best: number | null;
 }): Step[] {
+  // A new draft starts a fresh journey: nothing from the previous purchase carries over.
+  if (drafting && !thinking) { currentReview = null; currentApproval = null; attempt = null; }
   const approvedNow = stage === 'Review' && !!currentApproval && ['APPROVED', 'CONSUMED'].includes(currentApproval.status);
-  const at = thinking ? 1 : approvedNow ? 3 : ['Request', 'Compare', 'Review', 'Payment'].indexOf(stage);
+  const at = thinking ? 1 : drafting ? 0 : approvedNow ? 3 : ['Request', 'Compare', 'Review', 'Payment'].indexOf(stage);
   const paid = attempt?.state === 'PAID';
   const tone = (i: number, alert = false): Step['tone'] => paid || i < at ? 'done' : i > at ? 'todo' : alert ? 'alert' : thinking ? 'busy' : 'current';
   const c = request && !drafting ? request.constraints : null;

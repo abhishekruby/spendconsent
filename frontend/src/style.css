@@ -440,3 +440,5 @@ details[open] > summary::after { transform: rotate(225deg) translateY(-1px); }
 .consent-note .icon { color: var(--ok); }
 .icon-button[aria-pressed='false'] { color: var(--muted); }
 .done-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+/* Sandbox = test mode: a steady amber marker, never a blinking alert. */
+.test-dot { width: 8px; height: 8px; border-radius: 2px; background: var(--warn); transform: rotate(45deg); }

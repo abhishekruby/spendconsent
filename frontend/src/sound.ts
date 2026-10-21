@@ -4,6 +4,12 @@ export type Cue = 'send' | 'tick' | 'found' | 'notice' | 'select' | 'stamp' | 's
 
 const KEY = 'spendconsent-sound';
 let context: AudioContext | null = null;
+let output: GainNode | null = null;
+// One master level for every cue (about -8 dB): clearly audible, never loud.
+function master(ctx: AudioContext) {
+  if (!output) { output = ctx.createGain(); output.gain.value = 3.2; output.connect(ctx.destination); }
+  return output;
+}
 
 export function soundOn(): boolean {
   try { return window.localStorage.getItem(KEY) !== 'off'; } catch { return true; }
@@ -21,7 +27,7 @@ function tone(ctx: AudioContext, at: number, frequency: number, length: number, 
   gain.gain.setValueAtTime(0.0001, at);
   gain.gain.exponentialRampToValueAtTime(volume, at + 0.012);
   gain.gain.exponentialRampToValueAtTime(0.0001, at + length);
-  osc.connect(gain).connect(ctx.destination);
+  osc.connect(gain).connect(master(ctx));
   osc.start(at);
   osc.stop(at + length + 0.02);
 }
@@ -34,10 +40,22 @@ function thud(ctx: AudioContext, at: number) {
   const noise = ctx.createBufferSource();
   const filter = ctx.createBiquadFilter();
   const gain = ctx.createGain();
-  noise.buffer = buffer; filter.type = 'lowpass'; filter.frequency.value = 900; gain.gain.value = 0.22;
-  noise.connect(filter).connect(gain).connect(ctx.destination);
+  noise.buffer = buffer; filter.type = 'lowpass'; filter.frequency.value = 900; gain.gain.value = 0.12;
+  noise.connect(filter).connect(gain).connect(master(ctx));
   noise.start(at);
   tone(ctx, at, 140, 0.18, 0.12, 'sine', 70);
+}
+
+// Browsers only allow audio after a user gesture: create/resume the context on
+// the first click or key press, so later cues (after network waits) can play.
+export function unlockAudio() {
+  if (typeof window === 'undefined' || !('AudioContext' in window)) return;
+  const unlock = () => {
+    try { context ??= new AudioContext(); if (context.state === 'suspended') void context.resume(); } catch { /* No audio device. */ }
+  };
+  window.addEventListener('pointerdown', unlock);
+  window.addEventListener('keydown', unlock);
+  return () => { window.removeEventListener('pointerdown', unlock); window.removeEventListener('keydown', unlock); };
 }
 
 export function play(cue: Cue) {
