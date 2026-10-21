@@ -18,6 +18,16 @@ export const pending = (attempt: Attempt | null) => !!attempt && ['CREATING', 'C
 export const locksRequest = (request: PurchaseRequest | null) => !!request?.attempt && request.attempt.state !== 'STOPPED';
 // A finished (PAID) or stopped purchase allows a new request; uncertain ones never do.
 export const canStartNew = (request: PurchaseRequest | null) => !request?.attempt || ['STOPPED', 'PAID'].includes(request.attempt.state);
+export function purchaseDisplay(request: PurchaseRequest | null, draftMode = false) {
+  const stoppedReview = request?.attempt?.state === 'STOPPED' && request.approval?.status === 'CONSUMED'
+    && request.approval.review_id === request.review?.id;
+  const currentReview = !stoppedReview && request?.review?.request_version === request?.version ? request?.review ?? null : null;
+  const currentApproval = currentReview && request?.approval?.review_id === currentReview.id ? request.approval : null;
+  const activeAttempt = !!request?.attempt && request.attempt.state !== 'STOPPED';
+  const stage = draftMode || !request ? 'Request' : activeAttempt ? 'Payment' : currentReview ? 'Review'
+    : ['READY', 'NO_MATCH'].includes(request.status) ? 'Compare' : 'Request';
+  return { currentReview, currentApproval, stage, collapseComparison: !!currentReview || activeAttempt };
+}
 export function permitted(attempt: Attempt, action: Action, financialEnabled: boolean): boolean {
   if (['PAID', 'STOPPED'].includes(attempt.state)) return false;
   if (attempt.state === 'PAYMENT_REVIEW' && action !== 'check_status') return false;

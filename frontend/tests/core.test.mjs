@@ -4,7 +4,7 @@ import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { Api, ApiError, safeApiError } from '../.test-build/api.js';
 import { isAttempt, isConstraints, isPurchaseRequest, isSession } from '../.test-build/contract.js';
-import { canStartNew, locksRequest, money, newerAttempt, newerRequest, parseCents, pending, permitted, unitCost } from '../.test-build/logic.js';
+import { canStartNew, locksRequest, money, newerAttempt, newerRequest, parseCents, pending, permitted, purchaseDisplay, unitCost } from '../.test-build/logic.js';
 import { Offer, PaymentStatus, PayPalCheckout, ReviewCard, paymentTransitionNotice } from '../.test-build/App.js';
 
 // Explicit local test fixtures only. The running application has no seeded results.
@@ -81,6 +81,43 @@ test('payment polling announces changed states once and leaves urgent states to 
   }
   assert.equal(paymentTransitionNotice(attempt, { ...attempt, id: id2, state: 'PAID' }), null);
   assert.equal(paymentTransitionNotice({ ...attempt, updated_at: '2026-10-18T00:01:00Z' }, { ...attempt, state: 'PAID' }), null, 'stale responses do not announce a discarded state');
+});
+
+test('current request version drives visible offers while historical carts stay read-only', () => {
+  const oldApproval = { id, review_id: review.id, status: 'REVOKED', approved_at: timestamp, expires_at: review.expires_at };
+  const refreshed = { ...request, version: request.version + 1, approval: oldApproval };
+  const consumed = { ...request, approval: { ...oldApproval, status: 'CONSUMED' }, attempt: { ...attempt, state: 'STOPPED' } };
+  for (const saved of [refreshed, { ...refreshed, attempt: { ...attempt, state: 'STOPPED' } }, consumed]) {
+    const display = purchaseDisplay(saved);
+    assert.equal(display.stage, 'Compare');
+    assert.equal(display.currentReview, null);
+    assert.equal(display.currentApproval, null);
+    assert.equal(display.collapseComparison, false, 'new READY offers remain visible');
+    assert.equal(locksRequest(saved), false);
+    const html = renderToStaticMarkup(createElement(Offer, {
+      candidate, lowest: true, disabled: locksRequest(saved) || saved.status !== 'READY', onReview() {},
+    }));
+    assert.ok(html.includes('Review purchase'));
+    assert.equal(/<button[^>]*disabled/.test(html), false, 'new offers can prepare a fresh review');
+  }
+  const historical = renderToStaticMarkup(createElement(ReviewCard, {
+    review, approval: oldApproval, locked: true, disabled: true, onApprove() { throw Error('Historical review cannot approve'); },
+  }));
+  assert.equal(historical.includes('Approve exact cart'), false);
+  assert.equal(purchaseDisplay(request).stage, 'Review');
+  assert.equal(purchaseDisplay(request).currentReview, review);
+  assert.equal(purchaseDisplay(request).collapseComparison, true);
+  assert.equal(purchaseDisplay({ ...consumed, approval: null }).stage, 'Review', 'a fresh same-version review is current');
+  assert.equal(purchaseDisplay({ ...consumed, review: { ...review, id } }).stage, 'Review', 'old consumed approval cannot hide a different fresh review');
+  assert.equal(purchaseDisplay({ ...consumed, attempt: { ...attempt, state: 'PAID' } }).stage, 'Payment');
+  assert.equal(purchaseDisplay({ ...consumed, attempt: { ...attempt, state: 'PAID' } }).currentReview, review);
+  for (const state of ['CREATING', 'CAPTURING', 'VERIFYING', 'UNKNOWN', 'PAYMENT_REVIEW', 'AWAITING_BUYER', 'PAID']) {
+    const saved = { ...refreshed, attempt: { ...attempt, state } };
+    assert.equal(purchaseDisplay(saved).stage, 'Payment', state);
+    assert.equal(purchaseDisplay(saved).collapseComparison, true);
+    assert.equal(locksRequest(saved), true);
+    assert.equal(purchaseDisplay(saved, true).stage, 'Request');
+  }
 });
 
 test('same-origin session/CSRF and safe persisted MODEL_UNAVAILABLE recovery contract', async () => {

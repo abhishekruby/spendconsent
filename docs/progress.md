@@ -1,5 +1,22 @@
 # Progress — project log
 
+## 21 October 2026, 16:30 IST: frontend redesign (Claude)
+
+- User asked for a full, premium, simpler UI. Codex's in-progress UI edits were
+  stopped by the user and preserved at `refs/codex-wip/frontend-2026-10-21`
+  (tracked files; its untracked font/logo backed up outside the repo). Kept its
+  `purchaseDisplay` logic and test.
+- New design: paper/ink palette with one persimmon accent, Bricolage Grotesque +
+  IBM Plex Mono (OFL, pinned npm packages, self-hosted), live journey tracker
+  (Describe → Compare → Approve → Pay) with per-step summaries, honest AI loader
+  (elapsed timer, explanatory captions, catalog scan, skeletons), ranked offers
+  with pack maths, receipt-style review with countdown and approval stamp,
+  checkout panel that explains the typed-consent step, payment progress track,
+  toasts and a top loading bar; reduced-motion respected; light/dark.
+- Checked in the real app (AI comparison → offers → review → in-app approval;
+  no payment) at desktop and 375 px, both themes; payment states via a
+  temporary fixture page (deleted). 10 + 1 frontend tests and build pass.
+
 ## 21 October 2026, 04:00 IST: AI round 2 qualified (140/140)
 
 - Report 92fe770: seven suites (blind unseen5 by a separate author) all 20/20;
