@@ -15,7 +15,7 @@ const messages: Record<string, string> = {
   APPROVAL_EXPIRED: 'Approval expired. A fresh review and approval are required.',
   STALE_VERSION: 'The saved request changed. Reload its current version before continuing.',
   VERSION_CONFLICT: 'The saved request changed. Reload its current version before continuing.',
-  FINANCIAL_ACTIONS_DISABLED: 'Sandbox financial actions are disabled. Check the saved status before continuing.',
+  FINANCIAL_ACTIONS_DISABLED: 'Payment was not allowed for this cart: its approval expired or is no longer valid. No money was taken. Review the cart and approve again to pay.',
   INTEGRATION_UNAVAILABLE: 'Payment integration is unavailable. The stored status has not been resolved.',
 };
 export class ApiError extends Error {
