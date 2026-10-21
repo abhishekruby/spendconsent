@@ -3,7 +3,7 @@ import test from 'node:test';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { Api, ApiError, safeApiError } from '../.test-build/api.js';
-import { isAttempt, isConstraints, isPurchaseRequest, isSession } from '../.test-build/contract.js';
+import { isAttempt, isConstraints, isProgress, isPurchaseRequest, isSession } from '../.test-build/contract.js';
 import { canStartNew, locksRequest, money, newerAttempt, newerRequest, parseCents, pending, permitted, purchaseDisplay, unitCost } from '../.test-build/logic.js';
 import { Offer, PaymentStatus, PayPalCheckout, ReviewCard, paymentTransitionNotice } from '../.test-build/App.js';
 
@@ -204,4 +204,14 @@ test('labeled test UI renders exact packs, quote evidence and uncertainty, escap
   const mismatch = renderToStaticMarkup(createElement(PaymentStatus, { attempt: { ...attempt, state: 'PAYMENT_REVIEW', allowed_actions: ['check_status'] }, financialEnabled: true, busy: false, pollEnded: false, onAction() {} }));
   assert.ok(mismatch.includes('completed payment has mismatched details'));
   assert.equal(mismatch.includes('Request stop'), false);
+});
+
+test('live progress and consent mode are validated at the API boundary', () => {
+  assert.ok(isProgress({ stage: 'READING' }) && isProgress({ stage: 'DONE' }));
+  assert.ok(isProgress({ stage: 'UNDERSTOOD', constraints: request.constraints, eligible: 2, status: 'READY' }));
+  for (const bad of [{ stage: 'READING', extra: 1 }, { stage: 'UNDERSTOOD', constraints: request.constraints, eligible: -1, status: 'READY' },
+    { stage: 'UNDERSTOOD', constraints: { ...request.constraints, owner_uuid: id }, eligible: 1, status: 'READY' },
+    { stage: 'UNDERSTOOD', constraints: request.constraints, eligible: 1, status: 'PAID' }, { stage: 'PAID' }]) assert.equal(isProgress(bad), false);
+  assert.ok(isSession({ ...session, capabilities: { ...session.capabilities, consent_mode: 'buyer' } }));
+  assert.equal(isSession({ ...session, capabilities: { ...session.capabilities, consent_mode: 'anyone' } }), false);
 });

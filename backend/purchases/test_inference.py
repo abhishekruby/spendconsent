@@ -70,6 +70,28 @@ class InferenceTests(TransactionTestCase):
                 with override_settings(SPENDCONSENT_AI_READINESS=alias):
                     self.assertFalse(inference.ready())
 
+    def test_live_progress_shows_the_understood_request_before_the_final_result(self):
+        observed = []
+        def model(text, confirmed):
+            saved = PurchaseRequest.objects.get(owner_uuid=self.owner)
+            observed.append(inference.progress(self.owner, saved.id))
+            result = comparison(text, confirmed)
+            with patch.object(inference, "_original_search", return_value=result):
+                self.assertIs(agent._search({}, {}, text), result)
+            observed.append(inference.progress(self.owner, saved.id))
+            return result
+        with patch.object(inference, "ready", return_value=True), patch.object(agent, "compare", side_effect=model):
+            self.assertEqual(self.post("/api/requests", self.data).status_code, 200)
+        self.assertEqual(observed[0], {"stage": "READING"})
+        self.assertEqual(observed[1]["stage"], "UNDERSTOOD")
+        self.assertEqual(observed[1]["constraints"], CONSTRAINTS)
+        self.assertGreater(observed[1]["eligible"], 0)
+        self.assertEqual(self.client.get("/api/progress").json(), {"stage": "DONE"})
+        self.assertEqual(inference._PROGRESS, {})
+        with patch.object(inference, "_original_search", return_value={"status": "READY"}):
+            self.assertEqual(agent._search({}, {}, ""), {"status": "READY"})
+        self.assertEqual(inference._PROGRESS, {})
+
     def test_create_compare_review_approve_keeps_financial_disabled(self):
         def model(text, confirmed):
             self.assertFalse(connection.in_atomic_block)
@@ -85,7 +107,7 @@ class InferenceTests(TransactionTestCase):
             purchase = response.json()
             self.assertEqual(purchase["status"], "READY")
             self.assertEqual(self.client.get("/api/session").json()["capabilities"],
-                             {"ai_ready": True, "paypal_ready": False, "financial_actions_enabled": False})
+                             {"ai_ready": True, "paypal_ready": False, "financial_actions_enabled": False, "consent_mode": "operator"})
             self.assertEqual(self.post("/api/requests", self.data).json(), purchase)
             actual.assert_called_once()
         review = self.post(f"/api/requests/{purchase['id']}/reviews",

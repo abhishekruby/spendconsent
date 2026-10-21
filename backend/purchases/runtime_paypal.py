@@ -1,7 +1,9 @@
-"""Default-off sandbox runtime; only a private, exact human permission allows POSTs.
+"""Default-off sandbox runtime; only exact human consent allows financial POSTs.
 
-There is no endpoint that writes permission. The team lead writes it only after
-explicit action-time human consent. Read-only recovery does not need permission.
+Operator mode (default): a private one-time permission written by a person with
+`manage.py authorize_sandbox_purchase`; no endpoint writes it. Buyer mode: the
+buyer's own unexpired in-app approval of this exact cart is the consent, capped
+per purchase. Read-only recovery needs neither.
 """
 import configparser
 from datetime import datetime
@@ -90,11 +92,32 @@ def _permission(approval, operation, config):
         return False
 
 
+def _buyer_consent(approval, operation, config):
+    """The buyer approved this exact, latest, unexpired cart in the app; sandbox only."""
+    try:
+        review = approval.review
+        snapshot = review.snapshot
+        now = timezone.now()
+        return (operation in ("create", "capture") and snapshot["payee_ref"] == config["PAYPAL_MERCHANT_ID"]
+                and snapshot["currency"] == "USD" and type(snapshot["total_cents"]) is int
+                and 0 < snapshot["total_cents"] <= settings.SPENDCONSENT_BUYER_MAX_CENTS
+                and review.request.reviews.order_by("-version").values_list("id", flat=True).first() == review.id
+                and not approval.revoked_at and approval.approved_at <= now < approval.expires_at <= review.expires_at)
+    except (KeyError, TypeError):
+        return False
+
+
+def _consented(approval, operation, config):
+    if settings.SPENDCONSENT_PAYPAL_CONSENT == "buyer":
+        return _buyer_consent(approval, operation, config)
+    return _permission(approval, operation, config)
+
+
 def allowed(approval, operation, config=None):
     if not settings.SPENDCONSENT_PAYPAL_ENABLED or not inference.ready():
         return False
     config = config or configuration()
-    return bool(config and _permission(approval, operation, config))
+    return bool(config and _consented(approval, operation, config))
 
 
 def require(approval, operation):
@@ -130,6 +153,7 @@ def session_data(owner, current_request_id, ai_ready):
         approval = Approval.objects.select_related("review__request").filter(
             review__request_id=current_request_id, review__request__owner_uuid=owner).order_by("-review__version").first()
         if approval:
-            enabled = _permission(approval, "capture" if hasattr(approval, "attempt") else "create", config)
-    return {"paypal_ready": bool(config), "financial_actions_enabled": enabled}, (
+            enabled = _consented(approval, "capture" if hasattr(approval, "attempt") else "create", config)
+    return {"paypal_ready": bool(config), "financial_actions_enabled": enabled,
+            "consent_mode": settings.SPENDCONSENT_PAYPAL_CONSENT}, (
         {"client_id": config["PAYPAL_CLIENT_ID"], "currency": "USD"} if config else None)

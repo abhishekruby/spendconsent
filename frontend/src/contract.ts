@@ -9,7 +9,7 @@ export type Constraints = {
 };
 export type Session = {
   environment: 'sandbox'; csrf_token: string;
-  capabilities: { ai_ready: boolean; paypal_ready: boolean; financial_actions_enabled: boolean };
+  capabilities: { ai_ready: boolean; paypal_ready: boolean; financial_actions_enabled: boolean; consent_mode?: 'buyer' | 'operator' };
   current_request_id: string | null;
   paypal: { client_id: string; currency: 'USD' } | null;
 };
@@ -61,6 +61,7 @@ const member = (v: unknown, values: readonly string[]) => typeof v === 'string' 
 export function isSession(v: unknown): v is Session {
   if (!object(v) || v.environment !== 'sandbox' || !string(v.csrf_token) || !/^[a-zA-Z0-9]{32,128}$/.test(v.csrf_token) || !object(v.capabilities)) return false;
   return ['ai_ready', 'paypal_ready', 'financial_actions_enabled'].every(k => typeof (v.capabilities as Obj)[k] === 'boolean')
+    && [undefined, 'buyer', 'operator'].includes((v.capabilities as Obj).consent_mode as string | undefined)
     && (v.current_request_id === null || uuid(v.current_request_id))
     && (v.paypal === null || (object(v.paypal) && string(v.paypal.client_id) && v.paypal.currency === 'USD'));
 }
@@ -121,4 +122,13 @@ export function isPurchaseRequest(v: unknown): v is PurchaseRequest {
     && array(v.events, x => object(x) && uuid(x.id) && string(x.type) && nullableString(x.reason_code) && string(x.message) && date(x.created_at))
     && (v.model === null || (object(v.model) && typeof v.model.used === 'boolean' && string(v.model.name) && integer(v.model.elapsed_ms)
       && array(v.model.tool_calls, x => object(x) && member(x.name, ['search_catalog', 'get_offer', 'compare_quotes']) && member(x.status, ['completed', 'error']) && integer(x.elapsed_ms), 6)));
+}
+
+// Live comparison progress: what the AI understood before its final confirmation.
+export type Progress = { stage: 'READING' | 'DONE' } | { stage: 'UNDERSTOOD'; constraints: Constraints; eligible: number; status: 'READY' | 'NO_MATCH' | 'NEEDS_CLARIFICATION' };
+export function isProgress(v: unknown): v is Progress {
+  if (!object(v)) return false;
+  if (v.stage === 'READING' || v.stage === 'DONE') return Object.keys(v).length === 1;
+  return v.stage === 'UNDERSTOOD' && Object.keys(v).length === 4 && isConstraints(v.constraints) && integer(v.eligible) && v.eligible <= 16
+    && member(v.status, ['READY', 'NO_MATCH', 'NEEDS_CLARIFICATION']);
 }

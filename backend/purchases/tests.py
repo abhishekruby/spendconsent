@@ -264,7 +264,7 @@ class AnonymousAPITests(TestCase):
 
     def test_bootstrap_and_unavailable_request_persist_refresh_id_without_fake_ai(self):
         initial = self.client.get("/api/session").json()
-        self.assertEqual(initial["capabilities"], {"ai_ready": False, "paypal_ready": False, "financial_actions_enabled": False})
+        self.assertEqual(initial["capabilities"], {"ai_ready": False, "paypal_ready": False, "financial_actions_enabled": False, "consent_mode": "operator"})
         self.assertIsNone(initial["paypal"])
         self.assertNotIn("owner_uuid", initial)
         data = self.submission()

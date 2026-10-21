@@ -3,6 +3,8 @@
 Only the team lead writes the private readiness marker after qualification. Test
 fakes are confined to tests; the runtime always calls the actual-model adapter.
 """
+import contextvars
+import threading
 from datetime import timedelta
 import hashlib
 import http.client
@@ -17,6 +19,53 @@ from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
 from . import agent, services
+
+# Live progress for the buyer's waiting screen: what the AI understood, recorded
+# the moment the catalog tool returns, before the model's final confirmation.
+# agent.py stays byte-identical (its hash gates AI readiness); this only observes.
+# ponytail: in-process dict, so one API process (already a documented limit).
+_PROGRESS = {}
+_WARMING = threading.Lock()  # A buyer who arrives during warm-up waits instead of MODEL_BUSY.
+_RECORDER = contextvars.ContextVar("spendconsent_progress", default=None)
+_original_search = agent._search
+
+
+def _observed_search(arguments, confirmed, text):
+    result = _original_search(arguments, confirmed, text)
+    record = _RECORDER.get()
+    if record is not None:
+        record(result)
+    return result
+
+
+agent._search = _observed_search
+
+
+def progress(owner, pk):
+    purchase = services.owned_request(owner, pk)
+    if purchase.status != "COMPARING" or purchase.active_inference_id is None:
+        return {"stage": "DONE"}
+    return _PROGRESS.get(str(purchase.active_inference_id), {"stage": "READING"})
+
+
+def warm(attempts=24):
+    """Prime the model's prompt cache (system prompt + tool schema) at startup so
+    the first buyer does not wait for the slow cold request."""
+    for _ in range(attempts):
+        if ready():
+            with _WARMING:
+                if agent._INFERENCE.acquire(blocking=False):
+                    try:
+                        # max_tokens 1 ends with finish_reason "length", which _chat rejects;
+                        # that is expected — the prompt prefix is already cached by then.
+                        agent._chat({"messages": [{"role": "system", "content": agent.SYSTEM}, {"role": "user", "content": "{}"}],
+                                     "tools": [agent.TOOL], "tool_choice": "auto", "max_tokens": 1}, time.monotonic() + 60)
+                    except Exception:  # A warm-up failure only means the first request is slower.
+                        pass
+                    finally:
+                        agent._INFERENCE.release()
+            return
+        time.sleep(5)
 
 
 def _healthy():
@@ -103,12 +152,25 @@ def _finish(owner, pk, version, inference_id, result=None, error=None):
 def compare(owner, purchase, inference_id):
     if inference_id is None or purchase.active_inference_id != inference_id:
         return recover(owner, purchase.id)
+    key = str(inference_id)
+    def record(result):
+        _PROGRESS[key] = {"stage": "UNDERSTOOD", "constraints": result["constraints"],
+                          "eligible": len(result["candidates"]), "status": result["status"]}
+    if _WARMING.acquire(timeout=65):
+        _WARMING.release()
+    token = _RECORDER.set(record)
     try:
-        result = agent.compare(purchase.text, purchase.confirmed_constraints)
-    except agent.AgentError as error:
-        code = error.code if error.code in ("MODEL_BUSY", "MODEL_TIMEOUT") else "MODEL_ERROR"
-        return _finish(owner, purchase.id, purchase.version, inference_id, error=code)
-    return _finish(owner, purchase.id, purchase.version, inference_id, result=result)
+        try:
+            result = agent.compare(purchase.text, purchase.confirmed_constraints)
+        except agent.AgentError as error:
+            code = error.code if error.code in ("MODEL_BUSY", "MODEL_TIMEOUT") else "MODEL_ERROR"
+            return _finish(owner, purchase.id, purchase.version, inference_id, error=code)
+        finally:
+            _RECORDER.reset(token)
+        return _finish(owner, purchase.id, purchase.version, inference_id, result=result)
+    finally:
+        # After the result is committed, so a poll never steps back to READING.
+        _PROGRESS.pop(key, None)
 
 
 def begin_submit(owner, data):

@@ -1,6 +1,6 @@
 # SpendConsent — compact handoff
 
-Updated 21 Oct 2026 by Codex after handoff `f60cad3`. Claude and ChatGPT/Codex
+Updated 21 Oct 2026, 17:00 IST, by Claude (after Codex `8390ffe`). Claude and ChatGPT/Codex
 alternate on this repo: read AGENTS.md, then this file. Latest session summary:
 docs/handoff-codex-2026-10-21.md. History:
 PROJECT_CONTEXT_HISTORY.md, docs/progress.md, docs/ai-application-evaluation.md.
@@ -53,22 +53,22 @@ Deadline 12 Nov 2026 noon PST (13 Nov 01:30 IST).
   hashed backend sources); `authorize_sandbox_purchase` (shows exact cart,
   person types the total, writes one-time permission; TTY only). Review PASS.
 - README rewritten for judges; Devpost draft in docs/submission-draft.md.
-- UI: a PAID or STOPPED purchase now allows a new request (uncertain still blocks).
 
-## Current session and next action
+## Current session and next action (Claude, 21 Oct 17:00 IST)
 
-Restarted stopped services: PG PID13392; model PID13566/session65463
-(parallel2); API65641; Vite59528. Ports11435/8000/5173 return200.
-AI+PayPal ready; financial actions disabled. Pinned hashes match; cached model
-startup13.196s. Catalog commercial fields match16seed SKUs; minimum stock94.
-Live inventory/version differences recorded in docs/usability-evaluation.md.
-
-User confirmed earlier popup cancellation; recorded as human-reported.
-No new financial action. Next: untimed practice, then paired usability timing.
-User needed plain explanation; no answers/timings collected. Practice-only page,
-without timed tasks/key: http://127.0.0.1:8767/practice-2026-10-21.html
-(session63567); observer kit8766/session18774. Practice browser tab retained.
-Then demo/submission; every public/money step requires user approval.
+- Frontend redesigned (8512a26): journey tracker, honest AI loader, receipt
+  review + stamp, payment track, light/dark, 375 px. Codex UI WIP preserved at
+  `refs/codex-wip/frontend-2026-10-21`.
+- Added: interface sounds (Web Audio, mute toggle), live AI progress
+  (`GET /api/progress`: "Understood…" before the final call; agent.py unchanged),
+  model warm-up at runserver start, background sync (focus, waiting states,
+  approval expiry).
+- **Buyer-consent mode** (`SPENDCONSENT_PAYPAL_CONSENT=buyer`, cap $100): the
+  buyer's own unexpired in-app approval authorizes one sandbox order; default
+  stays operator (typed permission). API currently runs in buyer mode.
+- Popup cancel confirmed by the user (Codex note). Next: usability practice +
+  timing (kit/practice pages from Codex), demo, submission — public/money steps
+  need user approval.
 
 ## Known limits
 

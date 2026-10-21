@@ -4,6 +4,7 @@ from purchases import views
 urlpatterns = [
     path("api/session", views.session),
     path("api/requests", views.requests),
+    path("api/progress", views.progress),
     path("api/requests/<uuid:pk>", views.request_detail),
     path("api/requests/<uuid:pk>/clarify", views.clarify),
     path("api/requests/<uuid:pk>/reviews", views.reviews),

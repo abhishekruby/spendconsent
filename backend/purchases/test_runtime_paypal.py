@@ -81,6 +81,36 @@ class RuntimePayPalTests(TransactionTestCase):
         self.assertEqual(attempt["state"], "AWAITING_BUYER")
         return request, review, approval, attempt
 
+    def test_buyer_consent_mode_authorizes_only_the_exact_unexpired_approved_cart(self):
+        request, review, approval = self.purchase()
+        self.assertFalse(runtime_paypal.allowed(approval, "create"), "operator mode still needs the typed permission")
+        with override_settings(SPENDCONSENT_PAYPAL_CONSENT="buyer"):
+            self.assertFalse(self.permission.exists())
+            capabilities = self.client.get("/api/session").json()["capabilities"]
+            self.assertTrue(capabilities["financial_actions_enabled"])
+            self.assertEqual(capabilities["consent_mode"], "buyer")
+            self.assertFalse(runtime_paypal.allowed(approval, "refund"))
+            with override_settings(SPENDCONSENT_BUYER_MAX_CENTS=review.snapshot["total_cents"] - 1):
+                self.assertFalse(runtime_paypal.allowed(approval, "create"))
+            with patch("purchases.runtime_paypal.timezone.now", return_value=approval.expires_at):
+                self.assertFalse(runtime_paypal.allowed(approval, "create"))
+            config = runtime_paypal.configuration()
+            self.assertFalse(runtime_paypal.allowed(approval, "create", {**config, "PAYPAL_MERCHANT_ID": "OTHERMERCHANT1"}))
+            self.config.write_text(self.config.read_text().replace("PAYPAL_ENV=sandbox", "PAYPAL_ENV=live"))
+            self.assertFalse(runtime_paypal.allowed(approval, "create"))
+            self.config.write_text(self.config.read_text().replace("PAYPAL_ENV=live", "PAYPAL_ENV=sandbox"))
+            response = self.post(f"/api/approvals/{approval.id}/attempts")
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response.json()["attempt"]["state"], "AWAITING_BUYER")
+            self.assertTrue(runtime_paypal.allowed(approval, "capture"))
+            approval.revoked_at = timezone.now()
+            approval.save(update_fields=["revoked_at"])
+            self.assertFalse(runtime_paypal.allowed(approval, "capture"))
+            _, second, fresh = self.purchase()
+            self.assertTrue(runtime_paypal.allowed(fresh, "create"))
+            make_review(second.request)
+            self.assertFalse(runtime_paypal.allowed(fresh, "create"), "a superseded review no longer authorizes")
+
     def test_typed_consent_command_writes_only_the_exact_one_time_permission(self):
         request, review, approval = self.purchase()
         total = f"{review.snapshot['total_cents'] / 100:.2f}"

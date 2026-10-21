@@ -1,5 +1,16 @@
 # Progress — project log
 
+## 21 October 2026, 17:40 IST: buyer consent, live progress, sounds
+
+- User chose buyer-consent mode for judges: `SPENDCONSENT_PAYPAL_CONSENT=buyer`
+  makes the buyer's own unexpired, latest in-app approval authorize one sandbox
+  order (cap $100); default operator mode keeps the typed permission.
+  Independent review PASS (no authorization gap); its test and warm-up fixes applied.
+- Live AI progress via `GET /api/progress` (observer around the catalog tool;
+  agent.py byte-identical), model warm-up at server start (first comparison
+  after reboot 39.5 s vs 55–90 s), background sync on focus/waits/expiry,
+  Web Audio interface sounds with mute. 104 backend + 11 frontend tests pass.
+
 ## 21 October 2026, 16:30 IST: frontend redesign (Claude)
 
 - User asked for a full, premium, simpler UI. Codex's in-progress UI edits were

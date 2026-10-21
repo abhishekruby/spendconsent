@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import type { CSSProperties, FormEvent, ReactNode } from 'react';
 import { Api, ApiError } from './api.js';
-import type { Attempt, Candidate, Charges, Constraints, Evidence, PurchaseRequest, Review, Session } from './contract.js';
+import type { Attempt, Candidate, Charges, Constraints, Evidence, Progress, PurchaseRequest, Review, Session } from './contract.js';
 import { canStartNew, locksRequest, money, newerAttempt, newerRequest, parseCents, pending, permitted, purchaseDisplay, unitCost } from './logic.js';
 import { PayPalError, preparePayPal } from './paypal.js';
+import { play, setSoundOn, soundOn } from './sound.js';
 
 const sample = 'Find exactly 40 microfiber cloths, 40 × 40 cm, under $60 including delivery and tax. One-time purchase only.';
 const sampleRequests = [
@@ -38,6 +39,8 @@ export function App() {
   const [recoveryBlocked, setRecoveryBlocked] = useState(false);
   const [pollEnded, setPollEnded] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [sound, setSound] = useState(soundOn);
+  const [progress, setProgress] = useState<Progress | null>(null);
   const heading = useRef<HTMLHeadingElement>(null);
   const operation = useRef<AbortController | null>(null);
   const generation = useRef(0);
@@ -118,10 +121,11 @@ export function App() {
       if (generation.current !== serial) return;
       setSession(next);
       setNotice(path.endsWith('/approve') ? 'Exact cart approved. No payment has been made.' : path.endsWith('/reviews') ? 'Exact cart ready for your review.' : 'Your request is saved.');
+      play(path.endsWith('/approve') ? 'stamp' : path.endsWith('/reviews') ? 'select' : saved.status === 'READY' ? 'found' : 'notice');
     } catch (e) {
       if (controller.signal.aborted || generation.current !== serial) return;
       const failure = asError(e);
-      setError(failure);
+      setError(failure); play('error');
       if (failure.attempt) setRequest(old => newerAttempt(old, failure.attempt!));
       try { await recover(failure.requestId ?? request?.id ?? null, controller.signal, serial); }
       catch { if (!controller.signal.aborted && generation.current === serial) setNotice('Saved status could not be reloaded. Use Reload status before retrying.'); }
@@ -147,7 +151,7 @@ export function App() {
       if (generation.current === serial) setNotice('Payment status updated from the server.');
     } catch (e) {
       if (controller.signal.aborted || generation.current !== serial) return;
-      const failure = asError(e); setError(failure);
+      const failure = asError(e); setError(failure); play('error');
       if (failure.attempt) setRequest(old => newerAttempt(old, failure.attempt!));
       try { await recover(request.id, controller.signal, serial); } catch { setRecoveryBlocked(true); }
     } finally { if (generation.current === serial) setBusy(''); }
@@ -170,7 +174,10 @@ export function App() {
     previousAttempt.current = attempt;
     if (!previous || !attempt) return;
     const announcement = paymentTransitionNotice(previous, attempt);
-    if (announcement !== null) setNotice(announcement);
+    if (announcement !== null) {
+      setNotice(announcement);
+      play(attempt.state === 'PAID' ? 'success' : ['UNKNOWN', 'PAYMENT_REVIEW'].includes(attempt.state) ? 'error' : 'tick');
+    }
   }, [attempt]);
   const pollable = pending(attempt);
   useEffect(() => {
@@ -207,6 +214,7 @@ export function App() {
     event.preventDefault();
     if (!text.trim() || !session || busy || recoveryBlocked || requestLocked) return;
     if (submission.current?.text !== text) submission.current = { text, id: crypto.randomUUID() };
+    play('send');
     void mutate('/api/requests', { text, client_submission_id: submission.current.id }, session.capabilities.ai_ready ? AI_LABEL : 'Saving your request');
   }
   function startNew() {
@@ -216,6 +224,59 @@ export function App() {
   }
   const requestLocked = locksRequest(request) && !(draftMode && canStartNew(request));
   const thinking = busy === AI_LABEL;
+  // Live progress while the AI works: what it understood, as soon as it knows.
+  useEffect(() => {
+    if (!thinking) { setProgress(null); return; }
+    const controller = new AbortController();
+    let timer: ReturnType<typeof setTimeout>;
+    let announced = false;
+    async function poll() {
+      try {
+        const next = await api.progress(controller.signal);
+        if (controller.signal.aborted) return;
+        setProgress(next);
+        if (next.stage === 'UNDERSTOOD' && !announced) { announced = true; play('tick'); }
+        if (next.stage === 'DONE') return;
+      } catch { if (controller.signal.aborted) return; }
+      timer = setTimeout(poll, 1200);
+    }
+    timer = setTimeout(poll, 800);
+    return () => { controller.abort(); clearTimeout(timer); };
+  }, [thinking]);
+  // Quiet background sync: the screen follows saved state without a manual reload.
+  async function sync() {
+    if (!request || busy || draftMode || recoveryBlocked) return;
+    const serial = generation.current;
+    try {
+      const next = await api.session();
+      if (generation.current !== serial) return;
+      setSession(next);
+      if (next.current_request_id !== request.id) return;
+      const saved = await api.request(request.id);
+      if (generation.current === serial) setRequest(old => newerRequest(old, saved));
+    } catch { /* Background sync is best effort; Reload status stays available. */ }
+  }
+  const syncRef = useRef(sync);
+  syncRef.current = sync;
+  useEffect(() => {
+    const onVisible = () => { if (document.visibilityState === 'visible') void syncRef.current(); };
+    window.addEventListener('focus', onVisible);
+    document.addEventListener('visibilitychange', onVisible);
+    return () => { window.removeEventListener('focus', onVisible); document.removeEventListener('visibilitychange', onVisible); };
+  }, []);
+  const waitingForPermission = !!currentApproval && currentApproval.status === 'APPROVED' && !attempt && !session?.capabilities.financial_actions_enabled;
+  useEffect(() => {
+    if (!waitingForPermission && request?.status !== 'COMPARING') return;
+    const timer = setInterval(() => void syncRef.current(), 4000);
+    return () => clearInterval(timer);
+  }, [waitingForPermission, request?.status]);
+  useEffect(() => {
+    if (!currentApproval || currentApproval.status !== 'APPROVED') return;
+    const wait = Date.parse(currentApproval.expires_at) - Date.now() + 1000;
+    if (wait <= 0 || wait > 3600000) return;
+    const timer = setTimeout(() => void syncRef.current(), wait);
+    return () => clearTimeout(timer);
+  }, [currentApproval?.id, currentApproval?.status, currentApproval?.expires_at]);
   const drafting = draftMode || !request;
   const offline = !session && !busy;
   const best = request?.candidates.length ? Math.min(...request.candidates.map(x => x.total_cents)) : null;
@@ -247,6 +308,8 @@ export function App() {
       <div className="topbar-end">
         <span className="sandbox-chip" title="PayPal sandbox: test money only"><span className="pulse-dot" aria-hidden="true" />Sandbox</span>
         {request && !draftMode && <a className="ghost-link" href="#history">Activity</a>}
+        <button type="button" className="icon-button" aria-pressed={sound} aria-label={sound ? 'Mute interface sounds' : 'Turn interface sounds on'}
+          onClick={() => { const next = !sound; setSound(next); setSoundOn(next); if (next) play('tick'); }}><Icon name={sound ? 'sound' : 'mute'} /></button>
         <button type="button" className="icon-button" aria-label={`Use ${appearance === 'light' ? 'dark' : 'light'} appearance`} onClick={() => setAppearance(value => value === 'light' ? 'dark' : 'light')}>
           <Icon name={appearance === 'light' ? 'moon' : 'sun'} />
         </button>
@@ -286,7 +349,7 @@ export function App() {
         {recoveryBlocked && !busy && <div className="alert is-warning reveal"><Icon name="alert" /><div><strong>Reload the saved purchase before continuing</strong><p>This session has a saved request whose current status could not be read. A new request stays blocked until its status is known.</p><button className="btn small" onClick={() => void connect()}>Retry saved purchase recovery</button></div></div>}
         {session && !session.capabilities.ai_ready && <div className="alert is-info reveal"><Icon name="spark" /><div><strong>AI comparison is not ready</strong><p>You can save a request and confirm requirements. Comparison opens after the local AI passes its checks.</p></div></div>}
 
-        {thinking && <Thinking text={text || request?.text || ''} />}
+        {thinking && <Thinking text={text || request?.text || ''} progress={progress} />}
 
         {!thinking && !recoveryBlocked && drafting && session && <form onSubmit={submit} className="composer reveal">
           <label className="sr-only" htmlFor="request-text">What supplies do you need?</label>
@@ -303,7 +366,7 @@ export function App() {
           <div className="examples" aria-label="Try an example">
             <span className="examples-label">Try</span>
             {sampleRequests.map((item, i) => <button key={item.category} type="button" className="example reveal" style={delay(i + 2)} disabled={!!busy || requestLocked}
-              aria-label={item.category === 'cloth' ? 'Use the sample cloth request' : `Use a sample ${item.label} request`} onClick={() => setText(item.text)}>
+              aria-label={item.category === 'cloth' ? 'Use the sample cloth request' : `Use a sample ${item.label} request`} onClick={() => { setText(item.text); play('tick'); }}>
               <SupplyIllustration category={item.category} />{item.label}
             </button>)}
           </div>
@@ -413,19 +476,23 @@ const captions = [
   'Tax and delivery are included in every total.',
   'You’ll approve the exact cart before any payment.',
 ];
-export function Thinking({ text }: { text: string }) {
+export function Thinking({ text, progress }: { text: string; progress: Progress | null }) {
   const [elapsed, setElapsed] = useState(0);
   useEffect(() => { const start = Date.now(); const timer = setInterval(() => setElapsed(Math.floor((Date.now() - start) / 1000)), 250); return () => clearInterval(timer); }, []);
-  const progress = Math.min(elapsed / 40, 1);
+  const ring = Math.min(elapsed / 40, 1);
   return <section className="thinking reveal" aria-label="AI comparison in progress">
     <div className="thinking-top">
-      <div className="ring" aria-hidden="true" style={{ '--p': progress } as CSSProperties}><span>{elapsed}s</span></div>
+      <div className="ring" aria-hidden="true" style={{ '--p': ring } as CSSProperties}><span>{elapsed}s</span></div>
       <div className="thinking-copy">
-        <p className="thinking-caption" key={Math.floor(elapsed / 4)}>{captions[Math.floor(elapsed / 4) % captions.length]}</p>
+        {progress?.stage === 'UNDERSTOOD'
+          ? <p className="thinking-caption">Confirming the result with the AI…</p>
+          : <p className="thinking-caption" key={Math.floor(elapsed / 4)}>{captions[Math.floor(elapsed / 4) % captions.length]}</p>}
         <p className="fine-print">Local AI on this laptop · usually 20–40 s{elapsed > 45 ? ' · taking longer than usual, still working' : ''}</p>
       </div>
     </div>
-    {text && <blockquote className="echo">{text}</blockquote>}
+    {progress?.stage === 'UNDERSTOOD'
+      ? <div className="understood"><p className="understood-label"><Icon name="check" />Understood. {progress.status === 'READY' ? `${plural(progress.eligible, 'offer')} fit so far — the AI is confirming.` : progress.status === 'NO_MATCH' ? 'Checking why nothing fits…' : 'A detail is missing — preparing the question…'}</p><RequirementChips constraints={progress.constraints} /></div>
+      : text && <blockquote className="echo">{text}</blockquote>}
     <div className="catalog-scan" aria-hidden="true">{Array.from({ length: 16 }, (_, i) => <span key={i} style={delay(i)} />)}</div>
     <div className="skeletons" aria-hidden="true"><div className="skeleton" /><div className="skeleton short" /></div>
   </section>;
@@ -565,9 +632,10 @@ function CheckoutStart({ approval, session, busy, onStart, onReload }: { approva
   return <section className="panel checkout reveal" aria-labelledby="checkout-heading">
     <div className="panel-head"><Icon name="card" /><div><h2 id="checkout-heading">Sandbox checkout</h2><p className="fine-print">App approval is <strong>{approval.status.toLowerCase()}</strong>. This approval has not started a payment.</p></div></div>
     <ol className="mini-steps"><li>We create one PayPal order for this exact cart</li><li>You approve it in the PayPal window</li><li>The server captures and verifies the result</li></ol>
-    {ready && !permitted && <div className="alert is-info"><Icon name="lock" /><div><strong>Waiting for payment permission</strong><p>For safety, a person gives one-time consent outside the browser: run <code>manage.py authorize_sandbox_purchase</code> in a terminal and type the total. Then reload.</p><button className="btn small" disabled={busy} onClick={onReload}><Icon name="refresh" />Reload status</button></div></div>}
+    {ready && !permitted && caps?.consent_mode !== 'buyer' && <div className="alert is-info"><Icon name="lock" /><div><strong>Waiting for payment permission</strong><p>This server runs in strict mode: a person gives one-time consent outside the browser by running <code>manage.py authorize_sandbox_purchase</code> and typing the total. This page updates by itself when it’s given.</p><button className="btn small" disabled={busy} onClick={onReload}><Icon name="refresh" />Check now</button></div></div>}
+    {caps?.consent_mode === 'buyer' && permitted && <p className="consent-note"><Icon name="check" />Your approval above authorizes this one sandbox order, for this exact total, until it expires.</p>}
     <button className="btn primary wide" disabled={busy || !permitted} aria-describedby="checkout-permission" onClick={onStart}>Start sandbox checkout<Icon name="arrow" /></button>
-    <p id="checkout-permission" className="fine-print">Requires current permission for this exact approved cart. After creation, continue to PayPal to approve the existing sandbox order.</p>
+    <p id="checkout-permission" className="fine-print">{caps?.consent_mode === 'buyer' ? 'Creates one order for this exact approved cart.' : 'Requires current permission for this exact approved cart.'} After creation, continue to PayPal to approve the existing sandbox order.</p>
   </section>;
 }
 
@@ -664,6 +732,8 @@ const paths: Record<string, ReactNode> = {
   question: <><circle cx="12" cy="12" r="8.5" /><path d="M9.8 9.5a2.3 2.3 0 1 1 3.2 2.1c-.6.3-1 .8-1 1.5v.4m0 2.6v.1" /></>,
   card: <><rect x="3" y="6" width="18" height="12.5" rx="2.5" /><path d="M3 10.5h18M7 15h3" /></>,
   plug: <path d="M9 3v5m6-5v5M6.5 8h11v3a5.5 5.5 0 0 1-11 0Zm5.5 8.5V21" />,
+  sound: <><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4Z" /><path d="M15.5 9a4 4 0 0 1 0 6m2.5-8.5a7.5 7.5 0 0 1 0 11" /></>,
+  mute: <><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4Z" /><path d="m16 9.5 5 5m0-5-5 5" /></>,
 };
 function Icon({ name }: { name: keyof typeof paths }) {
   return <svg className="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">{paths[name]}</svg>;

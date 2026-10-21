@@ -170,6 +170,12 @@ def comparison_response(purchase):
 
 
 @endpoint(["GET"])
+def progress(request):
+    current = request.session.get("current_request_id")
+    return Response(inference.progress(owner(request), uuid.UUID(current)) if current else {"stage": "DONE"})
+
+
+@endpoint(["GET"])
 def request_detail(request, pk):
     return Response(request_data(inference.recover(owner(request), pk)))
 

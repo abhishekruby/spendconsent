@@ -63,20 +63,19 @@ Everything is free and runs on loopback.
    account (see [docs/sandbox-setup.md](docs/sandbox-setup.md)). Copy
    `.env.example` to `.env` (owner-only, `chmod 600`) and fill the four
    `PAYPAL_*` values with `PAYPAL_ENV=sandbox`. Never commit `.env`.
-5. **Start the API and the app:**
+5. **Start the API and the app** (`SPENDCONSENT_PAYPAL_CONSENT=buyer` lets the
+   buyer's own in-app approval authorize one sandbox order, capped at $100; leave
+   it out for strict mode, where a person must also run the consent command below):
    ```bash
-   SPENDCONSENT_AI_ENABLED=1 SPENDCONSENT_PAYPAL_ENABLED=1 .venv/bin/python backend/manage.py runserver 127.0.0.1:8000 --noreload
+   SPENDCONSENT_AI_ENABLED=1 SPENDCONSENT_PAYPAL_ENABLED=1 SPENDCONSENT_PAYPAL_CONSENT=buyer .venv/bin/python backend/manage.py runserver 127.0.0.1:8000 --noreload
    ```
    Then follow [frontend/README.md](frontend/README.md) (`npm ci`, `npm run dev`)
    and open http://127.0.0.1:5173.
-6. **Buy:** use the sample request → compare → review → approve. Then, in a
-   terminal, give the one-time payment consent for that exact cart (it shows the
-   cart and asks you to type the total):
-   ```bash
-   .venv/bin/python backend/manage.py authorize_sandbox_purchase
-   ```
-   Back in the app, start sandbox checkout and approve with a sandbox
-   **personal** account in the PayPal window.
+6. **Buy:** use the sample request → compare → review → approve → start sandbox
+   checkout, then approve with a sandbox **personal** account in the PayPal
+   window. (Strict mode only: before checkout, give the one-time consent in a
+   terminal with `.venv/bin/python backend/manage.py authorize_sandbox_purchase`,
+   which shows the cart and asks you to type the total.)
 
 Without step 3 or 4 the app still runs and says honestly that AI or payment is
 unavailable; it never fakes a result. To demo a changed price:

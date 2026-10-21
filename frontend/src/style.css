@@ -430,3 +430,12 @@ details[open] > summary::after { transform: rotate(225deg) translateY(-1px); }
   .track { grid-template-columns: 1fr 1fr; row-gap: 12px; }
   .activity li { grid-template-columns: 1fr; gap: 2px; }
 }
+
+/* Live AI progress + buyer-consent note */
+.understood { display: grid; gap: 10px; padding: 14px 16px; border-radius: var(--r-md); background: var(--ok-soft); animation: rise .5s var(--ease) both; }
+.understood-label { display: flex; align-items: center; gap: 8px; font-weight: 600; }
+.understood-label .icon { color: var(--ok); }
+.understood .chips li { background: var(--surface); }
+.consent-note { display: flex; gap: 8px; align-items: center; padding: 10px 14px; border-radius: var(--r-sm); background: var(--ok-soft); font-size: 14px; }
+.consent-note .icon { color: var(--ok); }
+.icon-button[aria-pressed='false'] { color: var(--muted); }

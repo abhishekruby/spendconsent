@@ -67,6 +67,11 @@ SPENDCONSENT_AI_READINESS = private / "ai-ready.json"
 SPENDCONSENT_PAYPAL_ENABLED = os.environ.get("SPENDCONSENT_PAYPAL_ENABLED") == "1"
 SPENDCONSENT_PAYPAL_CREDENTIALS = ROOT / ".env"
 SPENDCONSENT_PAYPAL_PERMISSION = private / "paypal-permission.json"
+# "buyer": the buyer's own in-app approval of the exact cart authorizes one
+# sandbox order (judge/demo use). "operator" (default): a person must also write
+# the one-time permission with `manage.py authorize_sandbox_purchase`.
+SPENDCONSENT_PAYPAL_CONSENT = "buyer" if os.environ.get("SPENDCONSENT_PAYPAL_CONSENT") == "buyer" else "operator"
+SPENDCONSENT_BUYER_MAX_CENTS = 10000
 # Server logs contain no request bodies, private model/provider responses or local variables.
 LOGGING = {"version": 1, "disable_existing_loggers": False,
            "handlers": {"null": {"class": "logging.NullHandler"}},
