@@ -70,9 +70,8 @@ def commit():
 def checkpoint():
     return {"sources": {name: sha(name) for name in SOURCES}, "configuration": agent.PRESET,
             "endpoint": agent.ENDPOINT, "system_sha256": hashlib.sha256(agent.SYSTEM.encode()).hexdigest(),
-            "final_system_sha256": hashlib.sha256(agent.FINAL_SYSTEM.encode()).hexdigest(),
             "tool_schema_sha256": hashlib.sha256(json.dumps(agent.TOOL, sort_keys=True).encode()).hexdigest(),
-            "final_schema": agent.FINAL_SCHEMA, "expected_model_artifact": ai_probe.MODEL_4B_PROVENANCE,
+            "model_calls_per_comparison": 1, "expected_model_artifact": ai_probe.MODEL_4B_PROVENANCE,
             "runtime_artifact_verification": "Separate team-lead runtime/download evidence; not attested by this runner.",
             "catalog_storage": "Unsaved copies of frozen seed; ORM lookup redirected, actual catalog arithmetic.",
             "database": "Django dummy backend; no DB access. Autocommit introspection supplied by fixture context.",
@@ -249,10 +248,10 @@ def judge(case, result, trace, actual_inference=True):
     if len(calls) != 1 or any(set(call) != {"name", "status", "elapsed_ms"} or call["name"] != "search_catalog"
             or call["status"] != "completed" or type(call["elapsed_ms"]) is not int or call["elapsed_ms"] < 0 for call in calls):
         errors.append("tool_metadata")
-    if trace["model_requests"] != 2 or trace["native_tool_names"] != ["search_catalog"] or trace["blocked_other_destinations"] \
+    if trace["model_requests"] != 1 or trace["native_tool_names"] != ["search_catalog"] or trace["blocked_other_destinations"] \
             or trace["native_call_limit_exceeded"] or trace["native_arguments_invalid"] or len(trace["validated_native_arguments"]) != 1:
         errors.append("native_model_tool_evidence")
-    if actual_inference and trace["model_connections"] != 2:
+    if actual_inference and trace["model_connections"] != 1:
         errors.append("actual_model_connections")
     return errors
 
@@ -371,9 +370,7 @@ def self_test():
                         value["attributes"][key], value["size_unit"] = float(number), agent._unit(word)
             return {"role": "assistant", "content": None, "tool_calls": [{"id": "offline_1", "type": "function",
                     "function": {"name": "search_catalog", "arguments": json.dumps(value)}}]}
-        facts = json.loads(payload["messages"][-1]["content"])
-        return {"role": "assistant", "content": json.dumps({"status": facts["status"],
-                "offer_id": facts["eligible"][0]["offer_id"] if facts["eligible"] else None})}
+        raise AssertionError("compare makes exactly one model call")
     with patch.object(agent, "_chat", side_effect=fake_chat), patch.object(socket, "create_connection", side_effect=AssertionError("Offline only")):
         for cases in suites.values():
             for case in cases:

@@ -53,11 +53,10 @@ def response(message, finish="stop"):
 
 
 class NativeHTTP:
-    """Explicit test-only HTTP double. Tool facts select the final ID."""
+    """Explicit test-only HTTP double for the single native tool-call request."""
     def __init__(self, value):
         self.value, self.bodies = value, []
         self.first = None
-        self.last = None
         self.http_status = 200
 
     def request(self, method, path, body, headers):
@@ -66,12 +65,8 @@ class NativeHTTP:
         assert headers == {"Content-Type": "application/json"}
         body = json.loads(body)
         self.bodies.append(body)
-        if "tools" in body:
-            self.pending = response(native_call(self.value), "tool_calls") if self.first is None else self.first
-        else:
-            facts = json.loads(body["messages"][-1]["content"])
-            decision = {"status": facts["status"], "offer_id": facts["eligible"][0]["offer_id"] if facts["eligible"] else None}
-            self.pending = response({"role": "assistant", "content": json.dumps(decision)}) if self.last is None else self.last
+        assert "tools" in body, "compare makes exactly one model call, the native tool call"
+        self.pending = response(native_call(self.value), "tool_calls") if self.first is None else self.first
 
     def getresponse(self):
         result = Mock(status=self.http_status)
@@ -111,7 +106,7 @@ class AgentTests(TransactionTestCase):
                 self.assertEqual(result["excluded"], excluded)
                 self.assertEqual(result["status"], "READY")
                 self.assertIsNone(result["clarification"])
-                self.assertEqual(len(fake.bodies), 2)
+                self.assertEqual(len(fake.bodies), 1)
                 self.assertEqual(fake.bodies[0]["tools"], [agent.TOOL])
                 parameters = fake.bodies[0]["tools"][0]["function"]["parameters"]
                 self.assertEqual(set(parameters["required"]), set(agent._NATIVE_FIELDS))
@@ -125,14 +120,6 @@ class AgentTests(TransactionTestCase):
                                   if item is not None}, attributes)
                 self.assertTrue(all("null" in item["type"] for item in schema["properties"].values()))
                 self.assertEqual(agent._arguments(fake.value)["category"], fake.value["category"])
-                self.assertEqual(fake.bodies[1]["response_format"]["json_schema"]["schema"], agent.FINAL_SCHEMA)
-                self.assertNotIn("tools", fake.bodies[1])
-                final_messages = fake.bodies[1]["messages"]
-                self.assertEqual(final_messages[0], {"role": "system", "content": agent.FINAL_SYSTEM})
-                self.assertEqual([row["role"] for row in final_messages], ["system", "user", "assistant", "tool"])
-                self.assertEqual(final_messages[2]["tool_calls"][0]["id"], final_messages[3]["tool_call_id"])
-                self.assertNotIn(described(constraints), json.dumps(final_messages))
-                self.assertNotIn("confirmed_constraints", json.dumps(final_messages))
                 self.assertNotIn("private_reasoning_marker", json.dumps(fake.bodies))
                 for body in fake.bodies:
                     self.assertEqual({key: body[key] for key in agent.PRESET}, agent.PRESET)
@@ -271,7 +258,7 @@ class AgentTests(TransactionTestCase):
                 else:
                     self.assertNotIn("budget_cents", result["constraints"])
 
-    def test_undecided_sizes_excluded_products_and_named_final_offer(self):
+    def test_undecided_sizes_excluded_products_and_single_model_call(self):
         notebook = arguments(category="notebook", quantity=30, budget_cents=7000, attributes={"paper_size": "A4"})
         with self.http(notebook):
             result = agent.compare("Thirty notebooks, at most $70.00, one-time. We haven't picked A4 or A5 yet.")
@@ -301,13 +288,12 @@ class AgentTests(TransactionTestCase):
         with self.http(single) as fake:
             result = agent.compare("Forty cloths, 40 wide, 30 cm high, at most $60, one-time.")
         self.assertEqual(result["constraints"]["attributes"], {"width_cm": 40, "height_cm": 30})
-        self.assertIsNone(json.loads(fake.bodies[-1]["messages"][-1]["content"])["recommended_offer_id"])
+        self.assertEqual(len(fake.bodies), 1)
         with self.http() as fake:
             result = agent.compare("Exactly 40 microfiber cloths, 40 by 40 cm, no cloths smaller than that, "
                                    "maximum $60 delivered including tax, one-time only.")
         self.assertEqual(result["status"], "READY")
-        facts = json.loads(fake.bodies[-1]["messages"][-1]["content"])
-        self.assertEqual(facts["recommended_offer_id"], result["candidates"][0]["offer_id"])
+        self.assertEqual(len(fake.bodies), 1)
 
     def test_complete_attribute_protocol_preserves_unknowns_and_dimension_order(self):
         with self.http(arguments(attributes={"width_cm": 35})):
@@ -441,23 +427,6 @@ class AgentTests(TransactionTestCase):
                 self.assertEqual(str(caught.exception), "MODEL_ERROR")
                 self.assertEqual(len(fake.bodies), 1)
 
-    def test_invented_final_ids_status_prices_and_final_tool_calls_are_rejected(self):
-        cases = ({"status": "READY", "offer_id": str(uuid.uuid4())},
-                 {"status": "PAID", "offer_id": None},
-                 {"status": "READY", "offer_id": None, "total_cents": 1},
-                 {"status": "NO_MATCH", "offer_id": None},
-                 {"status": "READY", "offer_id": str(Offer.objects.get(sku="CLOTH-C").id)},
-                 {"status": "READY", "offer_id": str(Offer.objects.get(sku="CLOTH-A").id)})
-        for decision in cases:
-            with self.subTest(decision=decision), self.http() as fake:
-                fake.last = response({"role": "assistant", "content": json.dumps(decision)})
-                with self.assertRaises(agent.AgentError):
-                    agent.compare(TEXT)
-        with self.http() as fake:
-            fake.last = response(native_call(arguments()), "tool_calls")
-            with self.assertRaises(agent.AgentError):
-                agent.compare(TEXT)
-
     def test_truncation_malformed_network_redirect_and_error_privacy(self):
         cases = (response(native_call(arguments()), "length"), {"choices": []},
                  response({"role": "tool", "content": "private_provider_marker"}),
@@ -486,7 +455,7 @@ class AgentTests(TransactionTestCase):
         with self.http():
             self.assertEqual(agent.compare(TEXT)["status"], "READY")
 
-    def test_whole_deadline_covers_tools_and_final_and_rejects_late_success(self):
+    def test_whole_deadline_covers_tools_and_rejects_late_success(self):
         clock = [100.0]
         real_search = agent._search
         def delayed_search(*args):
@@ -499,18 +468,6 @@ class AgentTests(TransactionTestCase):
                 agent.compare(TEXT)
             self.assertEqual(caught.exception.code, "MODEL_TIMEOUT")
             self.assertEqual(len(fake.bodies), 1)
-        with self.http() as fake, patch.object(agent.time, "monotonic", side_effect=lambda: clock[0]):
-            clock[0] = 100.0
-            getresponse = fake.getresponse
-            def delayed_final():
-                result = getresponse()
-                if len(fake.bodies) == 2:
-                    clock[0] = 191.0
-                return result
-            with patch.object(fake, "getresponse", side_effect=delayed_final):
-                with self.assertRaises(agent.AgentError) as caught:
-                    agent.compare(TEXT)
-            self.assertEqual(caught.exception.code, "MODEL_TIMEOUT")
 
     def test_absolute_deadline_bounds_native_http_header_and_body_trickle(self):
         # Public socket boundary, real http.client parsing; no sockets/network.
