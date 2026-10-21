@@ -49,7 +49,8 @@ UNSEEN4 = "docs/evidence/ai-application-unseen-52ad168.json"
 # 52ad168 became exposed after its 4158aba run; e069354 was blind until its 92fe770
 # run (140/140) and is now exposed. A new blind suite is needed for the next change.
 UNSEEN5 = "docs/evidence/ai-application-unseen-e069354.json"
-# eeb94c5 (one model call per comparison) is the current blind suite.
+# eeb94c5 (one model call per comparison) was blind until its 34ec5e1 run (160/160);
+# now exposed. The next agent.py change needs a new blind suite.
 UNSEEN6 = "docs/evidence/ai-application-unseen-eeb94c5.json"
 SUITES = ("original", "fresh", "unseen", "unseen2", "unseen3", "unseen4", "unseen5", "unseen6")
 SEED = "backend/purchases/migrations/0002_sample_catalog.py"

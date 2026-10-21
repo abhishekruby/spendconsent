@@ -56,10 +56,10 @@ within your budget, your approval is revoked and you must review again.
 
 ## Accomplishments
 
-- Honest AI evaluation: seven suites of 20 outcomes each, run against the real
-  application code. Five suites were written blind by a separate author. The
-  current version scored 140/140 (warm median 20–32 s on a laptop CPU), and
-  every earlier failed run is kept as evidence.
+- Honest AI evaluation: eight suites of 20 outcomes each, run against the real
+  application code. Six suites were written blind by a separate author. The
+  current version scored 160/160 with one model call per comparison (warm
+  median 17–20 s on a laptop CPU), and every earlier failed run is kept as evidence.
 - A verified end-to-end sandbox purchase: AI comparison, exact approval, PayPal
   capture, independent read-back and stock decrement.
 

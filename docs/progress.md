@@ -1,5 +1,13 @@
 # Progress — project log
 
+## 21 October 2026, 19:30 IST: one AI call, 160/160; queueing; receipts
+
+- One model call per comparison (eeb94c5); new blind suite unseen6 by a separate
+  author; report 34ec5e1: all eight suites 20/20, warm medians 17–20 s (was
+  20–32 s). Readiness granted; API restarted (buyer mode); smoke test 15.8 s.
+- Busy model: comparisons queue up to 60 s server-side instead of MODEL_BUSY.
+- Paid orders: Buy again (prefills the same request) and a downloadable HTML receipt.
+
 ## 21 October 2026, 17:40 IST: buyer consent, live progress, sounds
 
 - User chose buyer-consent mode for judges: `SPENDCONSENT_PAYPAL_CONSENT=buyer`

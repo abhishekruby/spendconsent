@@ -246,3 +246,15 @@ did not read it before inference. Report `92fe770` (seven suites, 140 outcomes):
 maximum 44.0 s. Readiness granted with `grant_ai_readiness` (report-checked).
 unseen5 is now exposed. Real-app smoke test after restart: label-sheet request
 NO_MATCH (25.1 s), sample cloth request READY CLOTH-B/CLOTH-A (29.9 s).
+
+## One model call — 21 October 2026
+
+Adapter eeb94c5 drops the confirm-only second model call (the validated catalog
+tool already decides status and offers). A separate agent authored blind suite
+`unseen6` (`ai-application-unseen-eeb94c5.json`) against frozen eeb94c5; the
+implementer did not read it before inference. Report `34ec5e1` (eight suites,
+160 outcomes): **every suite 20/20**; warm medians 17.3, 17.4, 17.2, 17.1, 16.9,
+17.1, 18.5, 19.6 s (previously 20.4–31.9 s with two calls); maximum 54.7 s
+(first, cold case). Readiness granted with `grant_ai_readiness`. Real-app smoke
+test: sample cloth request READY CLOTH-B/CLOTH-A in 15.8 s; label-sheet request
+NO_MATCH in 17.0 s. unseen6 is now exposed.

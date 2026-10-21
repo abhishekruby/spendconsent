@@ -42,13 +42,7 @@ Deadline 12 Nov 2026 noon PST (13 Nov 01:30 IST).
   no shipping.options (SHIPPING_OPTIONS_NOT_SUPPORTED), definitive create
   declines, advisory SDK eligibility; `.env` now uses a **US** sandbox business
   account (India one gave UNSUPPORTED_PAYEE_CURRENCY). API runs with AI+PayPal on.
-- **AI round 2 QUALIFIED:** e069354 + review fixes eaaa3f9 (reviews PASS):
-  `recommended_offer_id` in final call; undecided/negated paper size and bare
-  size among several units → asked; "labels, not notebooks" → NO_MATCH.
-  Report 92fe770: **all 7 suites 20/20 (140/140)**, warm medians 20–32 s, max
-  44 s. Readiness granted via `grant_ai_readiness`; API restarted (AI+PayPal
-  flags); real-app smoke test passed. Blind suite unseen5 (e069354) is now
-  exposed: any further agent.py change needs a NEW blind suite.
+- AI round 2 (92fe770, 140/140) superseded by the one-call adapter below.
 - **Operator commands:** `grant_ai_readiness <report>` (checks report + all
   hashed backend sources); `authorize_sandbox_purchase` (shows exact cart,
   person types the total, writes one-time permission; TTY only). Review PASS.
@@ -63,6 +57,9 @@ Deadline 12 Nov 2026 noon PST (13 Nov 01:30 IST).
   (`GET /api/progress`: "Understood…" before the final call; agent.py unchanged),
   model warm-up at runserver start, background sync (focus, waiting states,
   approval expiry).
+- **One AI call (eeb94c5), report 34ec5e1: 160/160**, warm medians 17–20 s;
+  readiness granted. All 8 suites now exposed. Busy model queues 60 s; paid
+  orders get Buy again + receipt download.
 - **Buyer-consent mode** (`SPENDCONSENT_PAYPAL_CONSENT=buyer`, cap $100): the
   buyer's own unexpired in-app approval authorizes one sandbox order; default
   stays operator (typed permission). API currently runs in buyer mode.

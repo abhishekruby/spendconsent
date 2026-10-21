@@ -32,11 +32,12 @@ the human approves the exact cart, PayPal moves the money.**
 
 ## Evidence
 
-- **AI:** seven suites × 20 outcomes against the real application code, five of
+- **AI:** eight suites × 20 outcomes against the real application code, six of
   them written by a separate author who never shared them before inference.
-  Current qualified run [92fe770](docs/evidence/ai-application-qualification-92fe770.json):
-  **140/140** (gate: ≥ 18/20 per suite), warm medians 20–32 s, slowest 44 s on a
-  laptop CPU. Earlier failed runs are kept; see [AI evaluation](docs/ai-application-evaluation.md).
+  Current qualified run [34ec5e1](docs/evidence/ai-application-qualification-34ec5e1.json):
+  **160/160** (gate: ≥ 18/20 per suite), one model call per comparison, warm
+  medians 17–20 s on a laptop CPU. Earlier failed runs are kept; see
+  [AI evaluation](docs/ai-application-evaluation.md).
 - **PayPal sandbox:** a real end-to-end purchase (USD 47.60, captured, read back,
   stock decremented), with the problems found on the way:
   [sandbox purchase evidence](docs/evidence/sandbox-purchase-2026-10-21.md).
@@ -57,7 +58,7 @@ Everything is free and runs on loopback.
 3. **Enable AI** for the qualified adapter (or rerun the qualification yourself
    with `scripts/ai_application_eval.py`):
    ```bash
-   .venv/bin/python backend/manage.py grant_ai_readiness docs/evidence/ai-application-qualification-92fe770.json
+   .venv/bin/python backend/manage.py grant_ai_readiness docs/evidence/ai-application-qualification-34ec5e1.json
    ```
 4. **PayPal sandbox:** create a sandbox REST app on a **US** sandbox business
    account (see [docs/sandbox-setup.md](docs/sandbox-setup.md)). Copy
@@ -86,7 +87,7 @@ unavailable; it never fakes a result. To demo a changed price:
 One fictional merchant and 16 sample SKUs; one item per cart; USD one-time
 purchases only; sandbox only. The grounding check verifies that a number appears
 in the buyer's text, not its role, so the exact review remains the final check.
-Model latency is 20–40 s on CPU. No usability claim is made yet.
+Model latency is about 15–20 s per comparison on CPU. No usability claim is made yet.
 
 ## Repository map
 
