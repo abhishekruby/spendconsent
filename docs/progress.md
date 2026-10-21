@@ -438,3 +438,9 @@ request version, up to five in-stock US listings with title-derived per-unit
 price, shown under the offers and in the MCP `find_offers` output. Owner-only,
 informational, no redirects (key stays with Channel3), malformed data hidden.
 Review PASS after fixes. Live check pending the user's key.
+
+### 21 Oct 2026 (Claude): expert evaluation without participants
+
+Ran U1–U5 through the app (5/5 correct, median 18.9 s), KLM estimate and
+dogfooding issues in `docs/evidence/expert-evaluation-2026-10-21.md`. No human
+timing yet; claim correctness and safety, not speed.
