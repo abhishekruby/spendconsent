@@ -41,6 +41,7 @@ export function App() {
   const [editing, setEditing] = useState(false);
   const [sound, setSound] = useState(soundOn);
   const [progress, setProgress] = useState<Progress | null>(null);
+  const [historyOpen, setHistoryOpen] = useState(false);
   const heading = useRef<HTMLHeadingElement>(null);
   const operation = useRef<AbortController | null>(null);
   const generation = useRef(0);
@@ -312,8 +313,8 @@ export function App() {
     <header className="topbar">
       <a className="brand" href="#main" aria-label="SpendConsent home"><Mark /><span>SpendConsent</span></a>
       <div className="topbar-end">
-        <span className="sandbox-chip" title="PayPal sandbox: test money only, no real charges"><span className="test-dot" aria-hidden="true" />Sandbox · test money</span>
-        {request && !draftMode && <a className="ghost-link" href="#history">Activity</a>}
+        <span className="sandbox-chip" title="PayPal sandbox: test money only, no real charges"><span className="test-dot" aria-hidden="true" />Sandbox<span className="wide-only"> · test money</span></span>
+        {session && <button type="button" className="btn small quiet history-button" aria-label="Your purchases" onClick={() => setHistoryOpen(true)}><Icon name="list" /><span className="wide-only">Purchases</span></button>}
         <button type="button" className="icon-button" aria-pressed={sound} aria-label={sound ? 'Mute interface sounds' : 'Turn interface sounds on'}
           onClick={() => { const next = !sound; setSound(next); setSoundOn(next); if (next) play('tick'); }}><Icon name={sound ? 'sound' : 'mute'} /></button>
         <button type="button" className="icon-button" aria-label={`Use ${appearance === 'light' ? 'dark' : 'light'} appearance`} onClick={() => setAppearance(value => value === 'light' ? 'dark' : 'light')}>
@@ -419,6 +420,8 @@ export function App() {
       </main>
     </div>
 
+    {historyOpen && <PurchasesPanel api={api} canBuyAgain={canStartNew(request) && !busy && !recoveryBlocked}
+      onClose={() => setHistoryOpen(false)} onBuyAgain={previous => { setHistoryOpen(false); buyAgain(previous); }} />}
     <div className="toast" data-show={!!(busy || notice)} aria-hidden="true">
       {busy ? <span className="spinner" /> : <Icon name="check" />}<span>{busy || notice}</span>
     </div>
@@ -749,6 +752,50 @@ function downloadReceipt(r: Review, a: Attempt) {
   play('tick');
 }
 
+function purchaseState(p: PurchaseRequest): { label: string; tone: string } {
+  const a = p.attempt;
+  if (a && a.state !== 'STOPPED') return a.state === 'PAID' ? { label: 'Paid', tone: 'ok' }
+    : ['UNKNOWN', 'PAYMENT_REVIEW'].includes(a.state) ? { label: attemptText[a.state].short, tone: 'warn' } : { label: attemptText[a.state].short, tone: 'busy' };
+  if (p.approval?.status === 'APPROVED') return { label: 'Approved', tone: 'busy' };
+  if (p.approval?.status === 'EXPIRED' || p.approval?.status === 'REVOKED') return { label: `Approval ${p.approval.status.toLowerCase()}`, tone: 'muted' };
+  return { label: 'Reviewed', tone: 'muted' };
+}
+function PurchasesPanel({ api, canBuyAgain, onClose, onBuyAgain }: { api: Api; canBuyAgain: boolean; onClose: () => void; onBuyAgain: (p: PurchaseRequest) => void }) {
+  const [rows, setRows] = useState<PurchaseRequest[] | null>(null);
+  const [failed, setFailed] = useState(false);
+  const close = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    const controller = new AbortController();
+    api.purchases(controller.signal).then(result => setRows(result.purchases)).catch(() => { if (!controller.signal.aborted) setFailed(true); });
+    close.current?.focus();
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', onKey);
+    return () => { controller.abort(); window.removeEventListener('keydown', onKey); };
+  }, []);
+  const paidTotal = rows?.filter(p => p.attempt?.state === 'PAID').reduce((sum, p) => sum + p.attempt!.total_cents, 0) ?? 0;
+  return <div className="drawer-backdrop" onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
+    <aside className="drawer" role="dialog" aria-modal="true" aria-labelledby="purchases-heading">
+      <header className="drawer-head"><div><h2 id="purchases-heading">Your purchases</h2><p className="fine-print">In this browser · PayPal sandbox{rows?.length ? ` · ${money(paidTotal)} paid` : ''}</p></div>
+        <button ref={close} type="button" className="icon-button" aria-label="Close purchases" onClick={onClose}><Icon name="plus" /></button></header>
+      {failed && <p className="alert is-error">Purchases could not be loaded. Close and try again.</p>}
+      {!rows && !failed && <div className="skeletons"><div className="skeleton short" /><div className="skeleton short" /><div className="skeleton short" /></div>}
+      {rows && rows.length === 0 && <div className="empty"><Icon name="list" /><p>No purchases yet. Carts you review, approve and pay will appear here.</p></div>}
+      {rows && rows.length > 0 && <ol className="purchase-list">{rows.map((p, i) => {
+        const r = p.review!; const s = purchaseState(p);
+        return <li key={p.id} className="purchase reveal" style={delay(i)}>
+          <div className="purchase-main"><p className="purchase-name">{r.item.name}</p>
+            <p className="fine-print">{r.item.packs} × {r.item.pack_units} = {r.item.individual_units} units · <time dateTime={r.created_at}>{dateTime(r.created_at)}</time></p></div>
+          <div className="purchase-side"><strong className="mono">{money(r.total_cents)}</strong><span className={`status-chip is-${s.tone}`}>{s.label}</span></div>
+          <div className="purchase-actions">
+            {p.attempt?.state === 'PAID' && <button type="button" className="btn small" onClick={() => downloadReceipt(r, p.attempt!)}><Icon name="download" />Receipt</button>}
+            <button type="button" className="btn small quiet" disabled={!canBuyAgain} onClick={() => onBuyAgain(p)}><Icon name="refresh" />Buy again</button>
+          </div>
+        </li>;
+      })}</ol>}
+    </aside>
+  </div>;
+}
+
 function Mark() {
   return <svg className="mark" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="currentColor" /><path d="M9.5 17.2c2.1 1.2 3.4 2.6 4.2 4.3 2.2-5.6 5.4-9.4 9.3-11.7" fill="none" stroke="var(--accent)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" /></svg>;
 }
@@ -766,6 +813,7 @@ const paths: Record<string, ReactNode> = {
   question: <><circle cx="12" cy="12" r="8.5" /><path d="M9.8 9.5a2.3 2.3 0 1 1 3.2 2.1c-.6.3-1 .8-1 1.5v.4m0 2.6v.1" /></>,
   card: <><rect x="3" y="6" width="18" height="12.5" rx="2.5" /><path d="M3 10.5h18M7 15h3" /></>,
   plug: <path d="M9 3v5m6-5v5M6.5 8h11v3a5.5 5.5 0 0 1-11 0Zm5.5 8.5V21" />,
+  list: <path d="M8 7h11M8 12h11M8 17h11M4.5 7h.01M4.5 12h.01M4.5 17h.01" />,
   download: <path d="M12 4v11m-4.5-4.5L12 15l4.5-4.5M5 19.5h14" />,
   sound: <><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4Z" /><path d="M15.5 9a4 4 0 0 1 0 6m2.5-8.5a7.5 7.5 0 0 1 0 11" /></>,
   mute: <><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4Z" /><path d="m16 9.5 5 5m0-5-5 5" /></>,

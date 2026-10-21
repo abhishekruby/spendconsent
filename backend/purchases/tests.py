@@ -253,6 +253,17 @@ class AnonymousAPITests(TestCase):
         return {"text": "Exactly 40 cloths, 40 by 40 cm, at most $60 delivered. One time.",
                 "client_submission_id": str(uuid.uuid4()), "constraints": deepcopy(CONSTRAINTS)}
 
+    def test_purchase_history_lists_only_this_browsers_reviewed_requests_newest_first(self):
+        older = ready_request(self.owner)
+        make_review(older)
+        ready_request(self.owner)  # never reviewed: not a purchase yet
+        newer = ready_request(self.owner)
+        make_approval(make_review(newer))
+        make_review(ready_request())  # another browser's purchase
+        rows = self.client.get("/api/purchases").json()["purchases"]
+        self.assertEqual([row["id"] for row in rows], [str(newer.id), str(older.id)])
+        self.assertEqual(rows[0]["approval"]["status"], "APPROVED")
+
     def test_material_offer_change_shows_existing_approval_as_no_longer_valid(self):
         request = ready_request(self.owner)
         review = make_review(request)

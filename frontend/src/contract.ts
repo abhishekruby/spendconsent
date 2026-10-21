@@ -132,3 +132,7 @@ export function isProgress(v: unknown): v is Progress {
   return v.stage === 'UNDERSTOOD' && Object.keys(v).length === 4 && isConstraints(v.constraints) && integer(v.eligible) && v.eligible <= 16
     && member(v.status, ['READY', 'NO_MATCH', 'NEEDS_CLARIFICATION']);
 }
+
+export function isPurchaseList(v: unknown): v is { purchases: PurchaseRequest[] } {
+  return object(v) && Object.keys(v).length === 1 && Array.isArray(v.purchases) && v.purchases.length <= 20 && v.purchases.every(isPurchaseRequest);
+}

@@ -3,7 +3,7 @@ import test from 'node:test';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { Api, ApiError, safeApiError } from '../.test-build/api.js';
-import { isAttempt, isConstraints, isProgress, isPurchaseRequest, isSession } from '../.test-build/contract.js';
+import { isAttempt, isConstraints, isProgress, isPurchaseList, isPurchaseRequest, isSession } from '../.test-build/contract.js';
 import { canStartNew, locksRequest, money, newerAttempt, newerRequest, parseCents, pending, permitted, purchaseDisplay, unitCost } from '../.test-build/logic.js';
 import { Offer, PaymentStatus, PayPalCheckout, ReviewCard, paymentTransitionNotice, receiptHtml } from '../.test-build/App.js';
 
@@ -220,4 +220,11 @@ test('downloadable receipt shows the verified payment and escapes catalog text',
   const html = receiptHtml(review, { ...attempt, state: 'PAID', capture_id: 'TESTCAPTURE1' });
   for (const value of ['$41.80 USD', 'TESTCAPTURE1', 'Paid, verified by the server', 'PayPal sandbox', '2 packs × 20 = 40 units']) assert.ok(html.includes(value), value);
   assert.ok(html.includes('&lt;img') && !html.includes('<img'));
+});
+
+test('purchase history accepts only a bounded list of valid requests', () => {
+  assert.ok(isPurchaseList({ purchases: [request] }) && isPurchaseList({ purchases: [] }));
+  assert.equal(isPurchaseList({ purchases: [{ ...request, status: 'LIVE' }] }), false);
+  assert.equal(isPurchaseList({ purchases: Array(21).fill(request) }), false);
+  assert.equal(isPurchaseList({ purchases: [request], extra: true }), false);
 });

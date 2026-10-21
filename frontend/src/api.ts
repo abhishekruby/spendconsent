@@ -1,4 +1,4 @@
-import { isAttempt, isProgress, isPurchaseRequest, isSession, uuid } from './contract.js';
+import { isAttempt, isProgress, isPurchaseList, isPurchaseRequest, isSession, uuid } from './contract.js';
 import type { Attempt, PurchaseRequest, Session } from './contract.js';
 
 const messages: Record<string, string> = {
@@ -32,7 +32,7 @@ export class Api {
   private csrf = '';
   constructor(private transport: typeof fetch = fetch) {}
   async call<T>(path: string, validate: (v: unknown) => v is T, body?: unknown, signal?: AbortSignal): Promise<T> {
-    if (!/^\/api\/(session|progress|requests(?:\/[0-9a-f-]+(?:\/(clarify|reviews))?)?|reviews\/[0-9a-f-]+\/approve|approvals\/[0-9a-f-]+\/attempts|attempts\/[0-9a-f-]+(?:\/(stop|reconcile|capture))?)$/.test(path)) throw new ApiError('INVALID_PATH', 'Invalid local API route.');
+    if (!/^\/api\/(session|progress|purchases|requests(?:\/[0-9a-f-]+(?:\/(clarify|reviews))?)?|reviews\/[0-9a-f-]+\/approve|approvals\/[0-9a-f-]+\/attempts|attempts\/[0-9a-f-]+(?:\/(stop|reconcile|capture))?)$/.test(path)) throw new ApiError('INVALID_PATH', 'Invalid local API route.');
     if (body !== undefined && !this.csrf) throw new ApiError('SESSION_REQUIRED', messages.SESSION_REQUIRED);
     const deadline = AbortSignal.timeout(100000);
     try {
@@ -63,6 +63,7 @@ export class Api {
   mutateRequest(path: string, body: unknown, signal?: AbortSignal) { return this.call<PurchaseRequest>(path, isPurchaseRequest, body, signal); }
   attempt(id: string, signal?: AbortSignal) { return this.call(`/api/attempts/${id}`, isAttemptEnvelope, undefined, signal); }
   progress(signal?: AbortSignal) { return this.call('/api/progress', isProgress, undefined, signal); }
+  purchases(signal?: AbortSignal) { return this.call('/api/purchases', isPurchaseList, undefined, signal); }
   mutateAttempt(path: string, signal?: AbortSignal) { return this.call(path, isAttemptEnvelope, {}, signal); }
 }
 function isAttemptEnvelope(v: unknown): v is { attempt: Attempt } {

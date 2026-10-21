@@ -170,6 +170,13 @@ def comparison_response(purchase):
 
 
 @endpoint(["GET"])
+def purchases(request):
+    """This browser's own purchases that reached an exact review, newest first."""
+    rows = PurchaseRequest.objects.filter(owner_uuid=owner(request), reviews__isnull=False).distinct().order_by("-created_at")[:20]
+    return Response({"purchases": [request_data(row) for row in rows]})
+
+
+@endpoint(["GET"])
 def progress(request):
     current = request.session.get("current_request_id")
     return Response(inference.progress(owner(request), uuid.UUID(current)) if current else {"stage": "DONE"})
