@@ -439,3 +439,4 @@ details[open] > summary::after { transform: rotate(225deg) translateY(-1px); }
 .consent-note { display: flex; gap: 8px; align-items: center; padding: 10px 14px; border-radius: var(--r-sm); background: var(--ok-soft); font-size: 14px; }
 .consent-note .icon { color: var(--ok); }
 .icon-button[aria-pressed='false'] { color: var(--muted); }
+.done-actions { display: flex; flex-wrap: wrap; gap: 8px; }

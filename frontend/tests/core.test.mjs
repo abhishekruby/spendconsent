@@ -5,7 +5,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { Api, ApiError, safeApiError } from '../.test-build/api.js';
 import { isAttempt, isConstraints, isProgress, isPurchaseRequest, isSession } from '../.test-build/contract.js';
 import { canStartNew, locksRequest, money, newerAttempt, newerRequest, parseCents, pending, permitted, purchaseDisplay, unitCost } from '../.test-build/logic.js';
-import { Offer, PaymentStatus, PayPalCheckout, ReviewCard, paymentTransitionNotice } from '../.test-build/App.js';
+import { Offer, PaymentStatus, PayPalCheckout, ReviewCard, paymentTransitionNotice, receiptHtml } from '../.test-build/App.js';
 
 // Explicit local test fixtures only. The running application has no seeded results.
 const id = '11111111-1111-4111-8111-111111111111';
@@ -214,4 +214,10 @@ test('live progress and consent mode are validated at the API boundary', () => {
     { stage: 'UNDERSTOOD', constraints: request.constraints, eligible: 1, status: 'PAID' }, { stage: 'PAID' }]) assert.equal(isProgress(bad), false);
   assert.ok(isSession({ ...session, capabilities: { ...session.capabilities, consent_mode: 'buyer' } }));
   assert.equal(isSession({ ...session, capabilities: { ...session.capabilities, consent_mode: 'anyone' } }), false);
+});
+
+test('downloadable receipt shows the verified payment and escapes catalog text', () => {
+  const html = receiptHtml(review, { ...attempt, state: 'PAID', capture_id: 'TESTCAPTURE1' });
+  for (const value of ['$41.80 USD', 'TESTCAPTURE1', 'Paid, verified by the server', 'PayPal sandbox', '2 packs × 20 = 40 units']) assert.ok(html.includes(value), value);
+  assert.ok(html.includes('&lt;img') && !html.includes('<img'));
 });

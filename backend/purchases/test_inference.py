@@ -70,6 +70,20 @@ class InferenceTests(TransactionTestCase):
                 with override_settings(SPENDCONSENT_AI_READINESS=alias):
                     self.assertFalse(inference.ready())
 
+    def test_busy_model_is_queued_instead_of_failing_the_buyer(self):
+        outcomes = [agent.AgentError("MODEL_BUSY"), agent.AgentError("MODEL_BUSY"), None]
+        def model(text, confirmed):
+            outcome = outcomes.pop(0)
+            if outcome:
+                raise outcome
+            return comparison(text, confirmed)
+        with patch.object(inference, "ready", return_value=True), patch.object(agent, "compare", side_effect=model), \
+                patch.object(inference.time, "sleep") as sleep:
+            response = self.post("/api/requests", self.data)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["status"], "READY")
+        self.assertEqual(sleep.call_count, 2)
+
     def test_live_progress_shows_the_understood_request_before_the_final_result(self):
         observed = []
         def model(text, confirmed):
@@ -126,7 +140,7 @@ class InferenceTests(TransactionTestCase):
                                              ("PRIVATE PROVIDER OUTPUT", "MODEL_ERROR", 503)):
             data = {**self.data, "client_submission_id": str(uuid.uuid4())}
             with self.subTest(code=code), patch.object(inference, "ready", return_value=True), patch.object(
-                    agent, "compare", side_effect=agent.AgentError(code)) as model:
+                    agent, "compare", side_effect=agent.AgentError(code)) as model, patch.object(inference, "_QUEUE_SECONDS", 0):
                 response = self.post("/api/requests", data)
                 self.assertEqual(response.status_code, status)
                 self.assertEqual(response.json()["error"]["code"], expected_code)

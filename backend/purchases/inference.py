@@ -25,6 +25,7 @@ from . import agent, services
 # agent.py stays byte-identical (its hash gates AI readiness); this only observes.
 # ponytail: in-process dict, so one API process (already a documented limit).
 _PROGRESS = {}
+_QUEUE_SECONDS = 60  # How long a buyer waits for a busy model before MODEL_BUSY.
 _WARMING = threading.Lock()  # A buyer who arrives during warm-up waits instead of MODEL_BUSY.
 _RECORDER = contextvars.ContextVar("spendconsent_progress", default=None)
 _original_search = agent._search
@@ -160,11 +161,19 @@ def compare(owner, purchase, inference_id):
         _WARMING.release()
     token = _RECORDER.set(record)
     try:
+        # Another buyer's comparison holds the model: queue for a while instead of failing.
+        queue_deadline = time.monotonic() + _QUEUE_SECONDS
         try:
-            result = agent.compare(purchase.text, purchase.confirmed_constraints)
-        except agent.AgentError as error:
-            code = error.code if error.code in ("MODEL_BUSY", "MODEL_TIMEOUT") else "MODEL_ERROR"
-            return _finish(owner, purchase.id, purchase.version, inference_id, error=code)
+            while True:
+                try:
+                    result = agent.compare(purchase.text, purchase.confirmed_constraints)
+                    break
+                except agent.AgentError as error:
+                    if error.code == "MODEL_BUSY" and time.monotonic() < queue_deadline:
+                        time.sleep(1.5)
+                        continue
+                    code = error.code if error.code in ("MODEL_BUSY", "MODEL_TIMEOUT") else "MODEL_ERROR"
+                    return _finish(owner, purchase.id, purchase.version, inference_id, error=code)
         finally:
             _RECORDER.reset(token)
         return _finish(owner, purchase.id, purchase.version, inference_id, result=result)
