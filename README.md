@@ -50,6 +50,13 @@ Tested on Ubuntu x86-64 with Python 3.12 + [uv](https://docs.astral.sh/uv/),
 PostgreSQL 16 binaries, Node 22, about 3 GB of disk for the model and 8 GB of RAM.
 Everything is free and runs on loopback.
 
+**After the one-time setup below, one command starts everything** (database,
+local AI, API, web app) and prints what is ready:
+
+```bash
+scripts/run_demo.sh          # start · scripts/run_demo.sh stop · scripts/run_demo.sh status
+```
+
 1. **Backend and database:** follow [backend/README.md](backend/README.md)
    (creates `.venv`, an isolated project PostgreSQL, migrations and tests).
 2. **Model:** download and verify llama.cpp b11696 and Qwen3-4B Q4_K_M as in

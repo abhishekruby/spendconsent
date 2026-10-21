@@ -66,7 +66,10 @@ def initialize():
     with (DATA / "postgresql.conf").open("a") as stream:
         stream.write(f"\nlisten_addresses = ''\nport = {PORT}\nunix_socket_directories = '{socket_path()}'\n"
                      "unix_socket_permissions = 0700\nshared_buffers = '32MB'\nwork_mem = '2MB'\n"
-                     "max_connections = 20\nautovacuum_max_workers = 1\nlogging_collector = off\n")
+                     "max_connections = 20\nautovacuum_max_workers = 1\nlogging_collector = off\n"
+                     # Keep dynamic shared memory in the data directory: desktop session
+                     # cleanup (systemd RemoveIPC) can wipe /dev/shm under a running server.
+                     "dynamic_shared_memory_type = mmap\n")
     user = getpass.getuser().replace('"', '""')
     (DATA / "pg_ident.conf").write_text(
         f'project_bootstrap "{user}" {BOOTSTRAP}\nproject_app "{user}" {APP}\n')
