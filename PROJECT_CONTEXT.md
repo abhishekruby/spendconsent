@@ -42,7 +42,6 @@ Deadline 12 Nov 2026 noon PST (13 Nov 01:30 IST).
   no shipping.options (SHIPPING_OPTIONS_NOT_SUPPORTED), definitive create
   declines, advisory SDK eligibility; `.env` now uses a **US** sandbox business
   account (India one gave UNSUPPORTED_PAYEE_CURRENCY). API runs with AI+PayPal on.
-- AI round 2 (92fe770, 140/140) superseded by the one-call adapter below.
 - **Operator commands:** `grant_ai_readiness <report>` (checks report + all
   hashed backend sources); `authorize_sandbox_purchase` (shows exact cart,
   person types the total, writes one-time permission; TTY only). Review PASS.
@@ -60,6 +59,10 @@ Deadline 12 Nov 2026 noon PST (13 Nov 01:30 IST).
 - **One AI call (eeb94c5), report 34ec5e1: 160/160**, warm medians 17–20 s;
   readiness granted. All 8 suites now exposed. Busy model queues 60 s; paid
   orders get Buy again + receipt download.
+- **Week-1 build (21 Oct):** `scripts/run_demo.sh` one-command start; purchases
+  drawer; **owner approval links** (requester → owner approves + pays one exact
+  cart; review PASS). Demo script rewritten. Plan: wk2 Vault/Agent Toolkit +
+  Channel3 check + usability study; wk3 video, Devpost, public repo, submit by 10 Nov.
 - **Buyer-consent mode** (`SPENDCONSENT_PAYPAL_CONSENT=buyer`, cap $100): the
   buyer's own unexpired in-app approval authorizes one sandbox order; default
   stays operator (typed permission). API currently runs in buyer mode.

@@ -3,7 +3,7 @@ import test from 'node:test';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { Api, ApiError, safeApiError } from '../.test-build/api.js';
-import { isAttempt, isConstraints, isProgress, isPurchaseList, isPurchaseRequest, isSession } from '../.test-build/contract.js';
+import { isAttempt, isConstraints, isLinkCreated, isLinkView, isProgress, isPurchaseList, isPurchaseRequest, isSession, linkToken } from '../.test-build/contract.js';
 import { canStartNew, locksRequest, money, newerAttempt, newerRequest, parseCents, pending, permitted, purchaseDisplay, unitCost } from '../.test-build/logic.js';
 import { Offer, PaymentStatus, PayPalCheckout, ReviewCard, paymentTransitionNotice, receiptHtml } from '../.test-build/App.js';
 
@@ -227,4 +227,20 @@ test('purchase history accepts only a bounded list of valid requests', () => {
   assert.equal(isPurchaseList({ purchases: [{ ...request, status: 'LIVE' }] }), false);
   assert.equal(isPurchaseList({ purchases: Array(21).fill(request) }), false);
   assert.equal(isPurchaseList({ purchases: [request], extra: true }), false);
+});
+
+test('owner approval links are validated and only reach their own routes', async () => {
+  const token = 'Ab_-'.repeat(11);
+  assert.ok(linkToken(token) && !linkToken('short') && !linkToken('../api/session') && !linkToken(null));
+  assert.ok(isLinkCreated({ token, expires_at: timestamp }));
+  assert.equal(isLinkCreated({ token: 'x', expires_at: timestamp }), false);
+  const view = { request, review_id: id2, capabilities: { ai_ready: true, paypal_ready: true, financial_actions_enabled: false, consent_mode: 'buyer' }, paypal: { client_id: 'abc', currency: 'USD' }, expires_at: timestamp };
+  assert.ok(isLinkView(view));
+  assert.equal(isLinkView({ ...view, paypal: { client_id: 'abc', currency: 'EUR' } }), false);
+  assert.equal(isLinkView({ ...view, extra: 1 }), false);
+  const paths = [];
+  const api = new Api(async path => { paths.push(path); return Response.json(view); });
+  assert.ok(isLinkView(await api.link(token)));
+  await assert.rejects(api.link('../../session'), error => error.code === 'INVALID_PATH');
+  assert.deepEqual(paths, [`/api/links/${token}`]);
 });

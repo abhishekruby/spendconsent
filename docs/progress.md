@@ -1,5 +1,18 @@
 # Progress — project log
 
+## 21 October 2026, 21:30 IST: week-1 build — run script, history, owner approval
+
+- `scripts/run_demo.sh` starts/verifies database, model, API and web app in one
+  command; project PostgreSQL now uses mmap dynamic shared memory (survives
+  systemd RemoveIPC wiping /dev/shm, which broke it once today).
+- "Your purchases" drawer (`GET /api/purchases`, this browser's reviewed requests).
+- Owner approval links: requester sends one exact cart; a different browser
+  approves and pays it via `/api/links/<token>…` acting for that cart only
+  (token hashed at rest, 24 h, dead once superseded, kept out of URL/logs/referrer).
+  Independent review PASS; its fixes applied. Verified in two tabs: owner
+  approval updated the requester's screen live (no payment made). 107 backend +
+  14 frontend tests pass. Demo script rewritten around this story.
+
 ## 21 October 2026, 19:30 IST: one AI call, 160/160; queueing; receipts
 
 - One model call per comparison (eeb94c5); new blind suite unseen6 by a separate

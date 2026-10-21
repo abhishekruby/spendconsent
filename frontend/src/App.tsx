@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { CSSProperties, FormEvent, ReactNode } from 'react';
 import { Api, ApiError } from './api.js';
-import type { Attempt, Candidate, Charges, Constraints, Evidence, Progress, PurchaseRequest, Review, Session } from './contract.js';
+import type { Attempt, Candidate, Charges, Constraints, Evidence, LinkView, Progress, PurchaseRequest, Review, Session } from './contract.js';
 import { canStartNew, locksRequest, money, newerAttempt, newerRequest, parseCents, pending, permitted, purchaseDisplay, unitCost } from './logic.js';
 import { PayPalError, preparePayPal } from './paypal.js';
 import { play, setSoundOn, soundOn, unlockAudio } from './sound.js';
@@ -42,6 +42,7 @@ export function App() {
   const [sound, setSound] = useState(soundOn);
   const [progress, setProgress] = useState<Progress | null>(null);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [askedOwner, setAskedOwner] = useState(false);
   const heading = useRef<HTMLHeadingElement>(null);
   const operation = useRef<AbortController | null>(null);
   const generation = useRef(0);
@@ -65,7 +66,7 @@ export function App() {
     const timer = setTimeout(() => setNotice(''), 6000);
     return () => clearTimeout(timer);
   }, [notice]);
-  useEffect(() => { setEditing(false); }, [request?.id, request?.version]);
+  useEffect(() => { setEditing(false); setAskedOwner(false); }, [request?.id, request?.version]);
 
   function begin(label: string) {
     operation.current?.abort();
@@ -272,11 +273,18 @@ export function App() {
     return () => { window.removeEventListener('focus', onVisible); document.removeEventListener('visibilitychange', onVisible); };
   }, []);
   const waitingForPermission = !!currentApproval && currentApproval.status === 'APPROVED' && !attempt && !session?.capabilities.financial_actions_enabled;
+  const waitingForOwner = askedOwner && attempt?.state !== 'PAID';
   useEffect(() => {
-    if (!waitingForPermission && request?.status !== 'COMPARING') return;
+    if (!waitingForPermission && !waitingForOwner && request?.status !== 'COMPARING') return;
     const timer = setInterval(() => void syncRef.current(), 4000);
     return () => clearInterval(timer);
-  }, [waitingForPermission, request?.status]);
+  }, [waitingForPermission, waitingForOwner, request?.status]);
+  const ownerApproved = useRef(false);
+  useEffect(() => {
+    const approvedNow = askedOwner && currentApproval?.status === 'APPROVED';
+    if (approvedNow && !ownerApproved.current) { setNotice('The owner approved this exact cart.'); play('stamp'); }
+    ownerApproved.current = !!approvedNow;
+  }, [askedOwner, currentApproval?.status]);
   useEffect(() => {
     if (!currentApproval || currentApproval.status !== 'APPROVED') return;
     const wait = Date.parse(currentApproval.expires_at) - Date.now() + 1000;
@@ -398,6 +406,7 @@ export function App() {
             : comparison)}
           {currentReview && <ReviewCard review={currentReview} approval={currentApproval} locked={requestLocked} disabled={!!busy || recoveryBlocked}
             onApprove={() => void mutate(`/api/reviews/${currentReview.id}/approve`, { expected_version: currentReview.version, expected_digest: currentReview.digest }, 'Recording your exact-cart approval')} />}
+          {currentReview && !currentApproval && !requestLocked && <AskOwner api={api} review={currentReview} busy={!!busy || recoveryBlocked} onSent={() => setAskedOwner(true)} />}
           {request.review && !currentReview && <details className="earlier reveal"><summary><span>Previous review</span><span className="summary-hint">request version {request.review.request_version}</span></summary><p className="fine-print">Shown read-only. Compare the current offers to prepare a fresh review.</p><ReviewCard review={request.review} approval={request.approval} locked disabled onApprove={() => {}} /></details>}
           {currentApproval && (!attempt || (attempt.state === 'STOPPED' && currentApproval.status === 'APPROVED')) && <CheckoutStart approval={currentApproval} session={session} busy={!!busy || recoveryBlocked} onStart={startAttempt} onReload={() => void refresh()} />}
           {attempt && (attempt.state === 'STOPPED'
@@ -796,6 +805,113 @@ function PurchasesPanel({ api, canBuyAgain, onClose, onBuyAgain }: { api: Api; c
   </div>;
 }
 
+function AskOwner({ api, review, busy, onSent }: { api: Api; review: Review; busy: boolean; onSent: () => void }) {
+  const [link, setLink] = useState<string | null>(null);
+  const [sending, setSending] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [failed, setFailed] = useState(false);
+  async function send() {
+    setSending(true); setFailed(false);
+    try {
+      const created = await api.createLink(review.id);
+      setLink(`${window.location.origin}/?approve=${created.token}`); onSent(); play('select');
+    } catch { setFailed(true); play('error'); } finally { setSending(false); }
+  }
+  async function copy() {
+    if (!link) return;
+    try { await navigator.clipboard.writeText(link); setCopied(true); play('tick'); } catch { /* The field stays selectable for manual copy. */ }
+  }
+  return <section className="panel ask-owner reveal" aria-labelledby="ask-owner-heading">
+    <div className="panel-head"><Icon name="send" /><div><h2 id="ask-owner-heading">Not your card to pay?</h2>
+      <p className="fine-print">Send this exact cart to the owner. They approve and pay with PayPal from their own device, and this page updates live.</p></div></div>
+    {!link ? <button className="btn" disabled={busy || sending} onClick={() => void send()}>{sending && <span className="spinner" aria-hidden="true" />}Ask the owner to approve<Icon name="arrow" /></button>
+      : <div className="share">
+        <input readOnly value={link} aria-label="Owner approval link" onFocus={e => e.currentTarget.select()} />
+        <div className="actions"><button type="button" className="btn small" onClick={() => void copy()}><Icon name={copied ? 'check' : 'copy'} />{copied ? 'Copied' : 'Copy link'}</button>
+          <a className="btn small quiet" href={link} target="_blank" rel="noopener noreferrer">Open owner view</a></div>
+        <p className="waiting"><span className="spinner" aria-hidden="true" />Waiting for the owner to approve…</p>
+      </div>}
+    {failed && <p className="field-error" role="alert">The link could not be created. Reload the status, then try again.</p>}
+  </section>;
+}
+
+// The page an approval link opens: one exact cart, approve, then pay with PayPal sandbox.
+export function OwnerApproval({ token }: { token: string }) {
+  const [api] = useState(() => new Api());
+  const [session, setSession] = useState<Session | null>(null);
+  const [view, setView] = useState<LinkView | null>(null);
+  const [busy, setBusy] = useState('Opening the approval request');
+  const [error, setError] = useState('');
+  useEffect(() => {
+    try { const saved = window.localStorage.getItem('spendconsent-appearance'); if (saved === 'dark' || saved === 'light') document.documentElement.dataset.theme = saved; } catch { /* Default theme. */ }
+    return unlockAudio();
+  }, []);
+  async function load() {
+    const next = await api.link(token);
+    setView(next);
+    return next;
+  }
+  async function act(label: string, run: () => Promise<unknown>, cue?: Parameters<typeof play>[0]) {
+    setBusy(label); setError('');
+    try { await run(); if (cue) play(cue); } catch (e) { setError(e instanceof ApiError ? e.message : 'That did not go through. Reload and check the status.'); play('error'); }
+    try { await load(); } catch { /* Keep the last known state on screen. */ }
+    setBusy('');
+  }
+  useEffect(() => {
+    void (async () => {
+      try { setSession(await api.session()); await load(); } catch {
+        setError('This approval link is invalid, expired, or its cart has changed. Ask for a new one.');
+        try { window.sessionStorage.removeItem('spendconsent-approval-link'); } catch { /* Nothing stored. */ }
+      }
+      setBusy('');
+    })();
+  }, []);
+  const attempt = view?.request.attempt ?? null;
+  const pollable = !!attempt && (pending(attempt) || attempt.state === 'AWAITING_BUYER');
+  useEffect(() => {
+    if (!pollable || busy) return;
+    const timer = setInterval(() => void load().catch(() => {}), 3000);
+    return () => clearInterval(timer);
+  }, [pollable, busy]);
+  const previous = useRef<Attempt | null>(null);
+  useEffect(() => {
+    if (previous.current && attempt && previous.current.state !== attempt.state && attempt.state === 'PAID') play('success');
+    previous.current = attempt;
+  }, [attempt?.state]);
+  const review = view?.request.review && view.request.review.id === view.review_id ? view.request.review : null;
+  const approval = view?.request.approval && review && view.request.approval.review_id === review.id ? view.request.approval : null;
+  const paySession = session && view ? { ...session, capabilities: view.capabilities, paypal: view.paypal } : null;
+  const title = !view ? 'Approval request' : attempt?.state === 'PAID' ? 'Paid. Thank you.' : approval?.status === 'APPROVED' ? 'Approved. Pay with PayPal.' : 'Approve this purchase?';
+  return <>
+    <div className="loadbar" data-active={!!busy} aria-hidden="true" />
+    <header className="topbar"><span className="brand"><Mark /><span>SpendConsent</span></span>
+      <span className="sandbox-chip"><span className="test-dot" aria-hidden="true" />Sandbox<span className="wide-only"> · test money</span></span></header>
+    <main className="owner-page stage">
+      <div className="stage-head" key={title}><p className="eyebrow">Approval requested</p><h1>{title}</h1>
+        <p className="lede">Someone on your team prepared this exact cart in SpendConsent. Nothing is paid until you approve it and confirm in PayPal.</p></div>
+      <div className="live-status sr-only" role="status" aria-live="polite">{busy}</div>
+      {error && <div className="alert is-error" role="alert"><Icon name="alert" /><div><strong>That didn’t go through</strong><p>{error}</p></div></div>}
+      {view && !review && <div className="alert is-warning"><Icon name="alert" /><div><strong>This cart has changed</strong><p>A newer review replaced it. Ask for a new approval link.</p></div></div>}
+      {!view && !error && <div className="skeletons"><div className="skeleton" /><div className="skeleton short" /></div>}
+      {review && <ReviewCard review={review} approval={approval} locked={!!attempt} disabled={!!busy}
+        onApprove={() => void act('Recording your approval', () => api.linkApprove(token, { expected_version: review.version, expected_digest: review.digest }), 'stamp')} />}
+      {approval?.status === 'APPROVED' && !attempt && view && <section className="panel checkout reveal" aria-labelledby="owner-pay-heading">
+        <div className="panel-head"><Icon name="card" /><div><h2 id="owner-pay-heading">Pay with PayPal sandbox</h2><p className="fine-print">One order for this exact approved total. You confirm it in the PayPal window.</p></div></div>
+        <button className="btn primary wide" disabled={!!busy || !view.capabilities.financial_actions_enabled} onClick={() => void act('Creating the PayPal order', () => api.linkStart(token), 'select')}>Continue to payment<Icon name="arrow" /></button>
+        {!view.capabilities.financial_actions_enabled && <p className="fine-print">Payment is not available for this cart right now (sandbox checkout off, strict consent mode, or the approval expired).</p>}
+      </section>}
+      {attempt && attempt.state !== 'STOPPED' && <>
+        <PaymentStatus attempt={attempt} financialEnabled={view?.capabilities.financial_actions_enabled ?? false} busy={!!busy} pollEnded={false}
+          onAction={action => void act(action === 'reconcile' ? 'Checking the payment' : 'Requesting a stop', () => api.linkAction(token, action))} />
+        {paySession && permitted(attempt, 'open_paypal', paySession.capabilities.financial_actions_enabled) && <PayPalCheckout session={paySession} attempt={attempt} busy={!!busy}
+          onApprove={async () => { await act('Verifying the payment', () => api.linkAction(token, 'capture')); }} />}
+        {attempt.state === 'PAID' && review && <button type="button" className="btn primary next" onClick={() => downloadReceipt(review, attempt)}><Icon name="download" />Download receipt</button>}
+      </>}
+    </main>
+    <div className="toast" data-show={!!busy} aria-hidden="true"><span className="spinner" /><span>{busy}</span></div>
+  </>;
+}
+
 function Mark() {
   return <svg className="mark" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="currentColor" /><path d="M9.5 17.2c2.1 1.2 3.4 2.6 4.2 4.3 2.2-5.6 5.4-9.4 9.3-11.7" fill="none" stroke="var(--accent)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" /></svg>;
 }
@@ -813,6 +929,8 @@ const paths: Record<string, ReactNode> = {
   question: <><circle cx="12" cy="12" r="8.5" /><path d="M9.8 9.5a2.3 2.3 0 1 1 3.2 2.1c-.6.3-1 .8-1 1.5v.4m0 2.6v.1" /></>,
   card: <><rect x="3" y="6" width="18" height="12.5" rx="2.5" /><path d="M3 10.5h18M7 15h3" /></>,
   plug: <path d="M9 3v5m6-5v5M6.5 8h11v3a5.5 5.5 0 0 1-11 0Zm5.5 8.5V21" />,
+  send: <path d="M4 12 20 4l-4 16-4.5-6.5Zm7.5 1.5L20 4" />,
+  copy: <><rect x="8" y="8" width="11" height="11" rx="2.5" /><path d="M16 8V6.5A2.5 2.5 0 0 0 13.5 4h-7A2.5 2.5 0 0 0 4 6.5v7A2.5 2.5 0 0 0 6.5 16H8" /></>,
   list: <path d="M8 7h11M8 12h11M8 17h11M4.5 7h.01M4.5 12h.01M4.5 17h.01" />,
   download: <path d="M12 4v11m-4.5-4.5L12 15l4.5-4.5M5 19.5h14" />,
   sound: <><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4Z" /><path d="M15.5 9a4 4 0 0 1 0 6m2.5-8.5a7.5 7.5 0 0 1 0 11" /></>,

@@ -1,18 +1,22 @@
 # Demo video script (draft, private)
 
-Target 2:45, English, real screen recording of the local app. Label any cut or
-speed-up on screen; never present prerecorded inference as live. Recording,
-upload and submission each need the user's approval.
+Target 2:50, English, real screen recording of the local app (two windows side by
+side: the requester's laptop and the owner's phone-sized window). Label any cut or
+speed-up on screen ("AI wait shortened"); never present prerecorded inference as
+live. Recording, upload and submission each need the user's approval. Sound on —
+the interface cues are part of the demo.
 
 | Time | Scene | What the viewer sees | Narration (short) |
 | --- | --- | --- | --- |
-| 0:00–0:20 | Problem | Owner of a small cleaning business; supplier tabs and a calculator | "Buying routine supplies means checking sizes, pack counts and the full delivered price — and AI shopping agents can't be trusted with money." |
-| 0:20–1:05 | Real AI comparison | Type the 40-cloth request; status "Waiting for actual AI comparison"; three options with packs, delivered total, per-cloth cost; the cheaper 30 cm cloth rejected for the wrong size | "A local model reads the request and calls one catalog tool. It copies what I wrote; the server checks every number against my words and does all the money arithmetic." |
-| 1:05–1:20 | Grounding | A request with a missing size → the app asks instead of guessing | "If I didn't say it, the AI can't invent it." |
-| 1:20–1:50 | Exact approval + changed price | Review card (merchant, SKU, packs, tax, delivery, total, expiry); approve; merchant price changes → blocked, fresh review required | "Approval binds this exact cart for five minutes. Even a change still inside my budget needs me again." |
-| 1:50–2:30 | PayPal sandbox | Start sandbox checkout → PayPal buyer approval → server captures and independently reads the order back → "Payment confirmed" | "PayPal sandbox runs the payment; success is shown only after the server verifies amount, payee and order against what I approved." |
-| 2:30–2:45 | Evidence + limits | Qualification table (blind suites, latency), test counts; limits: fictional catalog, one merchant, sandbox only | "Measured, not claimed — and here is what it doesn't do yet." |
+| 0:00–0:15 | Hook | A cleaning-business owner's phone buzzing; supplier tabs, a calculator | "AI agents can shop for you. Would you give one your card?" |
+| 0:15–0:30 | Problem | The 40-cloth request; mismatched sizes, pack counts, delivery and tax | "Reordering supplies means checking sizes, packs and the real delivered price — and an agent that guesses can spend the wrong money." |
+| 0:30–1:05 | Real AI, live | Type the request → loader with timer → "Understood: 40 cloths, 40 × 40 cm, ≤ $60" → "2 offers fit", cheapest highlighted, wrong size ruled out | "A local model reads plain words and calls one catalog tool. Code — not the model — does every number. If I didn't say it, it asks." |
+| 1:05–1:25 | Exact cart | Receipt with pack maths, delivered total, countdown | "This is the exact cart: merchant, packs, tax, delivery, total. It expires in ten minutes." |
+| 1:25–1:55 | Owner approval | "Ask the owner to approve" → owner's window opens the link → receipt → Approve → stamp + thud; requester window updates by itself | "The person preparing the cart isn't the one paying. The owner approves this exact cart from their phone — and nothing else." |
+| 1:55–2:25 | PayPal | Owner → PayPal sandbox popup → approve → "Paid. All verified." chime; requester's tracker turns all green; receipt download | "PayPal runs the payment. Success shows only after our server captures it and reads it back from PayPal — amount, payee, order." |
+| 2:25–2:40 | Safety | Price changed by the merchant → approval revoked; two quick comparisons queue | "Change one cent after approval and the approval is void. No guesses, no silent retries." |
+| 2:40–2:50 | Proof + close | 160/160 across 8 test suites (6 blind), ~17 s per comparison on a laptop, sandbox only | "AI that shops. A person who decides. PayPal that verifies. SpendConsent." |
 
-Prerequisites before recording: AI readiness decision, one user-approved sandbox
-purchase, the changed-price path exercised in the real app, and the usability
-study numbers (docs/usability-evaluation.md) if they are shown.
+Prerequisites before recording: services up (`scripts/run_demo.sh`), buyer
+consent mode, a sandbox personal buyer login ready, sound on, one dry run, and
+the usability numbers if they are shown.

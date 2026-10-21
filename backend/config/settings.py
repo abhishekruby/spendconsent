@@ -76,4 +76,6 @@ SPENDCONSENT_BUYER_MAX_CENTS = 10000
 LOGGING = {"version": 1, "disable_existing_loggers": False,
            "handlers": {"null": {"class": "logging.NullHandler"}},
            "loggers": {"django.request": {"handlers": ["null"], "propagate": False},
-                       "django.security": {"handlers": ["null"], "propagate": False}}}
+                       "django.security": {"handlers": ["null"], "propagate": False},
+                       # runserver access lines would contain approval-link bearer tokens.
+                       "django.server": {"handlers": ["null"], "propagate": False}}}

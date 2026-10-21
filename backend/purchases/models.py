@@ -127,3 +127,17 @@ class DecisionEvent(models.Model):
     reason_code = models.CharField(max_length=40, null=True)
     message = models.CharField(max_length=240)
     created_at = models.DateTimeField(auto_now_add=True)
+
+
+class ApprovalLink(models.Model):
+    """A shareable request for the owner to approve and pay one exact review.
+
+    Only the SHA-256 of the random token is stored. The link grants nothing the
+    review's own owner could not do, for that one cart only; every domain check
+    (latest review, digest, expiry, material change, consent) still applies.
+    """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    review = models.ForeignKey(Review, on_delete=models.PROTECT, related_name="links")
+    token_sha256 = models.CharField(max_length=64, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()

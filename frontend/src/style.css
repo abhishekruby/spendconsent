@@ -466,3 +466,9 @@ details[open] > summary::after { transform: rotate(225deg) translateY(-1px); }
 @keyframes fade { from { opacity: 0; } }
 @keyframes slide-in { from { transform: translateX(40px); opacity: 0; } }
 @media (max-width: 560px) { .history-button { padding: 6px 10px; } .wide-only { display: none; } }
+
+/* Owner approval link */
+.share { display: grid; gap: 10px; }
+.share input { width: 100%; min-height: 42px; padding: 8px 12px; border-radius: var(--r-sm); border: 1px solid var(--line-strong); background: var(--bg); font: 13px var(--mono); color: var(--muted); }
+.waiting { display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--muted); }
+.owner-page { max-width: 700px; margin: 0 auto; padding: clamp(28px, 6vh, 56px) clamp(16px, 4vw, 40px) 120px; position: relative; z-index: 1; }

@@ -13,7 +13,7 @@ from django.db import connection
 from django.test import Client, TransactionTestCase, override_settings
 from django.utils import timezone
 from . import agent, checkout, runtime_paypal, services
-from .models import PaymentAttempt
+from .models import ApprovalLink, PaymentAttempt
 from .test_paypal import FakeHTTP, MERCHANT
 from .tests import make_approval, make_review, ready_request, seed
 
@@ -80,6 +80,44 @@ class RuntimePayPalTests(TransactionTestCase):
         attempt = response.json()["attempt"]
         self.assertEqual(attempt["state"], "AWAITING_BUYER")
         return request, review, approval, attempt
+
+    def test_owner_link_lets_another_browser_approve_and_pay_only_that_exact_cart(self):
+        request = ready_request(self.owner)
+        review = make_review(request)
+        token = self.post(f"/api/reviews/{review.id}/link").json()["token"]
+        self.assertFalse(ApprovalLink.objects.filter(token_sha256=token).exists(), "only a hash is stored")
+        owner = Client(enforce_csrf_checks=True, HTTP_HOST="127.0.0.1:5173")
+        csrf = owner.get("/api/session").json()["csrf_token"]
+        post = lambda path, data=None: owner.post(path, data or {}, content_type="application/json", HTTP_X_CSRFTOKEN=csrf)
+        self.assertEqual(owner.get("/api/links/" + "x" * 43).status_code, 404)
+        self.assertEqual(owner.get(f"/api/links/{token}").json()["request"]["id"], str(request.id))
+        self.assertEqual(owner.get(f"/api/requests/{request.id}").status_code, 404, "a link is not session access")
+        with override_settings(SPENDCONSENT_PAYPAL_CONSENT="buyer"):
+            self.assertEqual(post(f"/api/links/{token}/attempts").status_code, 409, "approve before paying")
+            self.assertEqual(post(f"/api/links/{token}/approve", {"expected_version": review.version, "expected_digest": "0" * 64}).status_code, 409)
+            approved = post(f"/api/links/{token}/approve", {"expected_version": review.version, "expected_digest": review.digest})
+            self.assertEqual(approved.json()["approval"]["status"], "APPROVED")
+            attempt = post(f"/api/links/{token}/attempts").json()["attempt"]
+            self.assertEqual(attempt["state"], "AWAITING_BUYER")
+            self.http.order["status"] = "APPROVED"
+            self.assertEqual(post(f"/api/links/{token}/attempt/refund").status_code, 404)
+            self.assertEqual(post(f"/api/links/{token}/attempt/capture").json()["attempt"]["state"], "PAID")
+        self.assertEqual(self.client.get(f"/api/requests/{request.id}").json()["attempt"]["state"], "PAID", "requester sees the outcome")
+        ApprovalLink.objects.update(expires_at=timezone.now())
+        self.assertEqual(owner.get(f"/api/links/{token}").status_code, 404)
+
+    def test_owner_link_requires_the_current_review_and_stops_working_when_superseded(self):
+        request = ready_request(self.owner)
+        old = make_review(request)
+        token = self.post(f"/api/reviews/{old.id}/link").json()["token"]
+        make_review(request)
+        self.assertEqual(self.post(f"/api/reviews/{old.id}/link").status_code, 409)
+        stale = self.client.post(f"/api/links/{token}/approve", {"expected_version": old.version, "expected_digest": old.digest},
+                                 content_type="application/json", HTTP_X_CSRFTOKEN=self.token)
+        self.assertEqual(stale.status_code, 404, "a superseded link shows and does nothing")
+        self.assertEqual(self.client.get(f"/api/links/{token}").status_code, 404)
+        other = ready_request()
+        self.assertEqual(self.post(f"/api/reviews/{make_review(other).id}/link").status_code, 409, "only your own review")
 
     def test_buyer_consent_mode_authorizes_only_the_exact_unexpired_approved_cart(self):
         request, review, approval = self.purchase()

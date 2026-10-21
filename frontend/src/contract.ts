@@ -136,3 +136,14 @@ export function isProgress(v: unknown): v is Progress {
 export function isPurchaseList(v: unknown): v is { purchases: PurchaseRequest[] } {
   return object(v) && Object.keys(v).length === 1 && Array.isArray(v.purchases) && v.purchases.length <= 20 && v.purchases.every(isPurchaseRequest);
 }
+
+// Owner approval links: one exact cart shared for approval and payment.
+export type LinkView = { request: PurchaseRequest; review_id: string; capabilities: Session['capabilities']; paypal: Session['paypal']; expires_at: string };
+export const linkToken = (v: unknown): v is string => typeof v === 'string' && /^[A-Za-z0-9_-]{20,100}$/.test(v);
+export function isLinkCreated(v: unknown): v is { token: string; expires_at: string } {
+  return object(v) && Object.keys(v).length === 2 && linkToken(v.token) && string(v.expires_at);
+}
+export function isLinkView(v: unknown): v is LinkView {
+  return object(v) && Object.keys(v).length === 5 && isPurchaseRequest(v.request) && uuid(v.review_id) && string(v.expires_at)
+    && isSession({ environment: 'sandbox', csrf_token: 'a'.repeat(32), capabilities: v.capabilities, current_request_id: null, paypal: v.paypal });
+}

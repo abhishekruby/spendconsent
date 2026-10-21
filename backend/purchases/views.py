@@ -1,4 +1,7 @@
 """Same-origin anonymous API; financial dispatch requires exact private permission."""
+from datetime import timedelta
+import hashlib
+import secrets
 import uuid
 from django.core.exceptions import BadRequest, RequestDataTooBig
 from django.http import Http404, JsonResponse
@@ -10,7 +13,7 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.views import exception_handler as drf_exception_handler
 from . import checkout, inference, runtime_paypal, serializers, services
-from .models import Approval, Offer, PaymentAttempt, PurchaseRequest
+from .models import Approval, ApprovalLink, Offer, PaymentAttempt, PurchaseRequest, Review
 
 
 def error(code, message, status, **extra):
@@ -210,7 +213,11 @@ def approve(request, pk):
 @endpoint(["POST"])
 def start_attempt(request, pk):
     validated(serializers.Empty, request)
-    approval = Approval.objects.select_related("review__request").filter(id=pk, review__request__owner_uuid=owner(request)).first()
+    return _start(owner(request), pk)
+
+
+def _start(acting_owner, approval_id):
+    approval = Approval.objects.select_related("review__request").filter(id=approval_id, review__request__owner_uuid=acting_owner).first()
     if not approval:
         raise Http404
     existing = PaymentAttempt.objects.filter(approval=approval).first()
@@ -218,13 +225,17 @@ def start_attempt(request, pk):
         attempt, status = checkout._result(existing)
     else:
         provider = runtime_paypal.provider(runtime_paypal.require(approval, "create"))
-        attempt, status = checkout.start(owner(request), approval.id, provider)
+        attempt, status = checkout.start(acting_owner, approval.id, provider)
     return Response({"attempt": attempt_data(attempt)}, status=status)
 
 
 def owned_attempt(request, pk):
+    return _owned_attempt(owner(request), pk)
+
+
+def _owned_attempt(acting_owner, pk):
     try:
-        return PaymentAttempt.objects.get(id=pk, request__owner_uuid=owner(request))
+        return PaymentAttempt.objects.get(id=pk, request__owner_uuid=acting_owner)
     except PaymentAttempt.DoesNotExist:
         raise Http404
 
@@ -239,20 +250,97 @@ def attempt_action(request, pk, action):
     if action not in ("capture", "stop", "reconcile"):
         raise Http404
     validated(serializers.Empty, request)
-    attempt = owned_attempt(request, pk)
+    return _attempt_action(owner(request), pk, action)
+
+
+def _attempt_action(acting_owner, pk, action):
+    attempt = _owned_attempt(acting_owner, pk)
     if action == "stop":
-        attempt, status = checkout.stop(owner(request), attempt.id)
+        attempt, status = checkout.stop(acting_owner, attempt.id)
     elif attempt.state in checkout.TERMINAL or (action == "capture" and attempt.state != "AWAITING_BUYER"):
         attempt, status = checkout._result(attempt)
     elif action == "reconcile" and not attempt.provider_order_id:
         # No configuration or provider lookup can resolve uncertain creation
         # without an ID. Keep the persisted manual-resolution state visible.
-        attempt, status = checkout.reconcile(owner(request), attempt.id, None)
+        attempt, status = checkout.reconcile(acting_owner, attempt.id, None)
     else:
         config = runtime_paypal.require(attempt.approval, "capture") if action == "capture" else runtime_paypal.configuration(readonly=True)
         if not config:
             return Response({"error": {"code": "INTEGRATION_UNAVAILABLE", "message": "Read-only verification is unavailable. The stored outcome remains unresolved.", "retryable": False},
                              "attempt": attempt_data(attempt)}, status=503)
         provider = runtime_paypal.provider(config)
-        attempt, status = (checkout.capture if action == "capture" else checkout.reconcile)(owner(request), attempt.id, provider)
+        attempt, status = (checkout.capture if action == "capture" else checkout.reconcile)(acting_owner, attempt.id, provider)
     return Response({"attempt": attempt_data(attempt)}, status=status)
+
+
+# Owner approval links: the requester shares one exact cart; whoever holds the
+# link may view, approve and pay that cart only, with every domain check intact.
+LINK_TTL = timedelta(hours=24)
+
+
+def _link(token):
+    if not isinstance(token, str) or not 20 <= len(token) <= 100:
+        raise Http404
+    link = ApprovalLink.objects.select_related("review__request").filter(
+        token_sha256=hashlib.sha256(token.encode()).hexdigest(), expires_at__gt=timezone.now()).first()
+    if not link:
+        raise Http404
+    # A link is for one cart: once a newer review replaces it, the link shows
+    # nothing (unless that cart already has a payment attempt to follow).
+    request = link.review.request
+    if (request.reviews.order_by("-version").values_list("id", flat=True).first() != link.review_id
+            and not PaymentAttempt.objects.filter(approval__review=link.review).exists()):
+        raise Http404
+    return link
+
+
+@endpoint(["POST"])
+def create_link(request, pk):
+    validated(serializers.Empty, request)
+    review = Review.objects.select_related("request").filter(id=pk, request__owner_uuid=owner(request)).first()
+    if not review or review.request.reviews.order_by("-version").first().id != review.id or review.expires_at <= timezone.now():
+        raise services.DomainError("REVIEW_CHANGED", "Only the current, unexpired review can be sent for approval.", 409, review.request_id if review else None)
+    token = secrets.token_urlsafe(32)
+    link = ApprovalLink.objects.create(review=review, token_sha256=hashlib.sha256(token.encode()).hexdigest(),
+                                       expires_at=timezone.now() + LINK_TTL)
+    services.event(review.request, "LINK_SENT", "Approval requested from the owner with a one-cart link; nothing is paid until they approve.")
+    return Response({"token": token, "expires_at": link.expires_at}, status=201)
+
+
+@endpoint(["GET"])
+def link_detail(request, token):
+    link = _link(token)
+    purchase = inference.recover(link.review.request.owner_uuid, link.review.request_id)
+    capabilities, paypal_config = runtime_paypal.session_data(purchase.owner_uuid, str(purchase.id), inference.ready())
+    return Response({"request": request_data(purchase), "review_id": str(link.review_id), "capabilities": {"ai_ready": inference.ready(), **capabilities},
+                     "paypal": paypal_config, "expires_at": link.expires_at})
+
+
+@endpoint(["POST"])
+def link_approve(request, token):
+    link = _link(token)
+    data = validated(serializers.ApproveReview, request)
+    approval = services.approve(link.review.request.owner_uuid, link.review_id, **data)
+    return Response(request_data(approval.review.request))
+
+
+@endpoint(["POST"])
+def link_start(request, token):
+    validated(serializers.Empty, request)
+    link = _link(token)
+    approval = Approval.objects.filter(review=link.review).first()
+    if not approval:
+        raise services.DomainError("APPROVAL_REQUIRED", "Approve this exact cart first.", 409, link.review.request_id)
+    return _start(link.review.request.owner_uuid, approval.id)
+
+
+@endpoint(["POST"])
+def link_attempt_action(request, token, action):
+    if action not in ("capture", "stop", "reconcile"):
+        raise Http404
+    validated(serializers.Empty, request)
+    link = _link(token)
+    attempt = PaymentAttempt.objects.filter(approval__review=link.review).first()
+    if not attempt:
+        raise Http404
+    return _attempt_action(link.review.request.owner_uuid, attempt.id, action)
