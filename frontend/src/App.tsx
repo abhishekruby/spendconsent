@@ -622,7 +622,7 @@ function MarketCheck({ api, requestId, best }: { api: Api; requestId: string; be
       <span className="fine-print">{l.domain}{l.units ? ` · ${l.units} per pack` : ''}</span>
       <span className="market-price mono">{money(l.price_cents)}{l.unit_cents !== null && <small> · {money(l.unit_cents)} each</small>}</span>
     </li>)}</ul>
-    <p className="fine-print">Live US retail listings for “{market.query}”. Pack sizes are read from listing titles. For reference only: the cart and payment use the supplier offer above.</p>
+    <p className="fine-print">Live US retail listings for “{market.query}”. Pack sizes are read from listing text; prices exclude their delivery and tax. For reference only: the cart and payment use the supplier offer above.</p>
   </details>;
 }
 function EvidenceList({ evidence }: { evidence: Evidence[] }) {

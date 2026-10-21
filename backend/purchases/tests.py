@@ -271,6 +271,8 @@ class AnonymousAPITests(TestCase):
         products = {"products": [
             {"title": "Microfiber Cleaning Cloth 24 Pack, 16 x 16 in", "images": [{"url": "https://img.example/a.jpg"}],
              "offers": [{"url": "https://shop.example/a", "domain": "shop.example", "availability": "InStock", "price": {"price": 15.99, "currency": "USD"}}]},
+            {"title": "Plain title", "key_features": ["40% recycled", "Pack of 10 cloths"],
+             "offers": [{"url": "https://shop.example/b", "domain": "shop.example", "availability": "InStock", "price": {"price": 9.5, "currency": "USD"}}]},
             {"title": "Out of stock", "offers": [{"url": "https://x.example", "availability": "OutOfStock", "price": {"price": 1, "currency": "USD"}}]},
             {"title": "Unsafe link", "offers": [{"url": "javascript:alert(1)", "availability": "InStock", "price": {"price": 1, "currency": "USD"}}]}]}
         calls = []
@@ -281,6 +283,7 @@ class AnonymousAPITests(TestCase):
 
         def fake(req, timeout):
             calls.append((req.full_url, req.get_header("X-api-key")))
+            self.assertEqual(json.loads(req.data)["filters"]["dimensions"]["width"], {"min": 38.0, "max": 42.0, "unit": "cm"})
             return Reply(json.dumps(products).encode())
         with patch("purchases.market.api_key", return_value="test-key"), patch("purchases.market._OPENER.open", fake):
             data = self.client.get(f"/api/requests/{request.id}/market").json()
@@ -291,7 +294,10 @@ class AnonymousAPITests(TestCase):
         self.assertEqual(calls, [("https://api.trychannel3.com/v1/search", "test-key")])
         self.assertEqual(data["listings"], [{"title": "Microfiber Cleaning Cloth 24 Pack, 16 x 16 in", "domain": "shop.example",
                                              "url": "https://shop.example/a", "image": "https://img.example/a.jpg",
-                                             "price_cents": 1599, "units": 24, "unit_cents": 67}])
+                                             "price_cents": 1599, "units": 24, "unit_cents": 67},
+                                            {"title": "Plain title", "domain": "shop.example", "url": "https://shop.example/b", "image": None,
+                                             "price_cents": 950, "units": 10, "unit_cents": 95}])
+        self.assertEqual(data["query"], "microfiber cleaning cloths, 40 × 40 cm ±5%")
         request.refresh_from_db()
         self.assertEqual((request.version, request.candidates), before)
         with patch("purchases.market.api_key", return_value=None):
