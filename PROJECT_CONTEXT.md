@@ -1,6 +1,6 @@
 # SpendConsent — compact handoff
 
-Updated 21 Oct 2026, 03:30 IST, by Claude Code. Claude and ChatGPT/Codex
+Updated 21 Oct 2026 by Codex after handoff `f60cad3`. Claude and ChatGPT/Codex
 alternate on this repo: read AGENTS.md, then this file. Latest session summary:
 docs/handoff-codex-2026-10-21.md. History:
 PROJECT_CONTEXT_HISTORY.md, docs/progress.md, docs/ai-application-evaluation.md.
@@ -55,21 +55,20 @@ Deadline 12 Nov 2026 noon PST (13 Nov 01:30 IST).
 - README rewritten for judges; Devpost draft in docs/submission-draft.md.
 - UI: a PAID or STOPPED purchase now allows a new request (uncertain still blocks).
 
-## Live processes (detached; logs in .runtime/logs/)
+## Current session and next action
 
-Project PostgreSQL (`scripts/local_postgres.py --start`), model 127.0.0.1:11435
-(`--parallel 2`, command in docs/ai-application-evaluation.md), Django
-127.0.0.1:8000, Vite 127.0.0.1:5173. Reboot kills them; restart per READMEs.
+Restarted stopped services: PG PID13392; model PID13566/session65463
+(parallel2); API65641; Vite59528. Ports11435/8000/5173 return200.
+AI+PayPal ready; financial actions disabled. Pinned hashes match; cached model
+startup13.196s. Catalog commercial fields match16seed SKUs; minimum stock94.
+Live inventory/version differences recorded in docs/usability-evaluation.md.
 
-## Next actions (in order)
-
-1. DONE 03:22 IST: real-sandbox recovery checks (double click → 1 order,
-   API restart + refresh mid-flow → same attempt, cancel, then PAID USD 41.80,
-   capture 97F67458GU342961X). See docs/evidence/sandbox-purchase-2026-10-21.md.
-2. Usability study (docs/usability-evaluation.md, needs real participants),
-   demo video (docs/demo-script.md), public repo + Devpost — each needs user
-   approval. Accessibility spot check (R11) passed 21 Oct; UI duplicate fixed;
-   only the current review is shown, so no superseded-review work is needed.
+User confirmed earlier popup cancellation; recorded as human-reported.
+No new financial action. Next: untimed practice, then paired usability timing.
+User needed plain explanation; no answers/timings collected. Practice-only page,
+without timed tasks/key: http://127.0.0.1:8767/practice-2026-10-21.html
+(session63567); observer kit8766/session18774. Practice browser tab retained.
+Then demo/submission; every public/money step requires user approval.
 
 ## Known limits
 

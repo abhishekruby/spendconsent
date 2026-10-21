@@ -241,3 +241,22 @@ U1 CLOTH-B 20.90 (CLOTH-A 27.80 also listed), U2 BAG-B 29.70, U3 BOTTLE-A 37.00
 times 31.5, 26.5, 30.7, 27.3, 22.0 s. No human timing; no manual method run.
 Printable participant/observer kit: docs/usability-kit.html (adds an untimed
 practice request whose answer is BOTTLE-B 19.80).
+
+
+## Session preparation — 21 October 2026 (not measured results)
+
+At source `f60cad3`, local services were stopped and restarted using the qualified
+parallel-2 model profile. Pinned model/template/executable hashes matched; cached
+artifact process-start to first health HTTP 200 was 13.196s (not cold-machine
+startup). API reports AI ready and PayPal ready, with financial actions disabled.
+
+Read-only catalog check: all sixteen SKUs retain the seed's exact specifications,
+pack units, prices, delivery, 10% tax and one-time terms. Earlier sandbox purchases
+mean inventory and versions differ from the original stock-100/version-1 fixture;
+minimum currently available stock is 94 packs. No inventory was reset. Record
+this live-state difference before any timed study; all task pack requirements
+remain below availability. No participant timing or answer has been collected.
+
+An untimed practice-only page was derived from the existing kit in ignored local
+runtime storage, excluding timed tasks and the observer answer key. The user
+requested an explanation of the study; begin with practice before a timed run.

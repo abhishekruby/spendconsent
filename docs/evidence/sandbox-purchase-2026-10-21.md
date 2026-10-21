@@ -43,3 +43,10 @@ First consent attempt expired before the command was run; the command refused
 an expired approval and nothing was written (as designed). Used permission
 file deleted. Not yet exercised for real: API decline and timeout after request
 transmission (covered by fake-transport tests only).
+
+
+### Follow-up confirmation — 21 October 2026
+
+The user explicitly confirmed closing or cancelling the PayPal popup before
+reopening it and paying in the recovery test. This remains human-reported
+client-side cancellation; no server cancellation event is asserted.

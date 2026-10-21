@@ -363,3 +363,12 @@ no readiness or financial action. Merchant configuration validates privately.
 Fresh tracked-source/backend dependencies and isolated PostgreSQL passed all 91
 tests; cached archive/template reproduction verified. Next: reviewed category
 protocol revision, retaining old gates and freezing new unseen cases afterward.
+
+
+## Usability preparation — 21 October 2026
+
+Continued from f60cad3. Restarted existing qualified services; AI ready, financial
+actions disabled. Catalog commercial fields match seed; recorded live stock/quote
+version differences. Opened an untimed practice page without the observer key.
+No human timing results yet. User confirmed prior popup cancellation; evidence
+records it as human-reported. No new payment or public action.
