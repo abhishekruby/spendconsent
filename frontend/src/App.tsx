@@ -225,6 +225,19 @@ export function App() {
     setNotice('Same request, ready to compare again. Prices and stock are re-checked.');
     focusRequested.current = true; play('select');
   }
+  // Going back: Describe reopens the request text (a new comparison; the old one
+  // stays in Purchases); finished Compare/Approve steps scroll to their section.
+  function editRequest(previous: PurchaseRequest) {
+    submission.current = null; setText(previous.text); setDraftMode(true); setError(null);
+    setNotice('Change your request, then compare again. The previous one stays in Purchases.');
+    focusRequested.current = true; play('tick');
+  }
+  function reveal(selector: string) {
+    const target = document.querySelector<HTMLElement>(selector);
+    if (!target) return;
+    if (target instanceof HTMLDetailsElement) target.open = true;
+    target.scrollIntoView({ behavior: 'smooth', block: 'start' }); play('tick');
+  }
   function startNew() {
     submission.current = null; setText(''); setDraftMode(true); setError(null);
     setNotice('Describe your next purchase. Nothing is saved until you compare.');
@@ -334,10 +347,20 @@ export function App() {
     <div className="layout" data-stage={stage.toLowerCase()}>
       <aside className="rail" aria-label="Purchase progress">
         <nav className="journey" aria-label="Purchase stages">
-          <ol>{steps.map((step, i) => <li key={step.name} className={`step is-${step.tone}`} aria-current={step.current ? 'step' : undefined}>
-            <span className="step-dot" aria-hidden="true">{step.tone === 'done' ? <Icon name="check" /> : step.tone === 'alert' ? '!' : i + 1}</span>
-            <span className="step-text"><span className="step-name">{step.name}{step.current && <span className="sr-only">, current step</span>}</span><span className="step-detail">{step.detail}</span></span>
-          </li>)}</ol>
+          <ol>{steps.map((step, i) => {
+            const go = step.tone !== 'done' || busy || !request || draftMode ? undefined
+              : i === 0 ? (canStartNew(request) && !recoveryBlocked ? () => editRequest(request) : undefined)
+              : i === 1 ? () => reveal(document.querySelector('.earlier .offers') ? '.earlier' : '.offers')
+              : i === 2 ? () => reveal('.receipt') : undefined;
+            const body = <>
+              <span className="step-dot" aria-hidden="true">{step.tone === 'done' ? <Icon name="check" /> : step.tone === 'alert' ? '!' : i + 1}</span>
+              <span className="step-text"><span className="step-name">{step.name}{step.current && <span className="sr-only">, current step</span>}</span>
+                <span className="step-detail">{step.detail}</span>{go && <span className="step-go">{i === 0 ? 'Edit request' : 'View again'}</span>}</span>
+            </>;
+            return <li key={step.name} className={`step is-${step.tone}`} aria-current={step.current ? 'step' : undefined}>
+              {go ? <button type="button" className="step-button" onClick={go}>{body}</button> : body}
+            </li>;
+          })}</ol>
         </nav>
         {request && !draftMode && <div className="rail-brief">
           <p className="rail-label">Your request</p>
@@ -372,6 +395,7 @@ export function App() {
             placeholder="e.g. 40 microfiber cloths, 40 × 40 cm, under $60 delivered, one-time"
             disabled={!!busy || requestLocked} onChange={e => setText(e.target.value)} aria-describedby="request-help"
             onKeyDown={e => { if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); e.currentTarget.form?.requestSubmit(); } }} />
+          {draftMode && request && <button type="button" className="ghost-link composer-back" onClick={() => { setDraftMode(false); setNotice(''); }}>← Back to current request</button>}
           <div className="composer-bar">
             <p id="request-help" className="composer-help">Include <b>how many</b>, <b>what size</b> and your <b>max total</b>.</p>
             <button className="btn primary" disabled={!session || !!busy || requestLocked || !text.trim()}>

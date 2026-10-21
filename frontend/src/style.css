@@ -472,3 +472,16 @@ details[open] > summary::after { transform: rotate(225deg) translateY(-1px); }
 .share input { width: 100%; min-height: 42px; padding: 8px 12px; border-radius: var(--r-sm); border: 1px solid var(--line-strong); background: var(--bg); font: 13px var(--mono); color: var(--muted); }
 .waiting { display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--muted); }
 .owner-page { max-width: 700px; margin: 0 auto; padding: clamp(28px, 6vh, 56px) clamp(16px, 4vw, 40px) 120px; position: relative; z-index: 1; }
+
+/* Clickable finished steps */
+.step:has(.step-button) { display: block; }
+.step-button { display: grid; grid-template-columns: 32px 1fr; gap: 12px; align-items: start; width: 100%; padding: 0; border: 0; background: none; font: inherit; color: inherit; text-align: left; cursor: pointer; }
+.step:has(.step-button) { border-radius: 12px; transition: background-color .2s; margin-inline: -8px; padding-inline: 8px; }
+.step:has(.step-button):hover { background: color-mix(in srgb, var(--surface) 80%, transparent); }
+.step:has(.step-button):hover .step-dot { transform: scale(1.08); }
+.step-go { font-size: 12px; font-weight: 600; color: var(--accent-ink); opacity: 0; transform: translateY(-2px); transition: opacity .2s, transform .2s; }
+.step:has(.step-button):hover .step-go, .step-button:focus-visible .step-go { opacity: 1; transform: none; }
+.step-button:focus-visible { outline: none; }
+.step:has(.step-button:focus-visible) { outline: 2.5px solid var(--accent); outline-offset: 2px; }
+.composer-back { justify-self: start; padding: 14px 24px 0; text-decoration: none; }
+@media (max-width: 900px) { .step-go { display: none; } .step:has(.step-button) { margin-inline: 0; padding-inline: 0; } .step-button { grid-template-columns: 1fr; justify-items: center; text-align: center; gap: 6px; } }
