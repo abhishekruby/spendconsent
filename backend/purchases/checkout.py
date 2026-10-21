@@ -20,6 +20,9 @@ from . import catalog, services
 from .models import Approval, DecisionEvent, Offer, PaymentAttempt
 
 PENDING = ("CREATING", "CAPTURING", "VERIFYING", "UNKNOWN")
+# PayPal order states with no capture: the buyer has not (fully) approved yet.
+# PAYER_ACTION_REQUIRED (popup closed or extra step pending) is one of them.
+UNCAPTURED = ("CREATED", "PAYER_ACTION_REQUIRED", "APPROVED")
 TERMINAL = ("PAID", "STOPPED", "PAYMENT_REVIEW")
 IDENTIFIER = re.compile(r"\A[A-Za-z0-9_-]{1,80}\Z")
 MESSAGES = {
@@ -263,7 +266,7 @@ def _apply_observation(owner, pk, observation):
             _transition(request, offer, attempt, "STOPPED", "PROVIDER_DECLINED")
         elif attempt.capture_dispatched_at:
             _transition(request, offer, attempt, "UNKNOWN", "PAYMENT_STATUS_UNKNOWN", attempt.pending_operation or "capture")
-        elif matched and status in ("CREATED", "APPROVED") and capture is None:
+        elif matched and status in UNCAPTURED and capture is None:
             try:
                 _authority(request, approval, offer, attempt.stock_hold_packs)
                 reason = "STOPPED" if attempt.stop_requested else None
@@ -286,7 +289,7 @@ def capture(owner, pk, provider):
     except Exception:
         return _unknown(owner, pk, "verification")
     observed_capture = observation.get("capture") if isinstance(observation, dict) else None
-    if observed_capture is not None or not isinstance(observation, dict) or observation.get("status") not in ("CREATED", "APPROVED"):
+    if observed_capture is not None or not isinstance(observation, dict) or observation.get("status") not in UNCAPTURED:
         return _observe(owner, pk, observation)
     with _locked(owner, pk) as (request, approval, offer, current):
         if current.state != "AWAITING_BUYER":

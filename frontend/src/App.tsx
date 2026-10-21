@@ -694,8 +694,10 @@ export function PaymentStatus({ attempt: a, financialEnabled, busy, pollEnded, o
     <ol className="track" aria-label="Payment progress">{trackSteps.map((name, i) => <li key={name} className={i < at ? 'is-done' : i === at && a.state !== 'PAID' ? (uncertain ? 'is-alert' : a.state === 'STOPPED' ? 'is-stopped' : 'is-now') : undefined}><span aria-hidden="true" />{name}</li>)}</ol>
     <dl className="receipt-facts"><div><dt>Approved total</dt><dd>{money(a.total_cents)} USD</dd></div><div><dt>Attempt reference</dt><dd>{idShort(a.id)}</dd></div><div><dt>Stored status</dt><dd>{a.state.replaceAll('_', ' ').toLowerCase()}</dd></div><div><dt>Last updated</dt><dd><time dateTime={a.updated_at}>{dateTime(a.updated_at)}</time></dd></div>{a.pending_operation && <div><dt>Pending operation</dt><dd>{a.pending_operation}</dd></div>}{a.capture_id && <div><dt>Capture reference</dt><dd className="mono">{a.capture_id}</dd></div>}</dl>
     {pending(a) && <p className="fine-print">{pollEnded ? 'Automatic checks paused after a bounded wait. Check the existing payment manually.' : 'Checking the saved status every few seconds. No payment action is retried.'}</p>}
-    <div className="actions">{permitted(a, 'check_status', financialEnabled) && <button className="btn" disabled={busy} onClick={() => onAction('reconcile')}><Icon name="refresh" />Check existing payment status</button>}{permitted(a, 'stop', financialEnabled) && <button className="btn quiet" disabled={busy} onClick={() => onAction('stop')}>Request stop</button>}</div>
-    {permitted(a, 'stop', financialEnabled) && <p className="fine-print">Stopping cannot undo a dispatched payment. An uncertain outcome remains under status checks.</p>}
+    <div className="actions">{permitted(a, 'check_status', financialEnabled) && <button className="btn" disabled={busy} onClick={() => onAction('reconcile')}><Icon name="refresh" />Check existing payment status</button>}{permitted(a, 'stop', financialEnabled) && a.reason_code !== 'STOP_REQUESTED' && <button className="btn quiet" disabled={busy} onClick={() => onAction('stop')}>Request stop</button>}</div>
+    {a.reason_code === 'STOP_REQUESTED'
+      ? <p className="consent-note"><Icon name="check" />Stop requested. The server first confirms with PayPal that nothing was captured, then stops this attempt. Use “Check existing payment status”.</p>
+      : permitted(a, 'stop', financialEnabled) && <p className="fine-print">Stopping cannot undo a dispatched payment. An uncertain outcome remains under status checks.</p>}
   </section>;
 }
 

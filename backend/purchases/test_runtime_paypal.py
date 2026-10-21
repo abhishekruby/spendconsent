@@ -253,6 +253,24 @@ class RuntimePayPalTests(TransactionTestCase):
         self.assertEqual(PaymentAttempt.objects.count(), 1)
         self.assertNotIn("fixture-secret", paid.content.decode())
 
+    def test_payer_action_required_is_uncaptured_not_unknown(self):
+        request, review, approval, attempt = self.begin()
+        self.http.order["status"] = "PAYER_ACTION_REQUIRED"
+        waiting = self.post(f"/api/attempts/{attempt['id']}/capture").json()["attempt"]
+        self.assertEqual((waiting["state"], waiting["reason_code"]), ("AWAITING_BUYER", "BUYER_APPROVAL_REQUIRED"))
+        self.assertFalse(any(call.full_url.endswith("/capture") for call in self.http.calls))
+        def make_unknown():
+            saved = PaymentAttempt.objects.get(id=attempt["id"])
+            saved.state, saved.pending_operation = "UNKNOWN", "verification"
+            saved.save(update_fields=["state", "pending_operation"])
+        make_unknown()
+        back = self.post(f"/api/attempts/{attempt['id']}/reconcile").json()["attempt"]
+        self.assertEqual(back["state"], "AWAITING_BUYER", "a still-valid approval lets the buyer retry PayPal")
+        make_unknown()
+        with patch("purchases.checkout.timezone.now", return_value=approval.expires_at + timedelta(seconds=1)):
+            resolved = self.post(f"/api/attempts/{attempt['id']}/reconcile").json()["attempt"]
+        self.assertEqual((resolved["state"], resolved["reason_code"]), ("STOPPED", "REVIEW_EXPIRED"))
+
     def test_permission_rechecked_after_oauth_before_financial_dispatch(self):
         request, review, approval = self.purchase()
         self.permit(approval)
