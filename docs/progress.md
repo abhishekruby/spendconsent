@@ -429,3 +429,12 @@ Added `scripts/spendconsent_mcp.py` (stdlib MCP over stdio): `find_offers`,
 tool, and the owner-link token goes only to the browser. Self-test plus a live
 run against the local API (40 cloths → $41.80 cart → link sent; nothing paid).
 Channel3, Agent Toolkit and Vault decisions recorded in the sponsor review.
+
+### 21 Oct 2026 (Claude): Channel3 market check
+
+User chose to pursue the Channel3 prize (free hackathon key, no card). Added
+`purchases/market.py` + `GET /api/requests/<id>/market`: one Channel3 search per
+request version, up to five in-stock US listings with title-derived per-unit
+price, shown under the offers and in the MCP `find_offers` output. Owner-only,
+informational, no redirects (key stays with Channel3), malformed data hidden.
+Review PASS after fixes. Live check pending the user's key.

@@ -147,3 +147,16 @@ export function isLinkView(v: unknown): v is LinkView {
   return object(v) && Object.keys(v).length === 5 && isPurchaseRequest(v.request) && uuid(v.review_id) && string(v.expires_at)
     && isSession({ environment: 'sandbox', csrf_token: 'a'.repeat(32), capabilities: v.capabilities, current_request_id: null, paypal: v.paypal });
 }
+
+// Channel3 real-retail price reference: informational only, never part of the cart.
+export type Listing = { title: string; domain: string; url: string; image: string | null; price_cents: number; units: number | null; unit_cents: number | null };
+export type Market = { available: false } | { available: true; source: 'Channel3'; query: string; listings: Listing[] };
+const https = (v: unknown) => typeof v === 'string' && v.length <= 2000 && /^https:\/\/[^\s"'<>]+$/.test(v);
+const isListing = (v: unknown): v is Listing => object(v) && Object.keys(v).length === 7 && string(v.title) && string(v.domain) && https(v.url)
+  && (v.image === null || https(v.image)) && integer(v.price_cents) && (v.units === null || integer(v.units)) && (v.unit_cents === null || integer(v.unit_cents));
+export function isMarket(v: unknown): v is Market {
+  if (!object(v)) return false;
+  if (v.available === false) return Object.keys(v).length === 1;
+  return v.available === true && Object.keys(v).length === 4 && v.source === 'Channel3' && string(v.query)
+    && Array.isArray(v.listings) && v.listings.length <= 5 && v.listings.every(isListing);
+}

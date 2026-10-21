@@ -485,3 +485,15 @@ details[open] > summary::after { transform: rotate(225deg) translateY(-1px); }
 .step:has(.step-button:focus-visible) { outline: 2.5px solid var(--accent); outline-offset: 2px; }
 .composer-back { justify-self: start; padding: 14px 24px 0; text-decoration: none; }
 @media (max-width: 900px) { .step-go { display: none; } .step:has(.step-button) { margin-inline: 0; padding-inline: 0; } .step-button { grid-template-columns: 1fr; justify-items: center; text-align: center; gap: 6px; } }
+
+/* Market check (Channel3) */
+.market { border-radius: var(--r-md); border: 1px solid var(--line); background: color-mix(in srgb, var(--surface) 60%, transparent); }
+.market > summary { display: flex; align-items: center; gap: 10px; padding: 14px 18px; font-weight: 600; }
+.market > :not(summary) { margin: 0 18px 14px; }
+.market-verdict { font-size: 14px; }
+.market ul { display: grid; gap: 10px; }
+.market li { display: grid; grid-template-columns: 44px 1fr auto; grid-template-rows: auto auto; column-gap: 12px; align-items: center; padding-top: 10px; border-top: 1px solid var(--line); font-size: 14px; }
+.market li img, .market-noimg { grid-row: span 2; width: 44px; height: 44px; border-radius: 8px; object-fit: cover; background: var(--line); }
+.market li a { color: inherit; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.market-price { grid-column: 3; grid-row: 1 / span 2; text-align: right; }
+.market-price small { display: block; color: var(--muted); font-size: 12px; }

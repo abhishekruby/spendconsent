@@ -12,7 +12,7 @@ from rest_framework.decorators import api_view, authentication_classes
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.views import exception_handler as drf_exception_handler
-from . import checkout, inference, runtime_paypal, serializers, services
+from . import checkout, inference, market, runtime_paypal, serializers, services
 from .models import Approval, ApprovalLink, Offer, PaymentAttempt, PurchaseRequest, Review
 
 
@@ -188,6 +188,11 @@ def progress(request):
 @endpoint(["GET"])
 def request_detail(request, pk):
     return Response(request_data(inference.recover(owner(request), pk)))
+
+
+@endpoint(["GET"])
+def market_check(request, pk):
+    return Response(market.check(inference.recover(owner(request), pk)))
 
 
 @endpoint(["POST"])

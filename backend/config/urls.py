@@ -8,6 +8,7 @@ urlpatterns = [
     path("api/purchases", views.purchases),
     path("api/requests/<uuid:pk>", views.request_detail),
     path("api/requests/<uuid:pk>/clarify", views.clarify),
+    path("api/requests/<uuid:pk>/market", views.market_check),
     path("api/requests/<uuid:pk>/reviews", views.reviews),
     path("api/reviews/<uuid:pk>/approve", views.approve),
     path("api/reviews/<uuid:pk>/link", views.create_link),

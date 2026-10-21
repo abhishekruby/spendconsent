@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { CSSProperties, FormEvent, ReactNode } from 'react';
 import { Api, ApiError } from './api.js';
-import type { Attempt, Candidate, Charges, Constraints, Evidence, LinkView, Progress, PurchaseRequest, Review, Session } from './contract.js';
+import type { Attempt, Candidate, Charges, Constraints, Evidence, LinkView, Market, Progress, PurchaseRequest, Review, Session } from './contract.js';
 import { canStartNew, locksRequest, money, newerAttempt, newerRequest, parseCents, pending, permitted, purchaseDisplay, unitCost } from './logic.js';
 import { PayPalError, preparePayPal } from './paypal.js';
 import { play, setSoundOn, soundOn, unlockAudio } from './sound.js';
@@ -318,6 +318,7 @@ export function App() {
         onReview={() => void mutate(`/api/requests/${request.id}/reviews`, { expected_version: request.version, candidate_id: candidate.id }, 'Preparing the exact cart for review')} />)}
       <p className="fine-print">Sample merchant catalog. Fictional goods and prices. Per-unit costs are rounded to the nearest cent.</p>
     </section>}
+    {request.status === 'READY' && session?.capabilities.ai_ready && <MarketCheck key={`${request.id}:${request.version}`} api={api} requestId={request.id} best={ordered[0]} />}
     {request.excluded.length > 0 && <details className="ruled-out" open={request.status === 'NO_MATCH'}>
       <summary><span>{plural(request.excluded.length, 'offer')} ruled out</span><span className="summary-hint">See why</span></summary>
       <ul>{request.excluded.map(item => <li key={item.offer_id}><strong>{item.name}</strong><span>{item.reasons.join(' ')}</span></li>)}</ul>
@@ -596,6 +597,33 @@ function RequirementChips({ constraints: c }: { constraints: Constraints }) {
 }
 function PriceBreakdown({ charges }: { charges: Charges }) {
   return <dl className="breakdown"><div><dt>Items</dt><dd>{money(charges.subtotal_cents)}</dd></div><div><dt>Delivery</dt><dd>{money(charges.shipping_cents)}</dd></div><div><dt>Fixture tax</dt><dd>{money(charges.tax_cents)}</dd></div><div><dt>Discount</dt><dd>−{money(charges.discount_cents)}</dd></div><div className="total"><dt>Full total</dt><dd>{money(charges.total_cents)} <span>USD</span></dd></div></dl>;
+}
+// Real retail prices from Channel3 so the owner can judge the supplier offer; never part of the cart.
+function MarketCheck({ api, requestId, best }: { api: Api; requestId: string; best?: Candidate }) {
+  const [market, setMarket] = useState<Market | null>(null);
+  useEffect(() => {
+    const controller = new AbortController();
+    api.market(requestId, controller.signal).then(setMarket).catch(() => { if (!controller.signal.aborted) setMarket({ available: false }); });
+    return () => controller.abort();
+  }, []);
+  if (!market) return <div className="market" aria-busy="true"><div className="skeleton short" /></div>;
+  if (!market.available || market.listings.length === 0) return null;
+  const own = best ? Math.round(best.total_cents / best.individual_units) : null;
+  const priced = market.listings.filter(l => l.unit_cents !== null).map(l => l.unit_cents!);
+  const low = priced.length ? Math.min(...priced) : null;
+  const verdict = own === null || low === null ? null : own <= low ? 'Your best offer beats every retail listing per unit, before their delivery and tax.'
+    : `Retail listings start at ${money(low)} per unit before delivery and tax; your best offer is ${money(own)} delivered.`;
+  return <details className="market reveal" open>
+    <summary><span>Real-world prices</span><span className="summary-hint">via Channel3</span></summary>
+    {verdict && <p className="market-verdict">{verdict}</p>}
+    <ul>{market.listings.map(l => <li key={l.url}>
+      {l.image ? <img src={l.image} alt="" loading="lazy" referrerPolicy="no-referrer" /> : <span className="market-noimg" aria-hidden="true" />}
+      <a href={l.url} target="_blank" rel="noopener noreferrer">{l.title}</a>
+      <span className="fine-print">{l.domain}{l.units ? ` · ${l.units} per pack` : ''}</span>
+      <span className="market-price mono">{money(l.price_cents)}{l.unit_cents !== null && <small> · {money(l.unit_cents)} each</small>}</span>
+    </li>)}</ul>
+    <p className="fine-print">Live US retail listings for “{market.query}”. Pack sizes are read from listing titles. For reference only: the cart and payment use the supplier offer above.</p>
+  </details>;
 }
 function EvidenceList({ evidence }: { evidence: Evidence[] }) {
   return <details className="evidence"><summary>Catalog evidence ({evidence.length})</summary>{evidence.length ? <ul>{evidence.map((e, i) => <li key={`${e.offer_id}:${i}`}><p>{e.summary}</p><p className="fine-print">Sample catalog · Offer {idShort(e.offer_id)} · Material version {e.offer_version}</p></li>)}</ul> : <p className="fine-print">No catalog evidence was returned.</p>}</details>;

@@ -1,4 +1,4 @@
-import { isAttempt, isLinkCreated, isLinkView, isProgress, isPurchaseList, isPurchaseRequest, isSession, uuid } from './contract.js';
+import { isAttempt, isLinkCreated, isLinkView, isMarket, isProgress, isPurchaseList, isPurchaseRequest, isSession, uuid } from './contract.js';
 import type { Attempt, PurchaseRequest, Session } from './contract.js';
 
 const messages: Record<string, string> = {
@@ -32,7 +32,7 @@ export class Api {
   private csrf = '';
   constructor(private transport: typeof fetch = fetch) {}
   async call<T>(path: string, validate: (v: unknown) => v is T, body?: unknown, signal?: AbortSignal): Promise<T> {
-    if (!/^\/api\/(session|progress|purchases|links\/[A-Za-z0-9_-]{20,100}(?:\/(approve|attempts|attempt\/(capture|stop|reconcile)))?|reviews\/[0-9a-f-]+\/link|requests(?:\/[0-9a-f-]+(?:\/(clarify|reviews))?)?|reviews\/[0-9a-f-]+\/approve|approvals\/[0-9a-f-]+\/attempts|attempts\/[0-9a-f-]+(?:\/(stop|reconcile|capture))?)$/.test(path)) throw new ApiError('INVALID_PATH', 'Invalid local API route.');
+    if (!/^\/api\/(session|progress|purchases|links\/[A-Za-z0-9_-]{20,100}(?:\/(approve|attempts|attempt\/(capture|stop|reconcile)))?|reviews\/[0-9a-f-]+\/link|requests(?:\/[0-9a-f-]+(?:\/(clarify|reviews|market))?)?|reviews\/[0-9a-f-]+\/approve|approvals\/[0-9a-f-]+\/attempts|attempts\/[0-9a-f-]+(?:\/(stop|reconcile|capture))?)$/.test(path)) throw new ApiError('INVALID_PATH', 'Invalid local API route.');
     if (body !== undefined && !this.csrf) throw new ApiError('SESSION_REQUIRED', messages.SESSION_REQUIRED);
     const deadline = AbortSignal.timeout(100000);
     try {
@@ -62,6 +62,7 @@ export class Api {
   request(id: string, signal?: AbortSignal) { return this.call(`/api/requests/${id}`, isPurchaseRequest, undefined, signal); }
   mutateRequest(path: string, body: unknown, signal?: AbortSignal) { return this.call<PurchaseRequest>(path, isPurchaseRequest, body, signal); }
   attempt(id: string, signal?: AbortSignal) { return this.call(`/api/attempts/${id}`, isAttemptEnvelope, undefined, signal); }
+  market(id: string, signal?: AbortSignal) { return this.call(`/api/requests/${id}/market`, isMarket, undefined, signal); }
   progress(signal?: AbortSignal) { return this.call('/api/progress', isProgress, undefined, signal); }
   purchases(signal?: AbortSignal) { return this.call('/api/purchases', isPurchaseList, undefined, signal); }
   createLink(reviewId: string, signal?: AbortSignal) { return this.call(`/api/reviews/${reviewId}/link`, isLinkCreated, {}, signal); }

@@ -3,7 +3,7 @@ import test from 'node:test';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { Api, ApiError, safeApiError } from '../.test-build/api.js';
-import { isAttempt, isConstraints, isLinkCreated, isLinkView, isProgress, isPurchaseList, isPurchaseRequest, isSession, linkToken } from '../.test-build/contract.js';
+import { isAttempt, isConstraints, isLinkCreated, isLinkView, isMarket, isProgress, isPurchaseList, isPurchaseRequest, isSession, linkToken } from '../.test-build/contract.js';
 import { canStartNew, locksRequest, money, newerAttempt, newerRequest, parseCents, pending, permitted, purchaseDisplay, unitCost } from '../.test-build/logic.js';
 import { Offer, PaymentStatus, PayPalCheckout, ReviewCard, paymentTransitionNotice, receiptHtml } from '../.test-build/App.js';
 
@@ -243,4 +243,13 @@ test('owner approval links are validated and only reach their own routes', async
   assert.ok(isLinkView(await api.link(token)));
   await assert.rejects(api.link('../../session'), error => error.code === 'INVALID_PATH');
   assert.deepEqual(paths, [`/api/links/${token}`]);
+});
+
+test('market check accepts only bounded https listings', () => {
+  const listing = { title: 'Cloths 24 Pack', domain: 'shop.example', url: 'https://shop.example/a', image: null, price_cents: 1599, units: 24, unit_cents: 67 };
+  assert.ok(isMarket({ available: false }));
+  assert.ok(isMarket({ available: true, source: 'Channel3', query: 'q', listings: [listing] }));
+  assert.ok(!isMarket({ available: true, source: 'Channel3', query: 'q', listings: [{ ...listing, url: 'javascript:alert(1)' }] }));
+  assert.ok(!isMarket({ available: true, source: 'Channel3', query: 'q', listings: [{ ...listing, image: 'http://x.example/i.png' }] }));
+  assert.ok(!isMarket({ available: true, source: 'Channel3', query: 'q', listings: Array(6).fill(listing) }));
 });

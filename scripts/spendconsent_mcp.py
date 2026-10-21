@@ -91,6 +91,13 @@ class Shop:
                   f"delivered total {money(c['total_cents'])} incl. {money(c['shipping_cents'])} delivery and {money(c['tax_cents'])} tax"
                   for c in r["candidates"]]
         lines += [f"- ruled out {x['name']}: {' '.join(x['reasons'])}" for x in r["excluded"]]
+        try:
+            market = self.api.call("GET", f"/api/requests/{r['id']}/market") if r["status"] == "READY" else {}
+        except ToolError:
+            market = {}  # the price reference is optional
+        lines += [f"- real-world reference (Channel3, not buyable here): {x['title']} at {x['domain']}, {money(x['price_cents'])}"
+                  + (f" ({money(x['unit_cents'])} each before delivery and tax)" if x["unit_cents"] else "")
+                  for x in market.get("listings", [])[:3]]
         return "\n".join(lines) + ("\nNext: prepare_cart with one offer_id." if r["candidates"] else "")
 
     def prepare_cart(self, offer_id):

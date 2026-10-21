@@ -85,6 +85,13 @@ scripts/run_demo.sh          # start · scripts/run_demo.sh stop · scripts/run_
    terminal with `.venv/bin/python backend/manage.py authorize_sandbox_purchase`,
    which shows the cart and asks you to type the total.)
 
+### Real-world price check (Channel3, optional)
+
+With a free [Channel3](https://trychannel3.com/developers) key in `.env`
+(`CHANNEL3_API_KEY`, no card needed), each comparison also shows up to five live
+US retail listings for the same item and how the best supplier offer compares
+per unit. One search per request; informational only, never part of the cart.
+
 ### Let any AI agent shop through it (MCP)
 
 [`scripts/spendconsent_mcp.py`](scripts/spendconsent_mcp.py) is a stdlib MCP server.

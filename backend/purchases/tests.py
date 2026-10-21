@@ -4,6 +4,7 @@ from copy import deepcopy
 from datetime import timedelta
 import importlib
 import io
+import json
 import threading
 import uuid
 from unittest.mock import patch
@@ -263,6 +264,39 @@ class AnonymousAPITests(TestCase):
         rows = self.client.get("/api/purchases").json()["purchases"]
         self.assertEqual([row["id"] for row in rows], [str(newer.id), str(older.id)])
         self.assertEqual(rows[0]["approval"]["status"], "APPROVED")
+
+    def test_market_check_is_owner_only_cached_and_never_changes_the_request(self):
+        request = ready_request(self.owner)
+        before = (request.version, request.candidates)
+        products = {"products": [
+            {"title": "Microfiber Cleaning Cloth 24 Pack, 16 x 16 in", "images": [{"url": "https://img.example/a.jpg"}],
+             "offers": [{"url": "https://shop.example/a", "domain": "shop.example", "availability": "InStock", "price": {"price": 15.99, "currency": "USD"}}]},
+            {"title": "Out of stock", "offers": [{"url": "https://x.example", "availability": "OutOfStock", "price": {"price": 1, "currency": "USD"}}]},
+            {"title": "Unsafe link", "offers": [{"url": "javascript:alert(1)", "availability": "InStock", "price": {"price": 1, "currency": "USD"}}]}]}
+        calls = []
+
+        class Reply(io.BytesIO):
+            def __enter__(self): return self
+            def __exit__(self, *exc): return False
+
+        def fake(req, timeout):
+            calls.append((req.full_url, req.get_header("X-api-key")))
+            return Reply(json.dumps(products).encode())
+        with patch("purchases.market.api_key", return_value="test-key"), patch("purchases.market._OPENER.open", fake):
+            data = self.client.get(f"/api/requests/{request.id}/market").json()
+            self.client.get(f"/api/requests/{request.id}/market")
+            other = Client(HTTP_HOST="127.0.0.1:5173")
+            other.get("/api/session")
+            self.assertEqual(other.get(f"/api/requests/{request.id}/market").status_code, 404)
+        self.assertEqual(calls, [("https://api.trychannel3.com/v1/search", "test-key")])
+        self.assertEqual(data["listings"], [{"title": "Microfiber Cleaning Cloth 24 Pack, 16 x 16 in", "domain": "shop.example",
+                                             "url": "https://shop.example/a", "image": "https://img.example/a.jpg",
+                                             "price_cents": 1599, "units": 24, "unit_cents": 67}])
+        request.refresh_from_db()
+        self.assertEqual((request.version, request.candidates), before)
+        with patch("purchases.market.api_key", return_value=None):
+            fresh = ready_request(self.owner)
+            self.assertEqual(self.client.get(f"/api/requests/{fresh.id}/market").json(), {"available": False})
 
     def test_material_offer_change_shows_existing_approval_as_no_longer_valid(self):
         request = ready_request(self.owner)
