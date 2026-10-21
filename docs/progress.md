@@ -421,3 +421,11 @@ actions disabled. Catalog commercial fields match seed; recorded live stock/quot
 version differences. Opened an untimed practice page without the observer key.
 No human timing results yet. User confirmed prior popup cancellation; evidence
 records it as human-reported. No new payment or public action.
+
+### 21 Oct 2026 (Claude): MCP server for external agents
+
+Added `scripts/spendconsent_mcp.py` (stdlib MCP over stdio): `find_offers`,
+`prepare_cart`, `request_owner_approval`, `purchase_status`; no approve or pay
+tool, and the owner-link token goes only to the browser. Self-test plus a live
+run against the local API (40 cloths → $41.80 cart → link sent; nothing paid).
+Channel3, Agent Toolkit and Vault decisions recorded in the sponsor review.

@@ -61,14 +61,13 @@ Deadline 12 Nov 2026 noon PST (13 Nov 01:30 IST).
   orders get Buy again + receipt download.
 - **Week-1 build (21 Oct):** `scripts/run_demo.sh` one-command start; purchases
   drawer; **owner approval links** (requester → owner approves + pays one exact
-  cart; review PASS). Demo script rewritten. Plan: wk2 Vault/Agent Toolkit,
-  Channel3, usability; wk3 video, Devpost, public repo, submit by 10 Nov.
+  cart; review PASS). Wk2: `scripts/spendconsent_mcp.py` MCP server (agents
+  shop, can't approve/pay); Channel3 + Vault deferred (sponsor review). Next:
+  usability; wk3 video, Devpost, public repo, submit by 10 Nov.
 - **Buyer-consent mode** (`SPENDCONSENT_PAYPAL_CONSENT=buyer`, cap $100): the
   buyer's own unexpired in-app approval authorizes one sandbox order; default
   stays operator (typed permission). API currently runs in buyer mode.
-- Popup cancel confirmed by the user (Codex note). Next: usability practice +
-  timing (kit/practice pages from Codex), demo, submission — public/money steps
-  need user approval.
+- Popup cancel confirmed by the user. Public/money steps need user approval.
 
 ## Known limits
 

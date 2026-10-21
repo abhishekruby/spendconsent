@@ -8,7 +8,7 @@ the interface cues are part of the demo.
 
 | Time | Scene | What the viewer sees | Narration (short) |
 | --- | --- | --- | --- |
-| 0:00–0:15 | Hook | A cleaning-business owner's phone buzzing; supplier tabs, a calculator | "AI agents can shop for you. Would you give one your card?" |
+| 0:00–0:15 | Hook | Claude Desktop with the SpendConsent MCP server: "reorder 40 cloths under $60" → offers → "Sent to the owner — I can't approve or pay"; the owner's window opens the cart | "AI agents can shop for you. Would you give one your card? Here, the agent can find and prepare — never pay." |
 | 0:15–0:30 | Problem | The 40-cloth request; mismatched sizes, pack counts, delivery and tax | "Reordering supplies means checking sizes, packs and the real delivered price — and an agent that guesses can spend the wrong money." |
 | 0:30–1:05 | Real AI, live | Type the request → loader with timer → "Understood: 40 cloths, 40 × 40 cm, ≤ $60" → "2 offers fit", cheapest highlighted, wrong size ruled out | "A local model reads plain words and calls one catalog tool. Code — not the model — does every number. If I didn't say it, it asks." |
 | 1:05–1:25 | Exact cart | Receipt with pack maths, delivered total, countdown | "This is the exact cart: merchant, packs, tax, delivery, total. It expires in ten minutes." |

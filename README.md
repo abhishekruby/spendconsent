@@ -85,6 +85,19 @@ scripts/run_demo.sh          # start · scripts/run_demo.sh stop · scripts/run_
    terminal with `.venv/bin/python backend/manage.py authorize_sandbox_purchase`,
    which shows the cart and asks you to type the total.)
 
+### Let any AI agent shop through it (MCP)
+
+[`scripts/spendconsent_mcp.py`](scripts/spendconsent_mcp.py) is a stdlib MCP server.
+Claude Desktop, Claude Code or any other MCP client can `find_offers`,
+`prepare_cart`, `request_owner_approval` and check `purchase_status`. There is
+no tool to approve or pay: the approval link opens in the owner's browser, and
+its token never enters the agent's context (an agent that also has shell access
+as the same user could still read the browser's command line). Add to the client's MCP config:
+
+```json
+{"mcpServers": {"spendconsent": {"command": "python3", "args": ["/path/to/repo/scripts/spendconsent_mcp.py"]}}}
+```
+
 Without step 3 or 4 the app still runs and says honestly that AI or payment is
 unavailable; it never fakes a result. To demo a changed price:
 `.venv/bin/python backend/manage.py set_offer_price CLOTH-B 2050`.
