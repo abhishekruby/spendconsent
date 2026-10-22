@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { CSSProperties, FormEvent, ReactNode } from 'react';
 import { Api, ApiError } from './api.js';
 import type { Attempt, Candidate, Charges, Constraints, Evidence, LinkView, Market, Progress, PurchaseRequest, RefundState, Review, Session } from './contract.js';
-import { canStartNew, locksRequest, money, newerAttempt, newerRequest, parseCents, pending, permitted, purchaseDisplay, savings, unitCost } from './logic.js';
+import { canStartNew, locksRequest, money, newerAttempt, newerRequest, parseCents, pending, permitted, purchaseDisplay, readRequest, savings, unitCost } from './logic.js';
 import { PayPalError, preparePayPal } from './paypal.js';
 import { play, setSoundOn, soundOn, unlockAudio } from './sound.js';
 
@@ -420,6 +420,7 @@ export function App() {
         {!thinking && drafting && session && <p className="why reveal" style={delay(7)}>Why a person approves: 60% of shoppers would stop using an AI shopping agent after one mistake, and approval before checkout is the safeguard they ask for most. <span className="fine-print">ACI Worldwide/YouGov and RTB House surveys, 2026.</span></p>}
 
         {!thinking && !draftMode && request && <div className="flow">
+          {!collapseComparison && <AiReading request={request} />}
           {request.constraints && Object.keys(request.constraints).length > 0 && <div className="needs reveal">
             <RequirementChips constraints={request.constraints} />
             {editor && !asksForDetails && <button type="button" className="ghost-link" aria-expanded={editing} onClick={() => setEditing(v => !v)}>{editing ? 'Close' : 'Edit'}</button>}
@@ -588,6 +589,31 @@ function ConstraintForm({ constraints, disabled, onSubmit }: { constraints: Cons
     {category === 'notebook' && <Field name="paper_size" label="Paper size"><select id="paper_size" name="paper_size" required defaultValue={attrs.paper_size ?? ''}><option value="">Choose a size</option><option>A4</option><option>A5</option><option>A6</option></select></Field>}
   </div><p id="budget-help" className="fine-print">The max total includes delivery and tax. Packs must add up to your exact quantity.</p>{invalid && <p id="budget-error" className="field-error" role="alert">{invalid}</p>}
     <div className="details-actions"><label className="check"><input name="one_time" type="checkbox" required defaultChecked={constraints.one_time === true} /><span>One-time purchase only</span></label><button className="btn primary">Update and compare<Icon name="arrow" /></button></div></fieldset></form>;
+}
+const readingLabel = { item: 'item', quantity: 'how many', size: 'size', budget: 'max total', terms: 'one-time', cost: 'delivered cost' } as const;
+const missingLabel = (field: string) => ({ category: 'the item', quantity: 'how many', budget_cents: 'a max total', currency: 'the currency', one_time: 'one-time terms' } as Record<string, string>)[field]
+  ?? (field.startsWith('attributes.') ? 'the size' : field);
+// Makes the AI's part visible: the buyer's own words, tagged with what each became,
+// then the split of work (AI understands, code checks, a person decides).
+export function AiReading({ request }: { request: PurchaseRequest }) {
+  const m = request.model;
+  if (!m?.used) return null;
+  const parts = readRequest(request.text, request.constraints);
+  const understood = parts.filter(p => p.field && p.field !== 'cost').length;
+  const missing = [...new Set(request.clarification?.missing_fields.map(missingLabel) ?? [])];
+  const checked = request.candidates.length + request.excluded.length;
+  return <section className="ai-reading reveal" aria-labelledby="ai-reading-heading">
+    <header><h2 id="ai-reading-heading"><Icon name="spark" />What the AI understood</h2>
+      <p className="fine-print">{m.name.startsWith('qwen3-4b') ? 'Qwen3-4B' : m.name}, a local AI model on this computer · read in {(m.elapsed_ms / 1000).toFixed(1)} s · {m.tool_calls.map(t => t.name).join(', ')} called once</p></header>
+    <blockquote className="reading">{parts.map((p, i) => p.field
+      ? <mark key={i} data-field={p.field}>{p.text}<span className="reading-tag">{readingLabel[p.field]}</span></mark> : <span key={i}>{p.text}</span>)}</blockquote>
+    {missing.length > 0 && <p className="reading-missing"><Icon name="question" />Not in your words: {missing.join(', ')}. The AI asks instead of guessing.</p>}
+    <ol className="division" aria-label="Who did what">
+      <li><b>The AI read your words</b><span>{plural(understood, 'detail')} turned into an exact order form. It did no maths and picked nothing.</span></li>
+      <li><b>Code checked every offer</b><span>{checked ? `${plural(checked, 'offer')}: ${request.candidates.length} fit exactly, ${request.excluded.length} ruled out.` : 'Waiting for the missing details.'} Sizes, packs, tax and delivery are calculated, not guessed.</span></li>
+      <li><b>A person decides</b><span>Nothing is bought until you approve the exact cart.</span></li>
+    </ol>
+  </section>;
 }
 function RequirementChips({ constraints: c }: { constraints: Constraints }) {
   const a = c.attributes;

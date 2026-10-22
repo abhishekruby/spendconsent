@@ -4,7 +4,7 @@ import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { Api, ApiError, safeApiError } from '../.test-build/api.js';
 import { isAttempt, isConstraints, isLinkCreated, isLinkView, isMarket, isProgress, isPurchaseList, isPurchaseRequest, isSession, linkToken } from '../.test-build/contract.js';
-import { canStartNew, locksRequest, money, newerAttempt, newerRequest, parseCents, pending, permitted, purchaseDisplay, savings, unitCost } from '../.test-build/logic.js';
+import { canStartNew, locksRequest, money, newerAttempt, newerRequest, parseCents, pending, permitted, purchaseDisplay, readRequest, savings, unitCost } from '../.test-build/logic.js';
 import { Offer, PaymentStatus, PayPalCheckout, RefundPanel, ReviewCard, paymentTransitionNotice, receiptHtml } from '../.test-build/App.js';
 
 // Explicit local test fixtures only. The running application has no seeded results.
@@ -273,4 +273,17 @@ test('refunds: only on a paid attempt, validated, and shown with an explicit con
   assert.doesNotMatch(offer, /Yes, refund/, 'refunding needs a second, explicit click');
   assert.match(renderToStaticMarkup(createElement(RefundPanel, { attempt: { ...paid, allowed_actions: [], refund }, busy: false, onRefund() {} })), /Refunded in full/);
   assert.equal(renderToStaticMarkup(createElement(RefundPanel, { attempt: { ...paid, allowed_actions: [] }, busy: false, onRefund() {} })), '');
+});
+
+test('readRequest highlights the buyer words that grounded each value, without overlap', () => {
+  const tags = (text, c) => readRequest(text, c).filter(r => r.field).map(r => `${r.field}:${r.text}`);
+  const cloth = { category: 'cloth', quantity: 40, budget_cents: 6000, one_time: true, attributes: { width_cm: 40, height_cm: 40 } };
+  assert.deepEqual(tags('Find exactly 40 microfiber cloths, 40 × 40 cm, under $60 including delivery and tax. One-time purchase only.', cloth),
+    ['quantity:40', 'item:microfiber cloths', 'size:40 × 40 cm', 'budget:$60', 'cost:including delivery and tax', 'terms:One-time']);
+  const bags = { category: 'bag', quantity: 50, budget_cents: 4000, one_time: true, attributes: { capacity_l: 30 } };
+  assert.deepEqual(tags('I need 50 garbage bags, 30 liters, max 40 dollars, once', bags),
+    ['quantity:50', 'item:garbage bags', 'size:30 liters', 'budget:40 dollars', 'terms:once']);
+  const text = 'need cloths';
+  assert.equal(readRequest(text, { category: 'cloth' }).map(r => r.text).join(''), text, 'segments rebuild the exact text');
+  assert.deepEqual(tags('20 notebooks', { quantity: 7 }), [], 'a value not in the words is never highlighted');
 });

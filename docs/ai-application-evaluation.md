@@ -269,3 +269,14 @@ laptop power-off after 71 cases (70 correct; the in-flight case is recorded as
 `EVALUATION_INTERRUPTED` with no timing, so that suite cannot pass). It is kept.
 A fresh run of the same suites on unchanged sources is
 [a01b9f9](evidence/ai-application-qualification-a01b9f9.json).
+
+## 22 Oct 2026: number role check in the app
+
+Found live through the new "What the AI understood" view: for "some spray bottles,
+the 500 ml ones" the adapter accepted a $500 budget, because 500 is present in the
+text (the documented presence-not-role limit). The app now adds a role check in
+`inference._role_checked`, outside the qualified `agent.py`: a quantity or budget
+whose every written digit occurrence is a size ("500 ml", "40 × 40 cm") is dropped
+and the buyer is asked. It can only remove values. `scripts/role_check_replay.py`
+replays it over all 160 a01b9f9 outcomes: 0 values wrongly dropped (one early
+false drop, "forty … 40 cm wide", was fixed by honouring number words). Runs in CI.

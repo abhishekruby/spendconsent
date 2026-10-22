@@ -12,6 +12,7 @@ import io
 import json
 import os
 from pathlib import Path
+import re
 import stat
 import time
 import uuid
@@ -31,8 +32,31 @@ _RECORDER = contextvars.ContextVar("spendconsent_progress", default=None)
 _original_search = agent._search
 
 
+# A number written as a size ("500 ml", "40 × 40 cm") is not a quantity or a budget.
+_SIZE_AFTER = re.compile(r"\s*-?\s*(?:(?:mm|cm|m|inch(?:es)?|ft|l|liters?|litres?|ml|millilit(?:er|re)s?|gal(?:lons?)?|oz|ounces?|by)\b|[×*]|x(?=\s*\d))", re.I)
+_SIZE_BEFORE = re.compile(r"(?:[×x*]|\bby)\s*$", re.I)
+
+
+def _role_checked(native, text):
+    """Role check on top of the qualified adapter's presence check (agent.py is
+    unchanged). Drop the model's quantity or budget when every place that number
+    is written in the request is a size; the buyer is then asked instead.
+    Values grounded only by number words are left to the adapter.
+    """
+    checked = dict(native)
+    words = {float(item) for item in agent._number_words(text)}
+    for key in ("quantity", "budget"):
+        value = native.get(key)
+        if isinstance(value, bool) or not isinstance(value, (int, float)) or float(value) in words:
+            continue
+        hits = [m for m in re.finditer(r"\d[\d,]{0,15}(?:\.\d{1,6})?", text) if float(m.group().replace(",", "")) == float(value)]
+        if hits and all(_SIZE_AFTER.match(text, m.end()) or _SIZE_BEFORE.search(text, 0, m.start()) for m in hits):
+            checked[key] = None
+    return checked
+
+
 def _observed_search(arguments, confirmed, text):
-    result = _original_search(arguments, confirmed, text)
+    result = _original_search(_role_checked(arguments, text), confirmed, text)
     record = _RECORDER.get()
     if record is not None:
         record(result)

@@ -22,6 +22,7 @@ jobs:
         run: |
           python3 scripts/spendconsent_mcp.py --self-test
           .venv/bin/python scripts/ai_application_eval.py --self-test
+          .venv/bin/python scripts/role_check_replay.py
   frontend:
     runs-on: ubuntu-24.04
     steps:

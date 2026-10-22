@@ -511,3 +511,19 @@ details[open] > summary::after { transform: rotate(225deg) translateY(-1px); }
 /* Phones: keep the top bar inside 375 px (no sideways scroll). */
 @media (max-width: 420px) { .topbar-end { gap: 8px; } .topbar { gap: 8px; } .brand { gap: 8px; font-size: 16px; } .sandbox-chip { padding: 5px 9px 5px 8px; } }
 @media (max-width: 380px) { .brand span { display: none; } }
+
+/* What the AI understood */
+.ai-reading { border: 1px solid var(--line); border-radius: var(--r-md); padding: 18px 20px; background: var(--surface); display: grid; gap: 14px; }
+.ai-reading header { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 16px; }
+.ai-reading h2 { display: inline-flex; align-items: center; gap: 8px; font-size: 16px; }
+.ai-reading h2 .icon { color: var(--accent-ink); }
+.reading { margin: 0; font-size: 17px; line-height: 2.5; }
+.reading mark { position: relative; background: color-mix(in srgb, var(--accent) 16%, transparent); color: inherit; border-bottom: 2px solid var(--accent); border-radius: 4px 4px 0 0; padding: 1px 2px; }
+.reading mark[data-field='cost'] { background: transparent; border-bottom-style: dashed; }
+.reading-tag { position: absolute; left: 0; top: calc(100% + 2px); font: 600 10px/1 var(--mono); letter-spacing: .02em; text-transform: uppercase; color: var(--accent-ink); white-space: nowrap; }
+.reading-missing { display: flex; gap: 8px; align-items: center; font-size: 14px; color: var(--warn); }
+.division { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; counter-reset: division; }
+.division li { counter-increment: division; display: grid; gap: 4px; padding: 12px 14px; border-radius: var(--r-sm, 10px); background: var(--bg); font-size: 13px; color: var(--muted); }
+.division li b { color: var(--ink); font-size: 14px; }
+.division li b::before { content: counter(division) ' · '; color: var(--accent-ink); font-family: var(--mono); }
+@media (max-width: 700px) { .division { grid-template-columns: 1fr; } .reading { font-size: 16px; } }

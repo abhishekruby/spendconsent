@@ -106,6 +106,22 @@ class InferenceTests(TransactionTestCase):
             self.assertEqual(agent._search({}, {}, ""), {"status": "READY"})
         self.assertEqual(inference._PROGRESS, {})
 
+    def test_a_size_number_is_never_taken_as_quantity_or_budget(self):
+        check = inference._role_checked
+        self.assertEqual(check({"quantity": None, "budget": 500}, "Some spray bottles, the 500 ml ones, one-time."),
+                         {"quantity": None, "budget": None}, "500 ml is a size, not $500")
+        self.assertEqual(check({"quantity": 40}, "cloths 40 × 40 cm under $60")["quantity"], None)
+        self.assertEqual(check({"quantity": 40}, "40x40 cloths")["quantity"], None)
+        self.assertEqual(check({"quantity": 40, "budget": 60}, "Exactly 40 microfiber cloths, 40 × 40 cm, under $60"),
+                         {"quantity": 40, "budget": 60})
+        self.assertEqual(check({"quantity": 50}, "I need 50 in a hurry")["quantity"], 50)
+        self.assertEqual(check({"quantity": 20}, "twenty cloths 40x40")["quantity"], 20, "number words stay with the adapter")
+        self.assertEqual(check({"quantity": 40}, "Exactly forty microfiber cloths, each 40 cm wide")["quantity"], 40, "forty is written as a quantity")
+        seen = []
+        with patch.object(inference, "_original_search", side_effect=lambda native, confirmed, text: seen.append(native) or {}):
+            agent._search({"quantity": 500, "budget": None, "category": "bottle"}, {}, "500 ml bottles")
+        self.assertEqual(seen[0]["quantity"], None, "the app's search path applies the role check")
+
     def test_create_compare_review_approve_keeps_financial_disabled(self):
         def model(text, confirmed):
             self.assertFalse(connection.in_atomic_block)

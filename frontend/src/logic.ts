@@ -1,4 +1,4 @@
-import type { Action, Attempt, PurchaseRequest } from './contract.js';
+import type { Action, Attempt, Constraints, PurchaseRequest } from './contract.js';
 
 export function money(cents: number): string {
   if (!Number.isSafeInteger(cents) || cents < 0) throw new Error('Expected nonnegative integer cents');
@@ -51,4 +51,45 @@ export function savings(p: PurchaseRequest, offerId: string): { vsNext: number |
   const mine = p.candidates.find(c => c.offer_id === offerId);
   const others = p.candidates.filter(c => c.offer_id !== offerId).map(c => c.total_cents);
   return { vsNext: mine && others.length ? Math.min(...others) - mine.total_cents : null, fitting: p.candidates.length, ruledOut: p.excluded.length };
+}
+
+// Which of the buyer's own words grounded each value the AI read, for display.
+// Each value is located in the text (first non-overlapping match); nothing is inferred.
+export type ReadingField = 'item' | 'quantity' | 'size' | 'budget' | 'terms' | 'cost';
+export type Reading = { text: string; field?: ReadingField };
+const ITEM_WORDS = { cloth: 'microfib(?:er|re)\\s+cloths?|cloths?|rags?|towels?', bag: '(?:waste|garbage|trash|bin)\\s+bags?|bin\\s+liners?|bags?',
+  bottle: 'spray\\s+bottles?|bottles?', notebook: 'notebooks?' } as const;
+export function readRequest(text: string, c: Constraints): Reading[] {
+  const a = c.attributes ?? {};
+  const dollars = c.budget_cents === undefined ? null : c.budget_cents % 100 ? (c.budget_cents / 100).toFixed(2) : `${c.budget_cents / 100}(?:\\.00)?`;
+  const size = c.category === 'cloth' && a.width_cm && a.height_cm ? `${a.width_cm}\\s*(?:cm)?\\s*(?:[×x*]|by)\\s*${a.height_cm}(?:\\s*cm)?`
+    : c.category === 'bag' && a.capacity_l ? `${a.capacity_l}\\s*-?\\s*(?:l|liters?|litres?)\\b`
+    : c.category === 'bottle' && a.volume_ml ? `${a.volume_ml}\\s*-?\\s*(?:ml|milliliters?|millilitres?)\\b`
+    : c.category === 'notebook' && a.paper_size ? `\\b${a.paper_size}\\b` : null;
+  const patterns: [ReadingField, string | null][] = [
+    ['size', size],
+    ['budget', dollars && `\\$\\s?${dollars}\\b|\\b${dollars}\\s?(?:dollars|usd)\\b`],
+    ['quantity', c.quantity ? `(?<![\\d$.])${c.quantity}(?![\\d.])` : null],
+    ['item', c.category ? ITEM_WORDS[c.category] : null],
+    ['terms', c.one_time ? 'one[- ]time|\\bonce\\b|single purchase' : null],
+    ['cost', 'includ(?:ing|es)\\s+(?:delivery|shipping)(?:\\s+and\\s+tax)?|\\bdelivered\\b'],
+  ];
+  const taken: [number, number, ReadingField][] = [];
+  for (const [field, source] of patterns) {
+    if (!source) continue;
+    for (const m of text.matchAll(new RegExp(source, 'gi'))) {
+      const start = m.index, end = m.index + m[0].length;
+      if (taken.every(([s, e]) => end <= s || start >= e)) { taken.push([start, end, field]); break; }
+    }
+  }
+  taken.sort((x, y) => x[0] - y[0]);
+  const out: Reading[] = [];
+  let at = 0;
+  for (const [start, end, field] of taken) {
+    if (start > at) out.push({ text: text.slice(at, start) });
+    out.push({ text: text.slice(start, end), field });
+    at = end;
+  }
+  if (at < text.length) out.push({ text: text.slice(at) });
+  return out;
 }
