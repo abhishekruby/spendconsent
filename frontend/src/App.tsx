@@ -229,7 +229,7 @@ export function App() {
   // stays in Purchases); finished Compare/Approve steps scroll to their section.
   function editRequest(previous: PurchaseRequest) {
     submission.current = null; setText(previous.text); setDraftMode(true); setError(null);
-    setNotice('Change your request, then compare again. The previous one stays in Purchases.');
+    setNotice('Change your words, then compare again.');
     focusRequested.current = true; play('tick');
   }
   function reveal(selector: string) {
@@ -349,14 +349,17 @@ export function App() {
       <aside className="rail" aria-label="Purchase progress">
         <nav className="journey" aria-label="Purchase stages">
           <ol>{steps.map((step, i) => {
-            const go = step.tone !== 'done' || busy || !request || draftMode ? undefined
+            // Describe can always be reopened (also while the AI is asking a question);
+            // later steps only once finished.
+            const go = busy || !request || draftMode ? undefined
               : i === 0 ? (canStartNew(request) && !recoveryBlocked ? () => editRequest(request) : undefined)
+              : step.tone !== 'done' ? undefined
               : i === 1 ? () => reveal(document.querySelector('.earlier .offers') ? '.earlier' : '.offers')
               : i === 2 ? () => reveal('.receipt') : undefined;
             const body = <>
               <span className="step-dot" aria-hidden="true">{step.tone === 'done' ? <Icon name="check" /> : step.tone === 'alert' ? '!' : i + 1}</span>
               <span className="step-text"><span className="step-name">{step.name}{step.current && <span className="sr-only">, current step</span>}</span>
-                <span className="step-detail">{step.detail}</span>{go && <span className="step-go">{i === 0 ? 'Edit request' : 'View again'}</span>}</span>
+                <span className="step-detail">{step.detail}</span>{go && <span className="step-go">{i === 0 ? 'Rewrite request' : 'View again'}</span>}</span>
             </>;
             return <li key={step.name} className={`step is-${step.tone}`} aria-current={step.current ? 'step' : undefined}>
               {go ? <button type="button" className="step-button" onClick={go}>{body}</button> : body}
@@ -369,6 +372,7 @@ export function App() {
           <p className="rail-meta">Request {idShort(request.id)} · v{request.version}</p>
           <div className="rail-actions">
             <button type="button" className="btn small" aria-disabled={!!busy} onClick={() => void refresh()}><Icon name="refresh" />Reload status</button>
+            {canStartNew(request) && !recoveryBlocked && <button type="button" className="btn small quiet" disabled={!!busy} onClick={() => editRequest(request)}><Icon name="arrow" />Rewrite this request</button>}
             {canStartNew(request) && !recoveryBlocked && <button type="button" className="btn small quiet" disabled={!!busy} onClick={startNew}><Icon name="plus" />Start a new request</button>}
           </div>
         </div>}
