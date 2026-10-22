@@ -16,6 +16,7 @@ const messages: Record<string, string> = {
   STALE_VERSION: 'The saved request changed. Reload its current version before continuing.',
   VERSION_CONFLICT: 'The saved request changed. Reload its current version before continuing.',
   FINANCIAL_ACTIONS_DISABLED: 'Payment was not allowed for this cart: its approval expired or is no longer valid. No money was taken. Review the cart and approve again to pay.',
+  NOT_REFUNDABLE: 'Only a verified paid purchase can be undone.',
   INTEGRATION_UNAVAILABLE: 'Payment integration is unavailable. The stored status has not been resolved.',
 };
 export class ApiError extends Error {
@@ -32,7 +33,7 @@ export class Api {
   private csrf = '';
   constructor(private transport: typeof fetch = fetch) {}
   async call<T>(path: string, validate: (v: unknown) => v is T, body?: unknown, signal?: AbortSignal): Promise<T> {
-    if (!/^\/api\/(session|progress|purchases|links\/[A-Za-z0-9_-]{20,100}(?:\/(approve|attempts|attempt\/(capture|stop|reconcile)))?|reviews\/[0-9a-f-]+\/link|requests(?:\/[0-9a-f-]+(?:\/(clarify|reviews|market))?)?|reviews\/[0-9a-f-]+\/approve|approvals\/[0-9a-f-]+\/attempts|attempts\/[0-9a-f-]+(?:\/(stop|reconcile|capture))?)$/.test(path)) throw new ApiError('INVALID_PATH', 'Invalid local API route.');
+    if (!/^\/api\/(session|progress|purchases|links\/[A-Za-z0-9_-]{20,100}(?:\/(approve|attempts|attempt\/(capture|stop|reconcile|refund)))?|reviews\/[0-9a-f-]+\/link|requests(?:\/[0-9a-f-]+(?:\/(clarify|reviews|market))?)?|reviews\/[0-9a-f-]+\/approve|approvals\/[0-9a-f-]+\/attempts|attempts\/[0-9a-f-]+(?:\/(stop|reconcile|capture|refund))?)$/.test(path)) throw new ApiError('INVALID_PATH', 'Invalid local API route.');
     if (body !== undefined && !this.csrf) throw new ApiError('SESSION_REQUIRED', messages.SESSION_REQUIRED);
     const deadline = AbortSignal.timeout(100000);
     try {
@@ -69,7 +70,7 @@ export class Api {
   link(token: string, signal?: AbortSignal) { return this.call(`/api/links/${token}`, isLinkView, undefined, signal); }
   linkApprove(token: string, body: unknown, signal?: AbortSignal) { return this.call(`/api/links/${token}/approve`, isPurchaseRequest, body, signal); }
   linkStart(token: string, signal?: AbortSignal) { return this.call(`/api/links/${token}/attempts`, isAttemptEnvelope, {}, signal); }
-  linkAction(token: string, action: 'capture' | 'stop' | 'reconcile', signal?: AbortSignal) { return this.call(`/api/links/${token}/attempt/${action}`, isAttemptEnvelope, {}, signal); }
+  linkAction(token: string, action: 'capture' | 'stop' | 'reconcile' | 'refund', signal?: AbortSignal) { return this.call(`/api/links/${token}/attempt/${action}`, isAttemptEnvelope, {}, signal); }
   mutateAttempt(path: string, signal?: AbortSignal) { return this.call(path, isAttemptEnvelope, {}, signal); }
 }
 function isAttemptEnvelope(v: unknown): v is { attempt: Attempt } {

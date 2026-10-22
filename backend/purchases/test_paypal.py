@@ -8,16 +8,18 @@ import json
 import ssl
 import urllib.error
 import urllib.request
+import uuid
 from unittest.mock import patch
 from django.test import TransactionTestCase
 from . import checkout, paypal, services
-from .models import PaymentAttempt
+from .models import PaymentAttempt, Refund
 from .tests import make_approval, make_review, ready_request, seed
 
 # Explicitly fictional transport fixtures, not credentials or provider evidence.
 MERCHANT = "ABCDEFGHJKLMN"
 ORDER = "5O190127TN364715T"
 CAPTURE = "3C679366HH908993F"
+REFUND = "1JU08902781691411"
 
 
 class FakeResponse:
@@ -45,6 +47,7 @@ class FakeHTTP:
         self.order = None
         self.failure = None
         self.read_override = None
+        self.refund_override = None
 
     def __call__(self, request, timeout):
         assert request.full_url.startswith(paypal.BASE_URL + "/")
@@ -60,6 +63,14 @@ class FakeHTTP:
         if request.get_method() == "POST" and request.full_url.endswith("/v2/checkout/orders"):
             self.order = {"id": self.order_id, "status": "CREATED", **json.loads(request.data)}
             return FakeResponse(request.full_url, {"id": self.order_id, "status": "CREATED"}, 201)
+        if "/v2/payments/" in request.full_url:
+            refund = {"id": REFUND, "status": "COMPLETED", "amount": {"currency_code": "USD", "value": self.order["purchase_units"][0]["amount"]["value"]},
+                      "links": [{"rel": "up", "href": f"https://api.sandbox.paypal.com/v2/payments/captures/{CAPTURE}"}]}
+            if request.get_method() == "POST":
+                assert request.full_url == paypal.BASE_URL + f"/v2/payments/captures/{CAPTURE}/refund"
+                return FakeResponse(request.full_url, self.refund_override or refund, 201)
+            assert request.full_url == paypal.BASE_URL + f"/v2/payments/refunds/{REFUND}"
+            return FakeResponse(request.full_url, self.refund_override or refund)
         assert request.full_url in (paypal.BASE_URL + f"/v2/checkout/orders/{self.order_id}", paypal.BASE_URL + f"/v2/checkout/orders/{self.order_id}/capture")
         if request.get_method() == "POST":
             assert json.loads(request.data) == {}
@@ -305,3 +316,55 @@ class PayPalSandboxClientTests(TransactionTestCase):
         result, _ = checkout.reconcile(request.owner_uuid, attempt.id, self.paypal)
         self.assertEqual(result.state, "PAYMENT_REVIEW")
         self.assertEqual(result.stock_hold_packs, 2)
+
+
+class PayPalRefundTests(TransactionTestCase):
+    """Refund wire format and evidence binding, with the same network guard."""
+    setUp, new_client, begin = PayPalSandboxClientTests.setUp, PayPalSandboxClientTests.new_client, PayPalSandboxClientTests.begin
+
+    def paid(self):
+        request, review, approval, attempt = self.begin()
+        self.http.order["status"] = "APPROVED"
+        paid, _ = checkout.capture(request.owner_uuid, attempt.id, self.paypal)
+        self.assertEqual(paid.state, "PAID")
+        return request, paid
+
+    def test_refund_wire_body_key_and_capture_binding(self):
+        request, paid = self.paid()
+        operations = []
+        self.paypal._before_financial = lambda operation, key: operations.append((operation, key))
+        row = checkout.refund(request.owner_uuid, paid.id, self.paypal)
+        self.assertEqual((row.state, row.provider_refund_id), ("REFUNDED", REFUND))
+        call = self.http.calls[-1]
+        self.assertEqual(call.get_header("Paypal-request-id"), str(row.refund_key))
+        self.assertEqual(json.loads(call.data)["amount"], {"currency_code": "USD", "value": "41.80"})
+        self.assertEqual(operations, [("refund", str(row.refund_key))])
+
+    def test_refund_for_another_capture_or_amount_is_never_verified(self):
+        for change in ({"links": [{"rel": "up", "href": "https://api.sandbox.paypal.com/v2/payments/captures/OTHERCAPTURE1"}]},
+                       {"amount": {"currency_code": "USD", "value": "1.00"}},
+                       {"links": [{"rel": "up", "href": f"https://evil.example/v2/payments/captures/{CAPTURE}"}]}):
+            raw = {"id": REFUND, "status": "COMPLETED", "amount": {"currency_code": "USD", "value": "41.80"},
+                   "links": [{"rel": "up", "href": f"https://api.sandbox.paypal.com/v2/payments/captures/{CAPTURE}"}], **change}
+            self.assertEqual(paypal.normalize_refund(raw, CAPTURE, 4180)["status"], "UNKNOWN")
+
+    def test_refund_paths_need_a_matching_persisted_row(self):
+        with self.assertRaises(paypal.PayPalUnavailable):
+            self.paypal.refund_capture(CAPTURE, str(uuid.uuid4()))
+        with self.assertRaises(paypal.PayPalUnavailable):
+            self.paypal.get_refund(REFUND)
+        with self.assertRaises(paypal.PayPalUnavailable):
+            self.paypal._request("POST", "/v2/payments/captures/X/refund/../../payouts", b"{}", {}, (200,))
+
+    def test_find_refund_reads_only_a_matching_refund_on_the_order(self):
+        request, paid = self.paid()
+        Refund.objects.create(attempt=paid, state="UNKNOWN", total_cents=paid.snapshot["total_cents"])
+        unit = self.http.order["purchase_units"][0]
+        good = {"id": REFUND, "status": "COMPLETED", "amount": {"currency_code": "USD", "value": "41.80"},
+                "links": [{"rel": "up", "href": f"https://api.sandbox.paypal.com/v2/payments/captures/{CAPTURE}"}]}
+        unit["payments"]["refunds"] = [{**good, "id": "OTHERREFUND1", "amount": {"currency_code": "USD", "value": "1.00"}}, good]
+        before = len(self.http.calls)
+        self.assertEqual(self.paypal.find_refund(ORDER), {"id": REFUND, "status": "COMPLETED", "verified": True})
+        self.assertEqual([call.get_method() for call in self.http.calls[before:]], ["GET"])
+        unit["payments"]["refunds"] = [good, {**good, "id": "SECONDREFUND1"}]
+        self.assertFalse(self.paypal.find_refund(ORDER)["verified"], "two matching refunds are not one answer")

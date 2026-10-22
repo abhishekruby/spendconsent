@@ -5,7 +5,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { Api, ApiError, safeApiError } from '../.test-build/api.js';
 import { isAttempt, isConstraints, isLinkCreated, isLinkView, isMarket, isProgress, isPurchaseList, isPurchaseRequest, isSession, linkToken } from '../.test-build/contract.js';
 import { canStartNew, locksRequest, money, newerAttempt, newerRequest, parseCents, pending, permitted, purchaseDisplay, savings, unitCost } from '../.test-build/logic.js';
-import { Offer, PaymentStatus, PayPalCheckout, ReviewCard, paymentTransitionNotice, receiptHtml } from '../.test-build/App.js';
+import { Offer, PaymentStatus, PayPalCheckout, RefundPanel, ReviewCard, paymentTransitionNotice, receiptHtml } from '../.test-build/App.js';
 
 // Explicit local test fixtures only. The running application has no seeded results.
 const id = '11111111-1111-4111-8111-111111111111';
@@ -14,7 +14,7 @@ const timestamp = '2026-10-18T00:00:00Z';
 const charges = { currency: 'USD', subtotal_cents: 3800, shipping_cents: 0, tax_cents: 380, discount_cents: 0, total_cents: 4180 };
 const candidate = { ...charges, id, offer_id: id2, sku: 'TEST-CLOTH-20', name: '<img src=x onerror=bad()>', specification: '40 × 40 cm microfiber', pack_units: 20, packs: 2, individual_units: 40, reasons: ['Exact quantity and size'], evidence: [{ offer_id: id2, offer_version: 3, source: 'sample_catalog', summary: 'Test catalog: 20 units per pack.' }] };
 const review = { ...charges, id: id2, version: 2, request_version: 4, quote_version: 3, digest: 'a'.repeat(64), created_at: timestamp, expires_at: '2026-10-18T00:05:00Z', merchant: { id: 'test-merchant', name: 'Explicit test merchant' }, item: { ...candidate, variant_id: '40-cm' }, shipping: { option_id: 'standard', label: 'Standard delivery', destination_ref: 'fixture-office', destination_label: 'Synthetic office' }, terms: { one_time: true, description: 'No subscription.' }, evidence: candidate.evidence };
-const attempt = { id, state: 'UNKNOWN', pending_operation: 'capture', reason_code: null, created_at: timestamp, updated_at: timestamp, provider_order_id: 'TEST-ORDER', capture_id: null, currency: 'USD', total_cents: 4180, allowed_actions: ['check_status', 'stop'] };
+const attempt = { id, state: 'UNKNOWN', pending_operation: 'capture', reason_code: null, created_at: timestamp, updated_at: timestamp, provider_order_id: 'TEST-ORDER', capture_id: null, currency: 'USD', total_cents: 4180, allowed_actions: ['check_status', 'stop'], refund: null };
 const request = { id, version: 4, text: 'Explicit test request', status: 'READY', constraints: { category: 'cloth', quantity: 40, budget_cents: 6000, currency: 'USD', one_time: true, attributes: { width_cm: 40, height_cm: 40 } }, clarification: null, candidates: [candidate], excluded: [], review, approval: null, attempt: null, events: [], model: null };
 const session = { environment: 'sandbox', csrf_token: 'a'.repeat(64), capabilities: { ai_ready: false, paypal_ready: false, financial_actions_enabled: false }, current_request_id: null, paypal: null };
 
@@ -259,4 +259,18 @@ test('savings compares the chosen offer with the next one that fits', () => {
   assert.deepEqual(savings(p, 'a'), { vsNext: 580, fitting: 2, ruledOut: 1 });
   assert.equal(savings(p, 'b').vsNext, -580);
   assert.equal(savings({ candidates: [{ offer_id: 'a', total_cents: 1 }], excluded: [] }, 'a').vsNext, null);
+});
+
+test('refunds: only on a paid attempt, validated, and shown with an explicit confirm', () => {
+  const paid = { ...attempt, state: 'PAID', capture_id: 'TEST-CAPTURE', pending_operation: null, allowed_actions: ['refund'] };
+  const refund = { state: 'REFUNDED', total_cents: 4180, provider_refund_id: 'R1', updated_at: timestamp };
+  assert.ok(isAttempt(paid));
+  assert.ok(isAttempt({ ...paid, refund }));
+  assert.equal(isAttempt({ ...attempt, refund }), false, 'an unpaid attempt has no refund');
+  assert.equal(isAttempt({ ...paid, refund: { ...refund, state: 'DONE' } }), false);
+  const offer = renderToStaticMarkup(createElement(RefundPanel, { attempt: paid, busy: false, onRefund() {} }));
+  assert.match(offer, /Undo purchase/);
+  assert.doesNotMatch(offer, /Yes, refund/, 'refunding needs a second, explicit click');
+  assert.match(renderToStaticMarkup(createElement(RefundPanel, { attempt: { ...paid, allowed_actions: [], refund }, busy: false, onRefund() {} })), /Refunded in full/);
+  assert.equal(renderToStaticMarkup(createElement(RefundPanel, { attempt: { ...paid, allowed_actions: [] }, busy: false, onRefund() {} })), '');
 });

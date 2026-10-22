@@ -141,3 +141,26 @@ class ApprovalLink(models.Model):
     token_sha256 = models.CharField(max_length=64, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
     expires_at = models.DateTimeField()
+
+
+REFUND_STATES = ("REFUNDING", "NOT_SENT", "PENDING", "UNKNOWN", "REFUNDED", "DECLINED")
+
+
+class Refund(models.Model):
+    """The owner's full refund ("undo") of one verified paid attempt.
+
+    One row and one PayPal-Request-Id per attempt: a re-send is idempotent at
+    PayPal, and a full refund can never exceed the captured amount.
+    """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    attempt = models.OneToOneField(PaymentAttempt, on_delete=models.PROTECT, related_name="refund")
+    state = models.CharField(max_length=16)
+    refund_key = models.UUIDField(default=uuid.uuid4, unique=True)
+    provider_refund_id = models.CharField(max_length=80, null=True, unique=True)
+    total_cents = models.PositiveIntegerField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [models.CheckConstraint(condition=Q(state__in=REFUND_STATES), name="valid_refund_state"),
+                       models.CheckConstraint(condition=Q(total_cents__gt=0), name="positive_refund_total")]

@@ -12,12 +12,13 @@ import ssl
 import threading
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 import uuid
 from django.db import connection
 from . import catalog
 from .checkout import ProviderDeclined
-from .models import PaymentAttempt
+from .models import PaymentAttempt, Refund
 
 BASE_URL = "https://api-m.sandbox.paypal.com"
 ORDER_ID = re.compile(r"\A[A-Z0-9]{1,36}\Z")
@@ -198,6 +199,23 @@ def normalize_order(raw, order_id, payload, merchant_id):
             "verification": {"issues": sorted(set(issues)), "capture_count": len(safe_captures), "captures": safe_captures}}
 
 
+REFUND_STATUSES = ("COMPLETED", "PENDING", "CANCELLED", "FAILED")
+
+
+def normalize_refund(raw, capture_id, total_cents):
+    """Safe refund evidence: verified only when bound to this capture and its full amount."""
+    if not isinstance(raw, dict):
+        raise PayPalUnavailable("PROVIDER_RESPONSE_INVALID")
+    refund_id = raw.get("id") if isinstance(raw.get("id"), str) and ORDER_ID.fullmatch(raw["id"]) else None
+    status = raw.get("status") if raw.get("status") in REFUND_STATUSES else "UNKNOWN"
+    links = raw.get("links") if isinstance(raw.get("links"), list) else []
+    parents = {urllib.parse.urlsplit(link["href"])[1:3] for link in links
+               if isinstance(link, dict) and link.get("rel") == "up" and isinstance(link.get("href"), str)}
+    bound = any(host.endswith("sandbox.paypal.com") and path == f"/v2/payments/captures/{capture_id}" for host, path in parents)
+    verified = refund_id is not None and _cents(raw.get("amount")) == total_cents and bound
+    return {"id": refund_id, "status": status if verified else "UNKNOWN", "verified": verified}
+
+
 def _unique_object(pairs):
     result = {}
     for key, value in pairs:
@@ -223,12 +241,15 @@ class SandboxClient:
     def _request(self, method, path, body, headers, statuses):
         if connection.in_atomic_block or not connection.get_autocommit():
             raise PayPalUnavailable("BINDING_UNVERIFIED")
+        refund_post = method == "POST" and re.fullmatch(r"/v2/payments/captures/[A-Z0-9]{1,36}/refund", path)
         allowed = ((method == "POST" and path in ("/v1/oauth2/token", "/v2/checkout/orders"))
-                   or re.fullmatch(r"/v2/checkout/orders/[A-Z0-9]{1,36}" + (r"/capture" if method == "POST" else ""), path) and method in ("GET", "POST"))
+                   or re.fullmatch(r"/v2/checkout/orders/[A-Z0-9]{1,36}" + (r"/capture" if method == "POST" else ""), path) and method in ("GET", "POST")
+                   or refund_post or (method == "GET" and re.fullmatch(r"/v2/payments/refunds/[A-Z0-9]{1,36}", path)))
         if not allowed:
             raise PayPalUnavailable("BINDING_UNVERIFIED")
         if self._before_financial and method == "POST" and path != "/v1/oauth2/token":
-            self._before_financial("create" if path == "/v2/checkout/orders" else "capture", headers.get("PayPal-Request-Id"))
+            operation = "create" if path == "/v2/checkout/orders" else "refund" if refund_post else "capture"
+            self._before_financial(operation, headers.get("PayPal-Request-Id"))
         request = urllib.request.Request(BASE_URL + path, body, {"Accept": "application/json", **headers}, method=method)
         try:
             with self._opener.open(request, timeout=TIMEOUT) as response:
@@ -316,3 +337,42 @@ class SandboxClient:
         self._json("POST", f"/v2/checkout/orders/{order_id}/capture", {}, key, (200, 201))
         # Only the checkout service's subsequent trusted GET may establish PAID.
         return {"accepted": True}
+
+    def refund_capture(self, capture_id, key):
+        """Full refund of one paid capture; the persisted refund row must match exactly."""
+        _identifier(capture_id)
+        try:
+            refund = Refund.objects.select_related("attempt").get(refund_key=uuid.UUID(key))
+            attempt = refund.attempt
+            if (refund.state != "REFUNDING" or refund.provider_refund_id or attempt.state != "PAID"
+                    or attempt.capture_id != capture_id or refund.total_cents != attempt.snapshot["total_cents"]):
+                raise ValueError
+        except (TypeError, ValueError, KeyError, Refund.DoesNotExist):
+            raise PayPalUnavailable("BINDING_UNVERIFIED") from None
+        raw = self._json("POST", f"/v2/payments/captures/{capture_id}/refund",
+                         {"amount": _money(refund.total_cents), "note_to_payer": "Purchase undone in SpendConsent."}, key, (200, 201))
+        return normalize_refund(raw, capture_id, refund.total_cents)
+
+    def get_refund(self, refund_id):
+        _identifier(refund_id)
+        try:
+            refund = Refund.objects.select_related("attempt").get(provider_refund_id=refund_id)
+        except Refund.DoesNotExist:
+            raise PayPalUnavailable("BINDING_UNVERIFIED") from None
+        raw = self._json("GET", f"/v2/payments/refunds/{refund_id}")
+        return normalize_refund(raw, refund.attempt.capture_id, refund.total_cents)
+
+    def find_refund(self, order_id):
+        """Read-only: the one full refund recorded on this paid order, if any."""
+        _identifier(order_id)
+        try:
+            refund = Refund.objects.select_related("attempt").get(attempt__provider_order_id=order_id, provider_refund_id__isnull=True)
+        except Refund.DoesNotExist:
+            raise PayPalUnavailable("BINDING_UNVERIFIED") from None
+        raw = self._json("GET", f"/v2/checkout/orders/{order_id}")
+        units = raw.get("purchase_units")
+        payments = units[0].get("payments") if isinstance(units, list) and len(units) == 1 and isinstance(units[0], dict) else None
+        rows = payments.get("refunds") if isinstance(payments, dict) else None
+        found = [normalize_refund(row, refund.attempt.capture_id, refund.total_cents) for row in rows or [] if isinstance(row, dict)]
+        verified = [row for row in found if row["verified"]]
+        return verified[0] if len(verified) == 1 else {"id": None, "status": "UNKNOWN", "verified": False}

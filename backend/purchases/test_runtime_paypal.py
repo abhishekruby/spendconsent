@@ -13,7 +13,7 @@ from django.db import connection
 from django.test import Client, TransactionTestCase, override_settings
 from django.utils import timezone
 from . import agent, checkout, runtime_paypal, services
-from .models import ApprovalLink, PaymentAttempt
+from .models import ApprovalLink, PaymentAttempt, Refund
 from .test_paypal import FakeHTTP, MERCHANT
 from .tests import make_approval, make_review, ready_request, seed
 
@@ -100,7 +100,7 @@ class RuntimePayPalTests(TransactionTestCase):
             attempt = post(f"/api/links/{token}/attempts").json()["attempt"]
             self.assertEqual(attempt["state"], "AWAITING_BUYER")
             self.http.order["status"] = "APPROVED"
-            self.assertEqual(post(f"/api/links/{token}/attempt/refund").status_code, 404)
+            self.assertEqual(post(f"/api/links/{token}/attempt/refund").status_code, 409, "only a paid cart can be undone")
             self.assertEqual(post(f"/api/links/{token}/attempt/capture").json()["attempt"]["state"], "PAID")
         self.assertEqual(self.client.get(f"/api/requests/{request.id}").json()["attempt"]["state"], "PAID", "requester sees the outcome")
         ApprovalLink.objects.update(expires_at=timezone.now())
@@ -118,6 +118,24 @@ class RuntimePayPalTests(TransactionTestCase):
         self.assertEqual(self.client.get(f"/api/links/{token}").status_code, 404)
         other = ready_request()
         self.assertEqual(self.post(f"/api/reviews/{make_review(other).id}/link").status_code, 409, "only your own review")
+
+    def test_refund_needs_buyer_mode_a_paid_capture_and_the_committed_refund_row(self):
+        request, review, approval = self.purchase()
+        attempt = PaymentAttempt.objects.create(request=request, approval=approval, state="PAID", capture_id="CAPTURE1",
+                                                provider_order_id="ORDER1", snapshot=review.snapshot)
+        self.assertFalse(runtime_paypal.refund_allowed(attempt), "operator mode: no in-app refunds")
+        with override_settings(SPENDCONSENT_PAYPAL_CONSENT="buyer"):
+            self.assertTrue(runtime_paypal.refund_allowed(attempt))
+            with override_settings(SPENDCONSENT_BUYER_MAX_CENTS=review.snapshot["total_cents"] - 1):
+                self.assertFalse(runtime_paypal.refund_allowed(attempt))
+            row = Refund.objects.create(attempt=attempt, state="NOT_SENT", total_cents=review.snapshot["total_cents"])
+            with self.assertRaises(checkout.DispatchDenied):
+                runtime_paypal._dispatch("refund", str(row.refund_key))
+            row.state = "REFUNDING"
+            row.save()
+            runtime_paypal._dispatch("refund", str(row.refund_key))
+            with self.assertRaises(checkout.DispatchDenied):
+                runtime_paypal._dispatch("refund", str(uuid.uuid4()))
 
     def test_buyer_consent_mode_authorizes_only_the_exact_unexpired_approved_cart(self):
         request, review, approval = self.purchase()

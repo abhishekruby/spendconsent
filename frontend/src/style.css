@@ -502,3 +502,7 @@ details[open] > summary::after { transform: rotate(225deg) translateY(-1px); }
 .insight > .icon { color: var(--ok); flex: none; margin-top: 2px; }
 .insight { display: flex; gap: 12px; align-items: flex-start; padding: 14px 18px; border-radius: var(--r-md); border: 1px solid color-mix(in srgb, var(--ok) 35%, var(--line)); background: var(--ok-soft); font-size: 14px; }
 .insight p { color: var(--muted); margin-top: 2px; }
+
+/* Refund ("undo") */
+.panel.refund h2 { font-size: 18px; }
+.panel.refund.is-refunded { border-color: color-mix(in srgb, var(--ok) 35%, var(--line)); }

@@ -28,12 +28,14 @@ export type Review = Charges & {
   terms: { one_time: true; description: string }; evidence: Evidence[];
 };
 export type Approval = { id: string; review_id: string; approved_at: string; expires_at: string; status: 'APPROVED' | 'EXPIRED' | 'REVOKED' | 'CONSUMED' };
-export type Action = 'open_paypal' | 'capture' | 'check_status' | 'stop';
+export type Action = 'open_paypal' | 'capture' | 'check_status' | 'stop' | 'refund';
+export type RefundState = 'REFUNDING' | 'NOT_SENT' | 'PENDING' | 'UNKNOWN' | 'REFUNDED' | 'DECLINED';
+export type RefundInfo = { state: RefundState; total_cents: number; provider_refund_id: string | null; updated_at: string };
 export type AttemptState = 'CREATING' | 'AWAITING_BUYER' | 'CAPTURING' | 'VERIFYING' | 'UNKNOWN' | 'PAYMENT_REVIEW' | 'PAID' | 'STOPPED';
 export type Attempt = {
   id: string; state: AttemptState; pending_operation: string | null; reason_code: string | null;
   created_at: string; updated_at: string; provider_order_id: string | null; capture_id: string | null;
-  total_cents: number; currency: 'USD'; allowed_actions: Action[];
+  total_cents: number; currency: 'USD'; allowed_actions: Action[]; refund: RefundInfo | null;
 };
 export type PurchaseRequest = {
   id: string; version: number; text: string;
@@ -104,12 +106,15 @@ function isApproval(v: unknown): boolean {
   return object(v) && uuid(v.id) && uuid(v.review_id) && date(v.approved_at) && date(v.expires_at)
     && member(v.status, ['APPROVED', 'EXPIRED', 'REVOKED', 'CONSUMED']);
 }
+const isRefund = (v: unknown): v is RefundInfo => object(v) && Object.keys(v).length === 4
+  && member(v.state, ['REFUNDING', 'NOT_SENT', 'PENDING', 'UNKNOWN', 'REFUNDED', 'DECLINED']) && integer(v.total_cents) && nullableString(v.provider_refund_id) && date(v.updated_at);
 export function isAttempt(v: unknown): v is Attempt {
   return object(v) && uuid(v.id) && member(v.state, ['CREATING', 'AWAITING_BUYER', 'CAPTURING', 'VERIFYING', 'UNKNOWN', 'PAYMENT_REVIEW', 'PAID', 'STOPPED'])
     && nullableString(v.pending_operation) && nullableString(v.reason_code) && date(v.created_at) && date(v.updated_at)
     && nullableString(v.provider_order_id) && nullableString(v.capture_id) && integer(v.total_cents) && v.currency === 'USD'
     && (v.state !== 'PAID' || (string(v.provider_order_id) && !!v.provider_order_id && string(v.capture_id) && !!v.capture_id))
-    && array(v.allowed_actions, x => member(x, ['open_paypal', 'capture', 'check_status', 'stop']), 4);
+    && array(v.allowed_actions, x => member(x, ['open_paypal', 'capture', 'check_status', 'stop', 'refund']), 4)
+    && (v.refund === null || (v.state === 'PAID' && isRefund(v.refund)));
 }
 export function isPurchaseRequest(v: unknown): v is PurchaseRequest {
   return object(v) && uuid(v.id) && positive(v.version) && string(v.text)

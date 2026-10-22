@@ -11,13 +11,14 @@ the provider does not echo; it must not fabricate missing verification evidence.
 """
 from contextlib import contextmanager
 from copy import deepcopy
+from datetime import timedelta
 import re
 import uuid
 from django.db import IntegrityError, connection, transaction
 from django.http import Http404
 from django.utils import timezone
 from . import catalog, services
-from .models import Approval, DecisionEvent, Offer, PaymentAttempt
+from .models import Approval, DecisionEvent, Offer, PaymentAttempt, Refund
 
 PENDING = ("CREATING", "CAPTURING", "VERIFYING", "UNKNOWN")
 # PayPal order states with no capture: the buyer has not (fully) approved yet.
@@ -37,7 +38,15 @@ MESSAGES = {
     "REVIEW_CHANGED": "The purchase changed before capture. Inspect and approve a fresh review.",
     "REVIEW_EXPIRED": "Approval or quote expired before capture. Inspect and approve a fresh review.",
     "FINANCIAL_ACTIONS_DISABLED": "The exact action-time permission was unavailable before dispatch. No financial request was sent.",
+    "REFUND_REQUESTED": "The owner asked to undo this purchase. One full refund request goes to PayPal.",
+    "REFUNDED": "PayPal confirmed the full refund to the buyer.",
+    "REFUND_PENDING": "PayPal reports the refund as pending. Check its status later.",
+    "REFUND_UNKNOWN": "The refund outcome is uncertain. Check its status; a full refund can never exceed what was paid.",
+    "REFUND_DECLINED": "PayPal did not complete the refund.",
+    "REFUND_NOT_SENT": "Refund permission was unavailable. Nothing was sent to PayPal.",
 }
+REFUND_WINDOW = timedelta(days=7)
+REFUND_RESULT = {"COMPLETED": "REFUNDED", "PENDING": "PENDING", "CANCELLED": "DECLINED", "FAILED": "DECLINED"}
 
 
 class ProviderDeclined(Exception):
@@ -359,3 +368,68 @@ def stop(owner, pk):
         else:
             _transition(request, offer, attempt, "STOPPED", "STOPPED")
         return _result(attempt)
+
+
+def refund(owner, pk, provider):
+    """Undo one paid purchase with a full PayPal refund; never a second refund.
+
+    The refund row and its PayPal-Request-Id are committed before any request.
+    A row without a PayPal refund ID may be re-sent with the same key (PayPal
+    replays it); one with an ID is only read.
+    """
+    _outside_transaction()
+    with _locked(owner, pk) as (request, approval, offer, attempt):
+        row = Refund.objects.select_for_update().filter(attempt=attempt).first()
+        if row is None:
+            if attempt.state != "PAID" or not attempt.capture_id:
+                raise services.DomainError("NOT_REFUNDABLE", "Only a verified paid purchase can be undone.", 409, request.id)
+            if timezone.now() > attempt.updated_at + REFUND_WINDOW:
+                raise services.DomainError("NOT_REFUNDABLE", "Purchases can be undone for 7 days after payment.", 409, request.id)
+            row = Refund.objects.create(attempt=attempt, state="REFUNDING", total_cents=attempt.snapshot["total_cents"])
+            _event(request, attempt, "REFUND_REQUESTED", "REFUND_REQUESTED")
+        if row.state in ("REFUNDED", "DECLINED"):
+            return row
+        send = row.provider_refund_id is None
+        if send and row.state != "REFUNDING":
+            row.state = "REFUNDING"
+            row.save(update_fields=["state", "updated_at"])
+        capture_id, key, refund_id, order_id = attempt.capture_id, str(row.refund_key), row.provider_refund_id, attempt.provider_order_id
+    observation, denied = None, False
+    try:
+        observation = provider.refund_capture(capture_id, key) if send else provider.get_refund(refund_id)
+    except DispatchDenied:
+        denied = True
+    except Exception:
+        pass
+    if send and not denied and not (isinstance(observation, dict) and observation.get("verified") is True):
+        # A replay outside PayPal's idempotency window cannot confirm an earlier
+        # refund; the order's own payment record can (read-only).
+        try:
+            observation = provider.find_refund(order_id)
+        except Exception:
+            pass
+    return _apply_refund(owner, pk, observation, denied)
+
+
+def _apply_refund(owner, pk, observation, denied):
+    with _locked(owner, pk) as (request, approval, offer, attempt):
+        row = Refund.objects.select_for_update().get(attempt=attempt)
+        if row.state in ("REFUNDED", "DECLINED"):
+            return row
+        verified = isinstance(observation, dict) and observation.get("verified") is True and _valid_id(observation.get("id"))
+        if denied and row.provider_refund_id is None and row.state == "REFUNDING":
+            row.state = "NOT_SENT"
+        elif (not verified or observation.get("status") not in REFUND_RESULT
+              or row.provider_refund_id not in (None, observation["id"])
+              or Refund.objects.exclude(id=row.id).filter(provider_refund_id=observation["id"]).exists()):
+            row.state = "UNKNOWN"
+        else:
+            row.provider_refund_id = observation["id"]
+            row.state = REFUND_RESULT[observation["status"]]
+            if row.state == "REFUNDED":
+                offer.stock_packs += attempt.snapshot["item"]["packs"]
+                offer.save(update_fields=["stock_packs"])
+        row.save(update_fields=["state", "provider_refund_id", "updated_at"])
+        reason = "REFUNDED" if row.state == "REFUNDED" else f"REFUND_{row.state}"
+        _event(request, attempt, reason, reason)
+        return row

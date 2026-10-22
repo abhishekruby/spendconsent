@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { CSSProperties, FormEvent, ReactNode } from 'react';
 import { Api, ApiError } from './api.js';
-import type { Attempt, Candidate, Charges, Constraints, Evidence, LinkView, Market, Progress, PurchaseRequest, Review, Session } from './contract.js';
+import type { Attempt, Candidate, Charges, Constraints, Evidence, LinkView, Market, Progress, PurchaseRequest, RefundState, Review, Session } from './contract.js';
 import { canStartNew, locksRequest, money, newerAttempt, newerRequest, parseCents, pending, permitted, purchaseDisplay, savings, unitCost } from './logic.js';
 import { PayPalError, preparePayPal } from './paypal.js';
 import { play, setSoundOn, soundOn, unlockAudio } from './sound.js';
@@ -440,6 +440,7 @@ export function App() {
             : <>
               <PaymentStatus attempt={attempt} financialEnabled={session?.capabilities.financial_actions_enabled ?? false} busy={!!busy || recoveryBlocked} pollEnded={pollEnded} onAction={attemptAction} />
               {session && permitted(attempt, 'open_paypal', session.capabilities.financial_actions_enabled) && <PayPalCheckout session={session} attempt={attempt} busy={!!busy || recoveryBlocked} onApprove={id => attemptAction('capture', id)} />}
+              <RefundPanel attempt={attempt} busy={!!busy || recoveryBlocked} onRefund={() => void paymentAction(`/api/attempts/${attempt.id}/refund`, 'Sending the refund to PayPal')} />
               {attempt.state === 'PAID' && canStartNew(request) && <div className="done-actions reveal" style={delay(3)}>
                 <button type="button" className="btn primary" disabled={!!busy} onClick={() => buyAgain(request)}><Icon name="refresh" />Buy again</button>
                 {request.review && <button type="button" className="btn" onClick={() => downloadReceipt(request.review!, attempt)}><Icon name="download" />Download receipt</button>}
@@ -772,6 +773,33 @@ export function PaymentStatus({ attempt: a, financialEnabled, busy, pollEnded, o
   </section>;
 }
 
+const refundText: Record<RefundState, string> = {
+  REFUNDING: 'Sending the refund to PayPal…',
+  NOT_SENT: 'Refund permission was unavailable. Nothing was sent to PayPal.',
+  PENDING: 'PayPal is processing the refund. Check again shortly.',
+  UNKNOWN: 'The refund outcome is uncertain. Check again; it can never refund more than was paid.',
+  REFUNDED: 'Refunded in full to the buyer’s PayPal.',
+  DECLINED: 'PayPal did not complete the refund.',
+};
+// "Undo": one full PayPal refund of a verified paid purchase, after an explicit confirm.
+export function RefundPanel({ attempt: a, busy, onRefund }: { attempt: Attempt; busy: boolean; onRefund: () => void }) {
+  const [confirming, setConfirming] = useState(false);
+  const r = a.refund;
+  const can = a.allowed_actions.includes('refund');
+  if (a.state !== 'PAID' || (!r && !can)) return null;
+  return <section className={`panel refund reveal${r?.state === 'REFUNDED' ? ' is-refunded' : ''}`} aria-labelledby="refund-heading">
+    <h2 id="refund-heading">{r?.state === 'REFUNDED' ? 'Purchase undone' : 'Changed your mind?'}</h2>
+    {r ? <p role="status">{refundText[r.state]}{r.provider_refund_id && <span className="fine-print mono"> · {r.provider_refund_id}</span>}</p>
+      : <p className="fine-print">Undo sends one full refund of {money(a.total_cents)} through PayPal and returns the stock. It cannot refund more than was paid.</p>}
+    {can && (confirming || r
+      ? <div className="actions">
+          <button className="btn primary" disabled={busy} onClick={() => { setConfirming(false); onRefund(); }}><Icon name="refresh" />{r ? (r.state === 'PENDING' ? 'Check refund' : 'Retry refund') : `Yes, refund ${money(a.total_cents)}`}</button>
+          {!r && <button className="btn quiet" disabled={busy} onClick={() => setConfirming(false)}>Keep purchase</button>}
+        </div>
+      : <div className="actions"><button className="btn" disabled={busy} onClick={() => setConfirming(true)}>Undo purchase</button></div>)}
+  </section>;
+}
+
 export function PayPalCheckout({ session, attempt, busy, onApprove }: { session: Session; attempt: Attempt; busy: boolean; onApprove: (id: string) => Promise<void> }) {
   const [status, setStatus] = useState('Loading sandbox checkout');
   const flow = useRef<Awaited<ReturnType<typeof preparePayPal>> | null>(null);
@@ -843,7 +871,8 @@ function downloadReceipt(r: Review, a: Attempt) {
 
 function purchaseState(p: PurchaseRequest): { label: string; tone: string } {
   const a = p.attempt;
-  if (a && a.state !== 'STOPPED') return a.state === 'PAID' ? { label: 'Paid', tone: 'ok' }
+  if (a?.refund?.state === 'REFUNDED') return { label: 'Refunded', tone: 'muted' };
+  if (a && a.state !== 'STOPPED') return a.state === 'PAID' ? { label: a.refund ? 'Refund pending' : 'Paid', tone: a.refund ? 'busy' : 'ok' }
     : ['UNKNOWN', 'PAYMENT_REVIEW'].includes(a.state) ? { label: attemptText[a.state].short, tone: 'warn' } : { label: attemptText[a.state].short, tone: 'busy' };
   if (p.approval?.status === 'APPROVED') return { label: 'Approved', tone: 'busy' };
   if (p.approval?.status === 'EXPIRED' || p.approval?.status === 'REVOKED') return { label: `Approval ${p.approval.status.toLowerCase()}`, tone: 'muted' };
@@ -861,7 +890,7 @@ function PurchasesPanel({ api, canBuyAgain, onClose, onBuyAgain }: { api: Api; c
     window.addEventListener('keydown', onKey);
     return () => { controller.abort(); window.removeEventListener('keydown', onKey); };
   }, []);
-  const paid = rows?.filter(p => p.attempt?.state === 'PAID') ?? [];
+  const paid = rows?.filter(p => p.attempt?.state === 'PAID' && p.attempt.refund?.state !== 'REFUNDED') ?? [];
   const paidTotal = paid.reduce((sum, p) => sum + p.attempt!.total_cents, 0);
   const saved = paid.reduce((sum, p) => sum + Math.max(0, savings(p, p.review!.item.offer_id).vsNext ?? 0), 0);
   return <div className="drawer-backdrop" onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
@@ -988,6 +1017,7 @@ export function OwnerApproval({ token }: { token: string }) {
           onAction={action => void act(action === 'reconcile' ? 'Checking the payment' : 'Requesting a stop', () => api.linkAction(token, action))} />
         {paySession && permitted(attempt, 'open_paypal', paySession.capabilities.financial_actions_enabled) && <PayPalCheckout session={paySession} attempt={attempt} busy={!!busy}
           onApprove={async () => { await act('Verifying the payment', () => api.linkAction(token, 'capture')); }} />}
+        <RefundPanel attempt={attempt} busy={!!busy} onRefund={() => void act('Sending the refund to PayPal', () => api.linkAction(token, 'refund'))} />
         {attempt.state === 'PAID' && review && <button type="button" className="btn primary next" onClick={() => downloadReceipt(review, attempt)}><Icon name="download" />Download receipt</button>}
       </>}
     </main>

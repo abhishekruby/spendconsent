@@ -10,7 +10,7 @@ from django.http import Http404
 from django.test import TransactionTestCase
 from django.utils import timezone
 from . import checkout, services
-from .models import Approval, Offer, PaymentAttempt, PurchaseRequest
+from .models import Approval, Offer, PaymentAttempt, PurchaseRequest, Refund
 from .tests import make_approval, make_review, ready_request, seed
 
 
@@ -19,6 +19,10 @@ class FakeProvider:
     def __init__(self):
         self.orders = {}
         self.calls = {"create": 0, "capture": 0, "get": 0}
+        self.refund_calls = {"refund": 0, "get_refund": 0}
+        self.refund_result = "COMPLETED"
+        self.refund_keys = []
+        self.found = None
         self.hooks = {}
         self.mutex = threading.Lock()
         self.check_locks = True
@@ -73,6 +77,27 @@ class FakeProvider:
         assert attempt.capture_dispatched_at and str(attempt.create_key) != key
         self.complete(order_id)
         return {"accepted": True}
+
+
+    def refund_capture(self, capture_id, key):
+        assert not connection.in_atomic_block and connection.get_autocommit(), "Provider called inside a transaction"
+        refund = Refund.objects.get(refund_key=key)
+        assert refund.state == "REFUNDING" and refund.attempt.capture_id == capture_id
+        self.refund_calls["refund"] += 1
+        self.refund_keys.append(key)
+        if "refund" in self.hooks:
+            self.hooks["refund"]()
+        return {"id": "REFUND" + key[:8].upper().replace("-", ""), "status": self.refund_result, "verified": True}
+
+    def find_refund(self, order_id):
+        assert not connection.in_atomic_block
+        self.refund_calls["find"] = self.refund_calls.get("find", 0) + 1
+        return self.found or {"id": None, "status": "UNKNOWN", "verified": False}
+
+    def get_refund(self, refund_id):
+        assert not connection.in_atomic_block
+        self.refund_calls["get_refund"] += 1
+        return {"id": refund_id, "status": self.refund_result, "verified": True}
 
 
 class CheckoutDomainTests(TransactionTestCase):
@@ -513,3 +538,98 @@ class CheckoutDomainTests(TransactionTestCase):
                 self.assertEqual(self.provider.calls["capture"], 0)
                 self.assertEqual(self.stock(review)[1], 0)
                 self.provider.hooks.clear()
+
+
+class RefundTests(TransactionTestCase):
+    def setUp(self):
+        seed()
+        self.provider = FakeProvider()
+        request = ready_request()
+        self.review = make_review(request)
+        approval = make_approval(self.review)
+        attempt, _ = checkout.start(request.owner_uuid, approval.id, self.provider)
+        self.attempt, _ = checkout.capture(request.owner_uuid, attempt.id, self.provider)
+        self.owner = request.owner_uuid
+        self.assertEqual(self.attempt.state, "PAID")
+
+    def refund(self):
+        return checkout.refund(self.owner, self.attempt.id, self.provider)
+
+    def stock(self):
+        return Offer.objects.get(id=self.review.offer_id).stock_packs
+
+    def test_full_refund_once_returns_stock_and_never_resends(self):
+        before = self.stock()
+        row = self.refund()
+        self.assertEqual((row.state, row.total_cents), ("REFUNDED", self.attempt.snapshot["total_cents"]))
+        self.assertEqual(self.stock(), before + self.attempt.snapshot["item"]["packs"])
+        self.assertEqual(self.refund().id, row.id)
+        self.assertEqual((self.provider.refund_calls["refund"], self.provider.refund_calls["get_refund"]), (1, 0))
+        self.assertEqual(self.stock(), before + self.attempt.snapshot["item"]["packs"])
+        types = list(self.attempt.request.events.values_list("type", flat=True))
+        self.assertEqual(types[-2:], ["REFUND_REQUESTED", "REFUNDED"])
+
+    def test_uncertain_send_is_resent_with_the_same_key_then_read_only(self):
+        self.provider.hooks["refund"] = lambda: (_ for _ in ()).throw(TimeoutError())
+        self.assertEqual(self.refund().state, "UNKNOWN")
+        del self.provider.hooks["refund"]
+        self.provider.refund_result = "PENDING"
+        self.assertEqual(self.refund().state, "PENDING")
+        self.assertEqual(len(set(self.provider.refund_keys)), 1)
+        self.provider.refund_result = "COMPLETED"
+        self.assertEqual(self.refund().state, "REFUNDED")
+        self.assertEqual((self.provider.refund_calls["refund"], self.provider.refund_calls["get_refund"]), (2, 1))
+
+    def test_unverified_or_reused_refund_evidence_stays_unknown(self):
+        self.provider.refund_capture = lambda capture_id, key: {"id": "REFUND1", "status": "COMPLETED", "verified": False}
+        self.assertEqual(self.refund().state, "UNKNOWN")
+        other = Refund.objects.create(attempt=self.other_paid(), state="REFUNDED", total_cents=1, provider_refund_id="REFUND2")
+        self.provider.refund_capture = lambda capture_id, key: {"id": "REFUND2", "status": "COMPLETED", "verified": True}
+        row = self.refund()
+        self.assertEqual((row.state, row.provider_refund_id), ("UNKNOWN", None))
+        self.assertEqual(other.state, "REFUNDED")
+
+    def other_paid(self):
+        request = ready_request()
+        approval = make_approval(make_review(request))
+        attempt, _ = checkout.start(request.owner_uuid, approval.id, self.provider)
+        return checkout.capture(request.owner_uuid, attempt.id, self.provider)[0]
+
+    def test_denied_dispatch_sends_nothing_and_can_be_retried(self):
+        def deny(capture_id, key):
+            raise checkout.DispatchDenied()
+        original = self.provider.refund_capture
+        self.provider.refund_capture = deny
+        self.assertEqual(self.refund().state, "NOT_SENT")
+        self.provider.refund_capture = original
+        self.assertEqual(self.refund().state, "REFUNDED")
+
+    def test_only_the_owner_and_only_paid_purchases_can_be_refunded(self):
+        with self.assertRaises(Http404):
+            checkout.refund(uuid.uuid4(), self.attempt.id, self.provider)
+        request = ready_request()
+        approval = make_approval(make_review(request))
+        unpaid, _ = checkout.start(request.owner_uuid, approval.id, self.provider)
+        with self.assertRaises(services.DomainError):
+            checkout.refund(request.owner_uuid, unpaid.id, self.provider)
+        self.assertFalse(Refund.objects.filter(attempt=unpaid).exists())
+        self.assertEqual(self.provider.refund_calls["refund"], 0)
+
+    def test_unconfirmable_replay_adopts_the_refund_recorded_on_the_order(self):
+        self.provider.hooks["refund"] = lambda: (_ for _ in ()).throw(TimeoutError())
+        self.assertEqual(self.refund().state, "UNKNOWN")
+        self.provider.found = {"id": "REFUNDONORDER", "status": "COMPLETED", "verified": True}
+        row = self.refund()
+        self.assertEqual((row.state, row.provider_refund_id), ("REFUNDED", "REFUNDONORDER"))
+
+    def test_concurrent_denial_never_relabels_an_uncertain_refund_as_not_sent(self):
+        self.provider.hooks["refund"] = lambda: (_ for _ in ()).throw(TimeoutError())
+        self.assertEqual(self.refund().state, "UNKNOWN")
+        row = Refund.objects.get(attempt=self.attempt)
+        self.assertEqual(checkout._apply_refund(self.owner, self.attempt.id, None, True).state, "UNKNOWN")
+
+    def test_undo_window_is_seven_days_after_payment(self):
+        PaymentAttempt.objects.filter(id=self.attempt.id).update(updated_at=timezone.now() - timedelta(days=8))
+        with self.assertRaises(services.DomainError):
+            self.refund()
+        self.assertFalse(Refund.objects.filter(attempt=self.attempt).exists())

@@ -13,7 +13,7 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.views import exception_handler as drf_exception_handler
 from . import checkout, inference, market, runtime_paypal, serializers, services
-from .models import Approval, ApprovalLink, Offer, PaymentAttempt, PurchaseRequest, Review
+from .models import Approval, ApprovalLink, Offer, PaymentAttempt, PurchaseRequest, Refund, Review
 
 
 def error(code, message, status, **extra):
@@ -113,18 +113,28 @@ def review_data(review):
             **{name: payload[name] for name in ("shipping", "terms", "currency", "subtotal_cents", "shipping_cents", "tax_cents", "discount_cents", "total_cents", "evidence")}}
 
 
+def refund_data(refund):
+    return {"state": refund.state, "total_cents": refund.total_cents, "provider_refund_id": refund.provider_refund_id,
+            "updated_at": refund.updated_at}
+
+
 def attempt_data(attempt):
     actions = []
+    refund = Refund.objects.filter(attempt=attempt).first()
     if attempt.state == "PAYMENT_REVIEW":
         actions = ["check_status"]
     elif attempt.state not in ("PAID", "STOPPED"):
         actions = ["check_status", "stop"]
         if attempt.state == "AWAITING_BUYER" and runtime_paypal.allowed(attempt.approval, "capture"):
             actions += ["open_paypal", "capture"]
+    elif (attempt.state == "PAID" and (refund.state not in ("REFUNDED", "DECLINED") if refund else timezone.now() <= attempt.updated_at + checkout.REFUND_WINDOW)
+          and runtime_paypal.refund_allowed(attempt)):
+        actions = ["refund"]
     return {"id": str(attempt.id), "state": attempt.state, "pending_operation": attempt.pending_operation,
             "reason_code": attempt.reason_code, "created_at": attempt.created_at, "updated_at": attempt.updated_at,
             "provider_order_id": attempt.provider_order_id, "capture_id": attempt.capture_id,
-            "total_cents": attempt.snapshot["total_cents"], "currency": attempt.snapshot["currency"], "allowed_actions": actions}
+            "total_cents": attempt.snapshot["total_cents"], "currency": attempt.snapshot["currency"], "allowed_actions": actions,
+            "refund": refund_data(refund) if refund else None}
 
 
 def request_data(request):
@@ -252,7 +262,7 @@ def attempt_detail(request, pk):
 
 @endpoint(["POST"])
 def attempt_action(request, pk, action):
-    if action not in ("capture", "stop", "reconcile"):
+    if action not in ("capture", "stop", "reconcile", "refund"):
         raise Http404
     validated(serializers.Empty, request)
     return _attempt_action(owner(request), pk, action)
@@ -260,6 +270,15 @@ def attempt_action(request, pk, action):
 
 def _attempt_action(acting_owner, pk, action):
     attempt = _owned_attempt(acting_owner, pk)
+    if action == "refund":
+        if attempt.state != "PAID":
+            raise services.DomainError("NOT_REFUNDABLE", "Only a verified paid purchase can be undone.", 409, attempt.request_id)
+        config = runtime_paypal.configuration()
+        if not config or not runtime_paypal.refund_allowed(attempt, config):
+            raise checkout.DispatchDenied()
+        checkout.refund(acting_owner, attempt.id, runtime_paypal.provider(config))
+        attempt.refresh_from_db()
+        return Response({"attempt": attempt_data(attempt)})
     if action == "stop":
         attempt, status = checkout.stop(acting_owner, attempt.id)
     elif attempt.state in checkout.TERMINAL or (action == "capture" and attempt.state != "AWAITING_BUYER"):
@@ -341,7 +360,7 @@ def link_start(request, token):
 
 @endpoint(["POST"])
 def link_attempt_action(request, token, action):
-    if action not in ("capture", "stop", "reconcile"):
+    if action not in ("capture", "stop", "reconcile", "refund"):
         raise Http404
     validated(serializers.Empty, request)
     link = _link(token)

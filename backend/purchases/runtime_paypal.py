@@ -15,7 +15,7 @@ import uuid
 from django.conf import settings
 from django.utils import timezone
 from . import checkout, inference, paypal
-from .models import Approval, PaymentAttempt
+from .models import Approval, PaymentAttempt, Refund
 
 
 def _private_text(path, limit, private_parent=False):
@@ -120,6 +120,20 @@ def allowed(approval, operation, config=None):
     return bool(config and _consented(approval, operation, config))
 
 
+def refund_allowed(attempt, config=None):
+    """The paid purchase's owner may undo it: buyer consent mode, same sandbox cap, own payee."""
+    if not settings.SPENDCONSENT_PAYPAL_ENABLED or settings.SPENDCONSENT_PAYPAL_CONSENT != "buyer":
+        return False
+    config = config or configuration()
+    try:
+        snapshot = attempt.snapshot
+        return bool(config and attempt.state == "PAID" and attempt.capture_id
+                    and snapshot["payee_ref"] == config["PAYPAL_MERCHANT_ID"] and snapshot["currency"] == "USD"
+                    and type(snapshot["total_cents"]) is int and 0 < snapshot["total_cents"] <= settings.SPENDCONSENT_BUYER_MAX_CENTS)
+    except (KeyError, TypeError):
+        return False
+
+
 def require(approval, operation):
     config = configuration()
     if not config or not allowed(approval, operation, config):
@@ -130,6 +144,14 @@ def require(approval, operation):
 def _dispatch(operation, key):
     # Called after OAuth, immediately before the financial HTTP request. The
     # persisted operation key selects the intended attempt, never a browser ID.
+    if operation == "refund":
+        try:
+            refund = Refund.objects.select_related("attempt").get(refund_key=uuid.UUID(key))
+        except (Refund.DoesNotExist, ValueError, TypeError):
+            raise checkout.DispatchDenied() from None
+        if refund.state != "REFUNDING" or refund.provider_refund_id or not refund_allowed(refund.attempt):
+            raise checkout.DispatchDenied()
+        return
     try:
         field = "create_key" if operation == "create" else "capture_key"
         attempt = PaymentAttempt.objects.select_related("approval__review__request").get(**{field: uuid.UUID(key)})
