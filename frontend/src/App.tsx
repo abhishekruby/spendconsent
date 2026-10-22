@@ -996,15 +996,15 @@ function downloadReceipt(r: Review, a: Attempt) {
 
 function purchaseState(p: PurchaseRequest): { label: string; tone: string; hint: string } {
   const a = p.attempt;
-  if (a?.refund?.state === 'REFUNDED') return { label: 'Cancelled · refunded', tone: 'muted', hint: 'This order was cancelled and the full amount refunded through PayPal.' };
+  if (a?.refund?.state === 'REFUNDED') return { label: 'Cancelled · refunded', tone: 'refunded', hint: 'This order was cancelled and the full amount refunded through PayPal.' };
   if (a?.state === 'PAID') return a.refund
-    ? { label: 'Refund in progress', tone: 'busy', hint: refundText[a.refund.state] }
+    ? { label: 'Refund in progress', tone: 'refunded', hint: refundText[a.refund.state] }
     : { label: 'Paid', tone: 'ok', hint: 'Paid and confirmed with PayPal. You can cancel and get a refund for 7 days after payment.' };
-  if (a && a.state !== 'STOPPED') return { label: attemptText[a.state].short, tone: ['UNKNOWN', 'PAYMENT_REVIEW'].includes(a.state) ? 'warn' : 'busy', hint: attemptText[a.state].body };
-  if (a?.state === 'STOPPED') return { label: 'Not completed', tone: 'muted', hint: 'The payment was cancelled before any money was taken.' };
+  if (a && a.state !== 'STOPPED') return { label: attemptText[a.state].short, tone: a.state === 'PAYMENT_REVIEW' ? 'error' : a.state === 'UNKNOWN' ? 'warn' : 'busy', hint: attemptText[a.state].body };
+  if (a?.state === 'STOPPED') return { label: 'Not completed', tone: 'stopped', hint: 'The payment was cancelled before any money was taken.' };
   if (p.approval?.status === 'APPROVED') return { label: 'Approved · not paid', tone: 'busy', hint: 'You approved this cart but haven’t paid yet.' };
-  if (p.approval?.status === 'EXPIRED') return { label: 'Not paid · approval expired', tone: 'muted', hint: 'Approvals last a few minutes. No money was taken. Buy again to start a fresh one.' };
-  if (p.approval?.status === 'REVOKED') return { label: 'Not paid · price changed', tone: 'muted', hint: 'The shop changed the price or offer after you approved, so the approval was cancelled. No money was taken.' };
+  if (p.approval?.status === 'EXPIRED') return { label: 'Not paid · approval expired', tone: 'expired', hint: 'Approvals last a few minutes. No money was taken. Buy again to start a fresh one.' };
+  if (p.approval?.status === 'REVOKED') return { label: 'Not paid · price changed', tone: 'expired', hint: 'The shop changed the price or offer after you approved, so the approval was cancelled. No money was taken.' };
   return { label: 'Not approved', tone: 'muted', hint: 'You reviewed this cart but didn’t approve it. No money was taken.' };
 }
 function PurchasesPanel({ api, canBuyAgain, onClose, onBuyAgain }: { api: Api; canBuyAgain: boolean; onClose: () => void; onBuyAgain: (p: PurchaseRequest) => void }) {

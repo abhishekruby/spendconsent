@@ -5,6 +5,7 @@
   --bg: #f3efe7; --surface: #fffcf6; --sunk: #ebe5da; --ink: #1a1714; --muted: #6a6258; --faint: #8c8478;
   --line: #e2dbce; --line-strong: #cfc6b6; --accent: #d9481f; --accent-ink: #b23a16; --accent-soft: #fbe2d6;
   --ok: #1e7148; --ok-soft: #e1f0e6; --warn: #8a5300; --warn-soft: #f8ecd4; --err: #b3261e; --err-soft: #f9e2df;
+  --blue: #2457a6; --blue-soft: #e1eaf8; --plum: #7a3d8f; --plum-soft: #f1e4f4;
   --info-soft: #ece7dd; --shadow: 0 1px 2px rgb(60 40 20 / .06), 0 8px 24px -12px rgb(60 40 20 / .18);
   --shadow-lift: 0 2px 4px rgb(60 40 20 / .06), 0 18px 40px -18px rgb(60 40 20 / .28);
   --r-lg: 22px; --r-md: 14px; --r-sm: 9px;
@@ -16,6 +17,7 @@
   --bg: #11100e; --surface: #1a1916; --sunk: #232120; --ink: #f3eee6; --muted: #a9a195; --faint: #8a8378;
   --line: #2e2b27; --line-strong: #423e38; --accent: #ff7347; --accent-ink: #ff8a63; --accent-soft: #3a2015;
   --ok: #5fcb96; --ok-soft: #15291f; --warn: #f2b45a; --warn-soft: #2d2311; --err: #ff8c80; --err-soft: #2f1715;
+  --blue: #8db4ff; --blue-soft: #16223a; --plum: #d79be8; --plum-soft: #2a1a30;
   --info-soft: #23211d; --shadow: 0 1px 2px rgb(0 0 0 / .4), 0 10px 30px -14px rgb(0 0 0 / .7);
   --shadow-lift: 0 2px 4px rgb(0 0 0 / .4), 0 22px 44px -18px rgb(0 0 0 / .8);
   color-scheme: dark;
@@ -465,6 +467,10 @@ details[open] > summary::after { transform: rotate(225deg) translateY(-1px); }
 .status-chip.is-ok { background: var(--ok-soft); color: var(--ok); }
 .status-chip.is-warn { background: var(--warn-soft); color: var(--warn); }
 .status-chip.is-busy { background: var(--accent-soft); color: var(--accent-ink); }
+.status-chip.is-refunded { background: var(--blue-soft); color: var(--blue); }
+.status-chip.is-stopped { background: var(--warn-soft); color: var(--warn); }
+.status-chip.is-expired { background: var(--plum-soft); color: var(--plum); }
+.status-chip.is-error { background: var(--err-soft); color: var(--err); }
 @keyframes fade { from { opacity: 0; } }
 @keyframes slide-in { from { transform: translateX(40px); opacity: 0; } }
 @media (max-width: 560px) { .history-button { padding: 6px 10px; } .wide-only { display: none; } }
