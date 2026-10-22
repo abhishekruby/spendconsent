@@ -541,3 +541,11 @@ details[open] > summary::after { transform: rotate(225deg) translateY(-1px); }
 .voice-note { display: grid; gap: 4px; }
 .voice-note:not(:has(p)) { display: none; }
 .voice-heard { color: var(--ink); font-style: italic; }
+
+/* Quick answers for missing details */
+.suggest { display: grid; gap: 12px; padding: 16px 18px; border: 1px dashed color-mix(in srgb, var(--accent) 45%, var(--line)); border-radius: var(--r-md); background: var(--surface); }
+.suggest-row { display: grid; gap: 8px; font-size: 14px; }
+.chip-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip-button { font: inherit; font-weight: 600; padding: 7px 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); cursor: pointer; transition: border-color .15s, transform .15s; }
+.chip-button:hover { border-color: var(--accent); transform: translateY(-1px); }
+.chip-button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }

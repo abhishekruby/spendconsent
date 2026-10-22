@@ -13,7 +13,7 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.fields import CharField
 from rest_framework.response import Response
 from rest_framework.views import exception_handler as drf_exception_handler
-from . import checkout, dictation, inference, market, runtime_paypal, serializers, services
+from . import checkout, dictation, inference, market, runtime_paypal, serializers, services, suggest
 from .models import Approval, ApprovalLink, Offer, PaymentAttempt, PurchaseRequest, Refund, Review
 
 
@@ -209,6 +209,11 @@ class Dictation(serializers.StrictSerializer):
 def tidy_dictation(request):
     owner(request)  # a browser session, like every other write
     return Response(dictation.tidy(validated(Dictation, request)["text"].strip()))
+
+
+@endpoint(["GET"])
+def request_suggestions(request, pk):
+    return Response(suggest.suggestions(inference.recover(owner(request), pk)))
 
 
 @endpoint(["GET"])

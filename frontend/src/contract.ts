@@ -169,3 +169,15 @@ export function isMarket(v: unknown): v is Market {
 export function isDictation(v: unknown): v is { text: string; tidied: boolean } {
   return object(v) && Object.keys(v).length === 2 && typeof v.text === 'string' && v.text.length <= 2100 && typeof v.tidied === 'boolean';
 }
+
+export type Suggestions = {
+  sizes: { label: string; attributes: NonNullable<Constraints['attributes']> }[];
+  category_hint: { category: Category; label: string; attributes: NonNullable<Constraints['attributes']> } | null;
+  quantities: number[]; budgets: number[]; cheapest_cents: number | null;
+};
+const isSizeOption = (v: unknown) => object(v) && string(v.label) && v.label.length <= 80 && object(v.attributes);
+export function isSuggestions(v: unknown): v is Suggestions {
+  return object(v) && Object.keys(v).length === 5 && array(v.sizes, isSizeOption, 12)
+    && (v.category_hint === null || (isSizeOption(v.category_hint) && member((v.category_hint as Obj).category, ['cloth', 'bag', 'bottle', 'notebook'])))
+    && array(v.quantities, integer, 12) && array(v.budgets, integer, 6) && (v.cheapest_cents === null || integer(v.cheapest_cents));
+}

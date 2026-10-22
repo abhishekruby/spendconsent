@@ -317,6 +317,30 @@ class AnonymousAPITests(TestCase):
         unstated = market.listing({"title": "Tall Trash Bags, 40 Count", "offers": [offer]}, "bag", bags)
         self.assertEqual((unstated["units"], unstated["unit_cents"]), (None, None), "no per-item price without a stated size")
 
+    def test_suggestions_offer_catalog_sizes_exact_amounts_cheapest_fit_and_did_you_mean(self):
+        def asked(text, status, constraints):
+            row = services.submit(self.owner, {"text": text, "client_submission_id": uuid.uuid4(), "constraints": {}})
+            PurchaseRequest.objects.filter(id=row.id).update(status=status, constraints=constraints)
+            return f"/api/requests/{row.id}/suggestions"
+        url = f"/api/requests/{ready_request(self.owner).id}/suggestions"
+        self.assertEqual(self.client.get(url).json()["sizes"], [], "a ready request needs no suggestions")
+        url = asked("50 garbage bags 40 into 40 cm under 100 dollars", "NO_MATCH", {"category": "bag", "quantity": 50, "budget_cents": 10000, "one_time": True})
+        data = self.client.get(url).json()
+        self.assertEqual([o["label"] for o in data["sizes"]], ["30 L", "50 L"])
+        self.assertEqual(data["category_hint"]["attributes"], {"width_cm": 40, "height_cm": 40})
+        url = asked("40 cloths 40x40 cm", "NEEDS_CLARIFICATION", {"category": "cloth", "quantity": 40, "attributes": {"width_cm": 40, "height_cm": 40}})
+        data = self.client.get(url).json()
+        self.assertEqual(data["cheapest_cents"], 4180)
+        self.assertEqual(data["budgets"][0], 4200)
+        self.assertIsNone(data["category_hint"])
+        url = asked("40 cloths 40x40 cm under $20", "NO_MATCH", {"category": "cloth", "quantity": 40, "budget_cents": 2000, "attributes": {"width_cm": 40, "height_cm": 40}})
+        self.assertEqual(self.client.get(url).json()["cheapest_cents"], 4180, "a too-low budget shows what would work")
+        url = asked("one spray", "NEEDS_CLARIFICATION", {"category": "bottle", "quantity": 1})
+        self.assertEqual(self.client.get(url).json()["quantities"][:3], [3, 5, 6], "1 bottle cannot be made from packs")
+        other = Client(HTTP_HOST="127.0.0.1:5173")
+        other.get("/api/session")
+        self.assertEqual(other.get(url).status_code, 404)
+
     def test_material_offer_change_shows_existing_approval_as_no_longer_valid(self):
         request = ready_request(self.owner)
         review = make_review(request)

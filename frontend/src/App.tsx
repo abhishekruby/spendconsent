@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { CSSProperties, FormEvent, ReactNode } from 'react';
 import { Api, ApiError } from './api.js';
-import type { Attempt, Candidate, Charges, Constraints, Evidence, LinkView, Market, Progress, PurchaseRequest, RefundState, Review, Session } from './contract.js';
+import type { Attempt, Candidate, Charges, Constraints, Evidence, LinkView, Market, Progress, PurchaseRequest, RefundState, Review, Session, Suggestions } from './contract.js';
 import { canStartNew, locksRequest, money, newerAttempt, newerRequest, parseCents, pending, permitted, friendlyQuestion, purchaseDisplay, readRequest, savings, unitCost } from './logic.js';
 import { PayPalError, preparePayPal } from './paypal.js';
 import { play, setSoundOn, soundOn, unlockAudio } from './sound.js';
@@ -433,6 +433,8 @@ export function App() {
             {editor && !asksForDetails && <button type="button" className="ghost-link" aria-expanded={editing} onClick={() => setEditing(v => !v)}>{editing ? 'Close' : 'Edit'}</button>}
           </div>}
           {request.clarification && <div className="question reveal"><Icon name="question" /><div><p className="question-label">Confirm the missing details</p><p>{friendlyQuestion(request.clarification.question, request.clarification.missing_fields)}</p></div></div>}
+          {request.clarification && !busy && <SuggestionChips key={`${request.id}:${request.version}`} api={api} request={request}
+            onPick={(change, label) => void mutate(`/api/requests/${request.id}/clarify`, { expected_version: request.version, constraints: withChange(request.constraints, change) }, `Comparing with ${label}`)} />}
           {editor && (asksForDetails || editing) && <div className="reveal">{editor}</div>}
           {request.status === 'COMPARING' && <div className="alert is-info reveal"><Icon name="clock" /><div><strong>Comparison is still in progress</strong><p>Reload the status to see the server’s result. Nothing is assumed in the meantime.</p><button className="btn small" disabled={!!busy} onClick={() => void refresh()}>Reload status</button></div></div>}
           {(ordered.length > 0 || request.excluded.length > 0) && (collapseComparison
@@ -623,6 +625,33 @@ export function AiReading({ request }: { request: PurchaseRequest }) {
       <li><b>Code checked every offer</b><span>{checked ? `${plural(checked, 'offer')}: ${request.candidates.length} fit exactly, ${request.excluded.length} ruled out.` : 'Waiting for the missing details.'} Sizes, packs, tax and delivery are calculated, not guessed.</span></li>
       <li><b>A person decides</b><span>Nothing is bought until you approve the exact cart.</span></li>
     </ol>
+  </section>;
+}
+// One click answers what is missing, using options read from the catalog.
+function withChange(current: Constraints, change: Constraints): Constraints {
+  const switched = change.category !== undefined && change.category !== current.category;
+  return { ...current, ...change, attributes: switched ? change.attributes : { ...current.attributes, ...change.attributes } };
+}
+function SuggestionChips({ api, request, onPick }: { api: Api; request: PurchaseRequest; onPick: (change: Constraints, label: string) => void }) {
+  const [s, setS] = useState<Suggestions | null>(null);
+  useEffect(() => {
+    const controller = new AbortController();
+    api.suggestions(request.id, controller.signal).then(setS).catch(() => {});
+    return () => controller.abort();
+  }, []);
+  if (!s || (!s.sizes.length && !s.category_hint && !s.quantities.length && !s.budgets.length)) return null;
+  const names = { cloth: 'microfiber cloths', bag: 'waste bags', bottle: 'spray bottles', notebook: 'notebooks' } as const;
+  const item = request.constraints.category ? names[request.constraints.category] : 'it';
+  const pick = (change: Constraints, label: string) => { play('select'); onPick(change, label); };
+  return <section className="suggest reveal" aria-label="Quick answers">
+    {s.category_hint && <div className="suggest-row"><p>Did you mean <b>{s.category_hint.label}</b>? That size is a cloth size.</p>
+      <button type="button" className="chip-button" onClick={() => pick({ category: s.category_hint!.category, attributes: s.category_hint!.attributes }, s.category_hint!.label)}>Yes, {s.category_hint.label}</button></div>}
+    {s.sizes.length > 0 && <div className="suggest-row"><p>Which size of {item}? These are the sizes in stock.</p>
+      <div className="chip-row">{s.sizes.map(o => <button key={o.label} type="button" className="chip-button" onClick={() => pick({ attributes: o.attributes }, o.label)}>{o.label}</button>)}</div></div>}
+    {s.quantities.length > 0 && <div className="suggest-row"><p>{request.constraints.quantity ? <>Packs can’t make exactly {plural(request.constraints.quantity, 'unit')}. Pick an amount they can:</> : 'How many? Packs can make these amounts exactly.'}</p>
+      <div className="chip-row">{s.quantities.map(q => <button key={q} type="button" className="chip-button" onClick={() => pick({ quantity: q }, `${q} units`)}>{q}</button>)}</div></div>}
+    {s.budgets.length > 0 && <div className="suggest-row"><p>Max total, including delivery and tax?{s.cheapest_cents !== null && <> The cheapest exact fit is <b>{money(s.cheapest_cents)}</b>.</>}</p>
+      <div className="chip-row">{s.budgets.map(b => <button key={b} type="button" className="chip-button" onClick={() => pick({ budget_cents: b }, `a max of ${money(b)}`)}>Up to {money(b)}</button>)}</div></div>}
   </section>;
 }
 // Speak the request. While listening, words show in a preview line only, so the box

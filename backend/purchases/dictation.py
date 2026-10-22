@@ -12,7 +12,8 @@ from . import agent, inference
 
 SYSTEM = ("You tidy up a dictated shopping request. Apply the speaker's own spoken corrections "
           "(\"fifty, no wait, forty\" becomes \"forty\"; \"scratch that\" removes what came before it), "
-          "remove filler words and false starts, and fix spacing and punctuation. Keep the speaker's "
+          "remove filler words and false starts, and fix spacing and punctuation; write a spoken "
+          "dimension such as \"40 into 40\" or \"40 by 40\" as \"40 × 40\". Keep the speaker's "
           "wording and every quantity, size, price, unit and condition exactly as finally intended. "
           "Never add, guess or convert anything. Reply with the tidied request only.")
 _OPENER = urllib.request.build_opener(urllib.request.ProxyHandler({}))

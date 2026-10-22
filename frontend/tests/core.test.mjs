@@ -322,3 +322,12 @@ test('voice input: exact words, optional on-device recognition, absent when unsu
   assert.equal(await onDevice(Object.assign(class {}, { available: async () => 'downloadable' }), 'en-IN'), false);
   assert.equal(await onDevice(class {}, 'en-IN'), false);
 });
+
+test('suggestions are validated before they become buttons', async () => {
+  const { isSuggestions } = await import('../.test-build/contract.js');
+  const ok = { sizes: [{ label: '500 ml', attributes: { volume_ml: 500 } }], category_hint: null, quantities: [3, 5], budgets: [2000], cheapest_cents: 1980 };
+  assert.ok(isSuggestions(ok));
+  assert.ok(isSuggestions({ ...ok, category_hint: { category: 'cloth', label: 'Microfiber cloths, 40 × 40 cm', attributes: { width_cm: 40, height_cm: 40 } } }));
+  assert.equal(isSuggestions({ ...ok, category_hint: { category: 'pens', label: 'x', attributes: {} } }), false);
+  assert.equal(isSuggestions({ ...ok, quantities: [-1] }), false);
+});
