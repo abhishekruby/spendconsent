@@ -117,6 +117,9 @@ class InferenceTests(TransactionTestCase):
         self.assertEqual(check({"quantity": 50}, "I need 50 in a hurry")["quantity"], 50)
         self.assertEqual(check({"quantity": 20}, "twenty cloths 40x40")["quantity"], 20, "number words stay with the adapter")
         self.assertEqual(check({"quantity": 40}, "Exactly forty microfiber cloths, each 40 cm wide")["quantity"], 40, "forty is written as a quantity")
+        swapped = check({"quantity": 1, "budget": 100, "attributes": {"volume": 10, "width": None}}, "one spray 10 budget 100 ml")
+        self.assertEqual((swapped["budget"], swapped["attributes"]["volume"]), (None, None), "swapped money and size are both asked")
+        self.assertEqual(check({"attributes": {"volume": 500}}, "10 bottles 500 ml under 40")["attributes"]["volume"], 500)
         seen = []
         with patch.object(inference, "_original_search", side_effect=lambda native, confirmed, text: seen.append(native) or {}):
             agent._search({"quantity": 500, "budget": None, "category": "bottle"}, {}, "500 ml bottles")

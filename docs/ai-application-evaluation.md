@@ -277,6 +277,8 @@ the 500 ml ones" the adapter accepted a $500 budget, because 500 is present in t
 text (the documented presence-not-role limit). The app now adds a role check in
 `inference._role_checked`, outside the qualified `agent.py`: a quantity or budget
 whose every written digit occurrence is a size ("500 ml", "40 × 40 cm") is dropped
-and the buyer is asked. It can only remove values. `scripts/role_check_replay.py`
+and the buyer is asked; symmetrically, a size written only as money ("10 budget",
+"$10", "under 10") is dropped (found live: "one spray 10 budget 100 ml" had come
+back as 10 ml with a $100 budget). It can only remove values, never human-confirmed ones. `scripts/role_check_replay.py`
 replays it over all 160 a01b9f9 outcomes: 0 values wrongly dropped (one early
 false drop, "forty … 40 cm wide", was fixed by honouring number words). Runs in CI.

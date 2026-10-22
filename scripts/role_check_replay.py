@@ -15,7 +15,15 @@ wrong_drop = caught = rows = 0
 for suite in report["suites"].values():
     for r in suite["results"]:
         rows += 1
-        case = cases[r["case"]]; text = case["input"]["text"]; got = r["constraints"] or {}; want = case["expected"]["canonical_constraints"]
+        case = cases[r["case"]]; text = case["input"]["text"]; want = case["expected"]["canonical_constraints"]
+        # Values a person confirmed are merged after the model and never role-checked.
+        confirmed = case["input"]["confirmed_constraints"]
+        got = {k: v for k, v in (r["constraints"] or {}).items() if k not in confirmed}
+        got["attributes"] = {k: v for k, v in ((r["constraints"] or {}).get("attributes") or {}).items() if k not in (confirmed.get("attributes") or {})}
+        for key, value in (got.get("attributes") or {}).items():
+            if isinstance(value, (int, float)) and _role_checked({"attributes": {key: value}}, text)["attributes"][key] is None:
+                if key in (want.get("attributes") or {}): wrong_drop += 1; print("WOULD WRONGLY DROP", r["case"], key, value, "|", text[:90])
+                else: caught += 1; print("WOULD CATCH", r["case"], key, value)
         for key, native in (("quantity", got.get("quantity")), ("budget", None if got.get("budget_cents") is None else got["budget_cents"] / 100)):
             if native is None: continue
             kept = _role_checked({key: native}, text)[key] is not None or (key == "budget" and _role_checked({key: (got["budget_cents"] + 1) / 100}, text)[key] is not None)
