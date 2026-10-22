@@ -18,6 +18,8 @@ jobs:
         run: |
           .venv/bin/python backend/manage.py migrate --noinput
           .venv/bin/python backend/manage.py test purchases --keepdb --noinput
+      - name: AI evidence still matches the code (fresh-install readiness)
+        run: .venv/bin/python backend/manage.py grant_ai_readiness docs/evidence/ai-application-qualification-a01b9f9.json
       - name: Helper self-tests
         run: |
           python3 scripts/spendconsent_mcp.py --self-test

@@ -147,7 +147,7 @@ REFUND_STATES = ("REFUNDING", "NOT_SENT", "PENDING", "UNKNOWN", "REFUNDED", "DEC
 
 
 class Refund(models.Model):
-    """The owner's full refund (order cancellation) of one verified paid attempt.
+    """The owner's full refund ("undo") of one verified paid attempt.
 
     One row and one PayPal-Request-Id per attempt: a re-send is idempotent at
     PayPal, and a full refund can never exceed the captured amount.
