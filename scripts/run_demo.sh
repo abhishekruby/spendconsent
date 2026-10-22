@@ -61,6 +61,9 @@ fi
 wait_for model http://127.0.0.1:11435/health 120
 
 if ! up http://127.0.0.1:8000/api/session; then
+  # Apply any new database migrations before serving (idempotent).
+  .venv/bin/python backend/manage.py migrate --noinput >"$LOGS/migrate.log" 2>&1 \
+    || { echo "  ✗ database migrations failed (see $LOGS/migrate.log)" >&2; exit 1; }
   export SPENDCONSENT_AI_ENABLED=1 SPENDCONSENT_PAYPAL_CONSENT="${SPENDCONSENT_PAYPAL_CONSENT:-buyer}"
   [ -f .env ] && export SPENDCONSENT_PAYPAL_ENABLED=1 || echo "  · no .env: PayPal sandbox checkout stays off (see README step 4)"
   launch api "$LOGS/api.log" .venv/bin/python backend/manage.py runserver 127.0.0.1:8000 --noreload
