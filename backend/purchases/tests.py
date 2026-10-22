@@ -76,10 +76,11 @@ class CatalogAndAuthorityTests(TestCase):
                 self.assertTrue(rows)
                 self.assertEqual(rows[0]["individual_units"], 10)
         offer = Offer.objects.get(sku="CLOTH-B")
+        version = offer.version
         offer.reserved_packs = offer.stock_packs
         offer.save(update_fields=["reserved_packs"])
         offer.refresh_from_db()
-        self.assertEqual(offer.version, 1)
+        self.assertEqual(offer.version, version, "a reservation is not a material quote change")
         self.assertTrue(catalog.quote(offer, CONSTRAINTS)[1])
         self.assertEqual(catalog.quote(offer, CONSTRAINTS, own_hold=2)[1], [])
 
@@ -385,7 +386,7 @@ class AnonymousAPITests(TestCase):
         data = response.json()
         review = data["review"]
         self.assertEqual(review["total_cents"], 4180)
-        self.assertEqual(review["quote_version"], 1)
+        self.assertEqual(review["quote_version"], Offer.objects.get(sku="CLOTH-B").version)
         self.assertNotIn("owner_uuid", review)
         self.assertNotIn("payee_ref", review)
         self.assertNotIn("attributes", review["item"])
