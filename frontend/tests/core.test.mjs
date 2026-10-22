@@ -311,3 +311,14 @@ test('budgets written without a dollar sign are still shown as the max total', (
   assert.deepEqual(budget('keep it under 40 with delivery', 4000), ['under 40']);
   assert.deepEqual(budget('max usd 25', 2500), ['max usd 25']);
 });
+
+test('voice input: exact words, optional on-device recognition, absent when unsupported', async () => {
+  const { onDevice, recognitionClass, transcript } = await import('../.test-build/voice.js');
+  assert.equal(recognitionClass({}), null, 'no button without browser speech support');
+  class Fake {}
+  assert.equal(recognitionClass({ webkitSpeechRecognition: Fake }), Fake);
+  assert.equal(transcript([[{ transcript: 'fifty garbage bags ' }], [{ transcript: ' thirty liters  under $40' }]]), 'fifty garbage bags thirty liters under $40');
+  assert.equal(await onDevice(Object.assign(class {}, { available: async () => 'available' }), 'en-IN'), true);
+  assert.equal(await onDevice(Object.assign(class {}, { available: async () => 'downloadable' }), 'en-IN'), false);
+  assert.equal(await onDevice(class {}, 'en-IN'), false);
+});

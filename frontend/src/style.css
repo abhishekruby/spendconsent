@@ -529,3 +529,12 @@ details[open] > summary::after { transform: rotate(225deg) translateY(-1px); }
 .division li b { color: var(--ink); font-size: 14px; }
 .division li b::before { content: counter(division) ' · '; color: var(--accent-ink); font-family: var(--mono); }
 @media (max-width: 700px) { .division { grid-template-columns: 1fr; } .reading { font-size: 16px; } }
+
+/* Voice input */
+.composer-bar { flex-wrap: wrap; }
+.icon-button.voice { margin-left: auto; }
+.icon-button.voice.is-listening { color: var(--accent); border-color: var(--accent); animation: listen 1.4s var(--ease) infinite; }
+@keyframes listen { 0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 45%, transparent); } 50% { box-shadow: 0 0 0 8px transparent; } }
+.voice-note { flex-basis: 100%; order: 3; font-size: 13px; color: var(--muted); min-height: 0; }
+.voice-note:empty { display: none; }
+@media (prefers-reduced-motion: reduce) { .icon-button.voice.is-listening { animation: none; } }

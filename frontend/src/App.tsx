@@ -5,6 +5,8 @@ import type { Attempt, Candidate, Charges, Constraints, Evidence, LinkView, Mark
 import { canStartNew, locksRequest, money, newerAttempt, newerRequest, parseCents, pending, permitted, friendlyQuestion, purchaseDisplay, readRequest, savings, unitCost } from './logic.js';
 import { PayPalError, preparePayPal } from './paypal.js';
 import { play, setSoundOn, soundOn, unlockAudio } from './sound.js';
+import { onDevice, recognitionClass, transcript } from './voice.js';
+import type { Recognition } from './voice.js';
 
 const sample = 'Find exactly 40 microfiber cloths, 40 × 40 cm, under $60 including delivery and tax. One-time purchase only.';
 const sampleRequests = [
@@ -403,6 +405,7 @@ export function App() {
           {draftMode && request && <button type="button" className="ghost-link composer-back" onClick={() => { setDraftMode(false); setNotice(''); }}>← Back to current request</button>}
           <div className="composer-bar">
             <p id="request-help" className="composer-help">Include <b>how many</b>, <b>what size</b> and your <b>max total</b>.</p>
+            <VoiceButton text={text} disabled={!!busy || requestLocked} onText={setText} />
             <button className="btn primary" disabled={!session || !!busy || requestLocked || !text.trim()}>
               {session?.capabilities.ai_ready ? 'Compare offers' : 'Save request'}<Icon name="arrow" />
             </button>
@@ -621,6 +624,37 @@ export function AiReading({ request }: { request: PurchaseRequest }) {
       <li><b>A person decides</b><span>Nothing is bought until you approve the exact cart.</span></li>
     </ol>
   </section>;
+}
+// Speak the request: the browser turns speech into the exact words in the box.
+function VoiceButton({ text, disabled, onText }: { text: string; disabled: boolean; onText: (value: string) => void }) {
+  const [Recognizer] = useState(() => recognitionClass());
+  const [listening, setListening] = useState(false);
+  const [note, setNote] = useState('');
+  const active = useRef<Recognition | null>(null);
+  useEffect(() => () => active.current?.abort(), []);
+  if (!Recognizer) return null;
+  async function toggle() {
+    if (active.current) { active.current.stop(); return; }
+    const lang = navigator.language || 'en-US';
+    const recognition = new Recognizer!();
+    const local = await onDevice(Recognizer!, lang);
+    recognition.lang = lang; recognition.continuous = true; recognition.interimResults = true;
+    if (local) recognition.processLocally = true;
+    const before = text.trim();
+    recognition.onresult = event => onText([before, transcript(event.results)].filter(Boolean).join(' '));
+    recognition.onerror = event => setNote(event.error === 'not-allowed' || event.error === 'service-not-allowed'
+      ? 'Microphone blocked. Allow it in the browser to speak your request.' : event.error === 'no-speech' ? 'Didn’t hear anything. Try again.' : 'Voice input stopped. You can type instead.');
+    recognition.onend = () => { active.current = null; setListening(false); play('tick'); };
+    active.current = recognition;
+    setNote(local ? 'Listening on this device. Say what you need, then tap again.' : 'Listening (browser speech service). Say what you need, then tap again.');
+    setListening(true); play('tick');
+    try { recognition.start(); } catch { active.current = null; setListening(false); setNote('Voice input could not start. You can type instead.'); }
+  }
+  return <>
+    <button type="button" className={`icon-button voice${listening ? ' is-listening' : ''}`} disabled={disabled} aria-pressed={listening}
+      aria-label={listening ? 'Stop voice input' : 'Speak your request'} title={listening ? 'Stop' : 'Speak your request'} onClick={() => void toggle()}><Icon name="mic" /></button>
+    <p className="voice-note" role="status">{note}</p>
+  </>;
 }
 function RequirementChips({ constraints: c }: { constraints: Constraints }) {
   const a = c.attributes;
@@ -1084,6 +1118,7 @@ const paths: Record<string, ReactNode> = {
   list: <path d="M8 7h11M8 12h11M8 17h11M4.5 7h.01M4.5 12h.01M4.5 17h.01" />,
   download: <path d="M12 4v11m-4.5-4.5L12 15l4.5-4.5M5 19.5h14" />,
   sound: <><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4Z" /><path d="M15.5 9a4 4 0 0 1 0 6m2.5-8.5a7.5 7.5 0 0 1 0 11" /></>,
+  mic: <><rect x="9" y="3" width="6" height="11" rx="3" /><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21" /></>,
   mute: <><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4Z" /><path d="m16 9.5 5 5m0-5-5 5" /></>,
 };
 function Icon({ name }: { name: keyof typeof paths }) {
