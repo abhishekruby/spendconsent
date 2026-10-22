@@ -628,7 +628,7 @@ class RefundTests(TransactionTestCase):
         row = Refund.objects.get(attempt=self.attempt)
         self.assertEqual(checkout._apply_refund(self.owner, self.attempt.id, None, True).state, "UNKNOWN")
 
-    def test_undo_window_is_seven_days_after_payment(self):
+    def test_refund_window_is_seven_days_after_payment(self):
         PaymentAttempt.objects.filter(id=self.attempt.id).update(updated_at=timezone.now() - timedelta(days=8))
         with self.assertRaises(services.DomainError):
             self.refund()

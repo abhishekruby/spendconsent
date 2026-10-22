@@ -38,8 +38,8 @@ MESSAGES = {
     "REVIEW_CHANGED": "The purchase changed before capture. Inspect and approve a fresh review.",
     "REVIEW_EXPIRED": "Approval or quote expired before capture. Inspect and approve a fresh review.",
     "FINANCIAL_ACTIONS_DISABLED": "The exact action-time permission was unavailable before dispatch. No financial request was sent.",
-    "REFUND_REQUESTED": "The owner asked to undo this purchase. One full refund request goes to PayPal.",
-    "REFUNDED": "PayPal confirmed the full refund to the buyer.",
+    "REFUND_REQUESTED": "The owner cancelled this order. One full refund request goes to PayPal.",
+    "REFUNDED": "Order cancelled: PayPal confirmed the full refund to the buyer.",
     "REFUND_PENDING": "PayPal reports the refund as pending. Check its status later.",
     "REFUND_UNKNOWN": "The refund outcome is uncertain. Check its status; a full refund can never exceed what was paid.",
     "REFUND_DECLINED": "PayPal did not complete the refund.",
@@ -371,7 +371,7 @@ def stop(owner, pk):
 
 
 def refund(owner, pk, provider):
-    """Undo one paid purchase with a full PayPal refund; never a second refund.
+    """Cancel one paid order with a full PayPal refund; never a second refund.
 
     The refund row and its PayPal-Request-Id are committed before any request.
     A row without a PayPal refund ID may be re-sent with the same key (PayPal
@@ -382,9 +382,9 @@ def refund(owner, pk, provider):
         row = Refund.objects.select_for_update().filter(attempt=attempt).first()
         if row is None:
             if attempt.state != "PAID" or not attempt.capture_id:
-                raise services.DomainError("NOT_REFUNDABLE", "Only a verified paid purchase can be undone.", 409, request.id)
+                raise services.DomainError("NOT_REFUNDABLE", "Only a paid order can be cancelled and refunded.", 409, request.id)
             if timezone.now() > attempt.updated_at + REFUND_WINDOW:
-                raise services.DomainError("NOT_REFUNDABLE", "Purchases can be undone for 7 days after payment.", 409, request.id)
+                raise services.DomainError("NOT_REFUNDABLE", "Orders can be cancelled and refunded for 7 days after payment.", 409, request.id)
             row = Refund.objects.create(attempt=attempt, state="REFUNDING", total_cents=attempt.snapshot["total_cents"])
             _event(request, attempt, "REFUND_REQUESTED", "REFUND_REQUESTED")
         if row.state in ("REFUNDED", "DECLINED"):

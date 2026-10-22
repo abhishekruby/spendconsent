@@ -67,7 +67,7 @@ test('unknown, mismatched and terminal payment states never enable a fresh finan
 });
 
 test('payment polling announces changed states once and leaves urgent states to their alerts', () => {
-  for (const [state, title] of [['PAID', 'Payment confirmed'], ['STOPPED', 'Payment attempt stopped'], ['AWAITING_BUYER', 'Awaiting PayPal buyer approval'], ['VERIFYING', 'Verifying payment details']]) {
+  for (const [state, title] of [['PAID', 'Payment confirmed'], ['STOPPED', 'Payment cancelled'], ['AWAITING_BUYER', 'Waiting for you in PayPal'], ['VERIFYING', 'Checking the payment with PayPal']]) {
     const incoming = { ...attempt, state, updated_at: '2026-10-18T00:01:00Z' };
     assert.equal(paymentTransitionNotice(attempt, incoming), title);
     assert.equal(paymentTransitionNotice(incoming, { ...incoming, updated_at: '2026-10-18T00:02:00Z' }), null, 'unchanged polls remain quiet');
@@ -193,17 +193,17 @@ test('labeled test UI renders exact packs, quote evidence and uncertainty, escap
   assert.ok(offer.includes('&lt;img'));
   assert.equal(offer.includes('<img'), false);
   const reviewHtml = renderToStaticMarkup(createElement(ReviewCard, { review, approval: null, locked: false, disabled: false, onApprove() {} }));
-  for (const value of ['Explicit test merchant', 'Material quote version', 'Quote snapshot', 'Review expires', 'Synthetic office', 'One-time purchase', 'No subscription.', 'Material version 3']) assert.ok(reviewHtml.includes(value), value);
+  for (const value of ['Explicit test merchant', 'Price version', 'Prices checked', 'Review expires', 'Synthetic office', 'One-time purchase', 'No subscription.', 'Material version 3']) assert.ok(reviewHtml.includes(value), value);
   assert.ok(reviewHtml.includes('Fictional goods and prices'));
   assert.ok(/disabled=""[^>]*>Approve exact cart/.test(reviewHtml));
   const unknown = renderToStaticMarkup(createElement(PaymentStatus, { attempt, financialEnabled: true, busy: false, pollEnded: false, onAction() {} }));
-  assert.ok(unknown.includes('Payment status is unknown'));
-  assert.ok(unknown.includes('Check existing payment status'));
+  assert.ok(unknown.includes('We’re confirming the payment'));
+  assert.ok(unknown.includes('Check payment status'));
   assert.equal(unknown.includes('Start sandbox checkout'), false);
   assert.equal(unknown.includes('Payment confirmed'), false);
   const mismatch = renderToStaticMarkup(createElement(PaymentStatus, { attempt: { ...attempt, state: 'PAYMENT_REVIEW', allowed_actions: ['check_status'] }, financialEnabled: true, busy: false, pollEnded: false, onAction() {} }));
-  assert.ok(mismatch.includes('completed payment has mismatched details'));
-  assert.equal(mismatch.includes('Request stop'), false);
+  assert.ok(mismatch.includes('doesn’t match the approved cart'));
+  assert.equal(mismatch.includes('Cancel this payment'), false);
 });
 
 test('live progress and consent mode are validated at the API boundary', () => {
@@ -269,9 +269,9 @@ test('refunds: only on a paid attempt, validated, and shown with an explicit con
   assert.equal(isAttempt({ ...attempt, refund }), false, 'an unpaid attempt has no refund');
   assert.equal(isAttempt({ ...paid, refund: { ...refund, state: 'DONE' } }), false);
   const offer = renderToStaticMarkup(createElement(RefundPanel, { attempt: paid, busy: false, onRefund() {} }));
-  assert.match(offer, /Undo purchase/);
+  assert.match(offer, /Cancel order &amp; refund/);
   assert.doesNotMatch(offer, /Yes, refund/, 'refunding needs a second, explicit click');
-  assert.match(renderToStaticMarkup(createElement(RefundPanel, { attempt: { ...paid, allowed_actions: [], refund }, busy: false, onRefund() {} })), /Refunded in full/);
+  assert.match(renderToStaticMarkup(createElement(RefundPanel, { attempt: { ...paid, allowed_actions: [], refund }, busy: false, onRefund() {} })), /full amount was refunded/);
   assert.equal(renderToStaticMarkup(createElement(RefundPanel, { attempt: { ...paid, allowed_actions: [] }, busy: false, onRefund() {} })), '');
 });
 

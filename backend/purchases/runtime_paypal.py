@@ -121,7 +121,7 @@ def allowed(approval, operation, config=None):
 
 
 def refund_allowed(attempt, config=None):
-    """The paid purchase's owner may undo it: buyer consent mode, same sandbox cap, own payee."""
+    """The paid order's owner may cancel and refund it: buyer consent mode, same sandbox cap, own payee."""
     if not settings.SPENDCONSENT_PAYPAL_ENABLED or settings.SPENDCONSENT_PAYPAL_CONSENT != "buyer":
         return False
     config = config or configuration()

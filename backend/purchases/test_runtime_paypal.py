@@ -100,7 +100,7 @@ class RuntimePayPalTests(TransactionTestCase):
             attempt = post(f"/api/links/{token}/attempts").json()["attempt"]
             self.assertEqual(attempt["state"], "AWAITING_BUYER")
             self.http.order["status"] = "APPROVED"
-            self.assertEqual(post(f"/api/links/{token}/attempt/refund").status_code, 409, "only a paid cart can be undone")
+            self.assertEqual(post(f"/api/links/{token}/attempt/refund").status_code, 409, "only a paid order can be refunded")
             self.assertEqual(post(f"/api/links/{token}/attempt/capture").json()["attempt"]["state"], "PAID")
         self.assertEqual(self.client.get(f"/api/requests/{request.id}").json()["attempt"]["state"], "PAID", "requester sees the outcome")
         ApprovalLink.objects.update(expires_at=timezone.now())

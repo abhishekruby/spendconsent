@@ -170,7 +170,7 @@ export function App() {
     const attempt = request?.attempt;
     if (!attempt || (expectedId && expectedId !== attempt.id)
         || !permitted(attempt, action === 'reconcile' ? 'check_status' : action, session?.capabilities.financial_actions_enabled ?? false)) return;
-    await paymentAction(`/api/attempts/${attempt.id}/${action}`, action === 'capture' ? 'Verifying buyer approval and the exact payment' : action === 'reconcile' ? 'Checking the existing payment status' : 'Requesting a stop');
+    await paymentAction(`/api/attempts/${attempt.id}/${action}`, action === 'capture' ? 'Verifying buyer approval and the exact payment' : action === 'reconcile' ? 'Checking the payment status' : 'Cancelling this payment');
   }
   const attempt = request?.attempt ?? null;
   const previousAttempt = useRef<Attempt | null>(null);
@@ -208,7 +208,7 @@ export function App() {
           setRequest(old => newerAttempt(newerRequest(old, saved), result.attempt));
         }
       } catch {
-        if (!controller.signal.aborted && generation.current === serial) { setPollEnded(true); setNotice('Automatic status checks paused. Check the existing payment manually.'); }
+        if (!controller.signal.aborted && generation.current === serial) { setPollEnded(true); setNotice('Automatic checks paused. Use “Check payment status”.'); }
       }
     }
     timer = setTimeout(poll, 3000);
@@ -422,7 +422,7 @@ export function App() {
           <li><b>Describe</b><span>Plain words. The AI reads them; nothing is guessed.</span></li>
           <li><b>Compare</b><span>Full delivered cost, wrong sizes ruled out.</span></li>
           <li><b>Approve</b><span>One exact cart, approved by a person: you or the owner, from any phone.</span></li>
-          <li><b>Pay</b><span>PayPal, verified by the server. Undo within 7 days.</span></li>
+          <li><b>Pay</b><span>PayPal, verified by the server. Cancel and refund within 7 days.</span></li>
         </ol>}
         {!thinking && drafting && session && <p className="why reveal" style={delay(7)}>Why a person approves: 60% of shoppers would stop using an AI shopping agent after one mistake, and approval before checkout is the safeguard they ask for most. <span className="fine-print">ACI Worldwide/YouGov and RTB House surveys, 2026.</span></p>}
 
@@ -715,7 +715,7 @@ function RequirementChips({ constraints: c }: { constraints: Constraints }) {
   return <ul className="chips" aria-label="Your requirements">{chips.map(([label, value]) => <li key={label} className={value ? undefined : 'is-missing'}><span className="chip-label">{label}</span>{value ?? 'Not confirmed'}</li>)}</ul>;
 }
 function PriceBreakdown({ charges }: { charges: Charges }) {
-  return <dl className="breakdown"><div><dt>Items</dt><dd>{money(charges.subtotal_cents)}</dd></div><div><dt>Delivery</dt><dd>{money(charges.shipping_cents)}</dd></div><div><dt>Fixture tax</dt><dd>{money(charges.tax_cents)}</dd></div><div><dt>Discount</dt><dd>−{money(charges.discount_cents)}</dd></div><div className="total"><dt>Full total</dt><dd>{money(charges.total_cents)} <span>USD</span></dd></div></dl>;
+  return <dl className="breakdown"><div><dt>Items</dt><dd>{money(charges.subtotal_cents)}</dd></div><div><dt>Delivery</dt><dd>{money(charges.shipping_cents)}</dd></div><div><dt>Tax (test rate)</dt><dd>{money(charges.tax_cents)}</dd></div><div><dt>Discount</dt><dd>−{money(charges.discount_cents)}</dd></div><div className="total"><dt>Full total</dt><dd>{money(charges.total_cents)} <span>USD</span></dd></div></dl>;
 }
 // Real retail prices from Channel3 so the owner can judge the supplier offer; never part of the cart.
 function MarketCheck({ api, requestId, best }: { api: Api; requestId: string; best?: Candidate }) {
@@ -824,11 +824,11 @@ export function ReviewCard({ review: r, approval, locked, disabled, onApprove }:
       <div><dt>Ship to</dt><dd>{r.shipping.destination_label} <span className="fine-print">({r.shipping.destination_ref})</span></dd></div>
       <div><dt>Terms</dt><dd>One-time purchase. {r.terms.description}</dd></div>
     </dl>
-    <details className="receipt-more"><summary>Quote details</summary>
-      <dl className="receipt-facts"><div><dt>Material quote version</dt><dd>{r.quote_version}</dd></div><div><dt>Quote snapshot</dt><dd><time dateTime={r.created_at}>{dateTime(r.created_at)}</time></dd></div><div><dt>Review expires</dt><dd><time dateTime={r.expires_at}>{dateTime(r.expires_at)}</time></dd></div></dl>
+    <details className="receipt-more"><summary>Price details</summary>
+      <dl className="receipt-facts"><div><dt>Price version</dt><dd>{r.quote_version}</dd></div><div><dt>Prices checked</dt><dd><time dateTime={r.created_at}>{dateTime(r.created_at)}</time></dd></div><div><dt>Review expires</dt><dd><time dateTime={r.expires_at}>{dateTime(r.expires_at)}</time></dd></div></dl>
       <EvidenceList evidence={r.evidence} />
     </details>
-    {approval && <div className={`approval-note${approved ? ' is-ok' : ''}`}><Icon name={approved ? 'check' : 'clock'} /><div><strong>App approval: {approval.status.toLowerCase()}</strong><p>Recorded {dateTime(approval.approved_at)}. Expires {dateTime(approval.expires_at)}.</p>
+    {approval && <div className={`approval-note${approved ? ' is-ok' : ''}`}><Icon name={approved ? 'check' : 'clock'} /><div><strong>Your approval: {approvalWord[approval.status]}</strong><p>Recorded {dateTime(approval.approved_at)}. Expires {dateTime(approval.expires_at)}.</p>
       <p className="fine-print">Cart mandate <span className="mono" title={r.digest}>{fingerprint(r.digest)}</span>: a fingerprint of this exact merchant, item, quantity, charges and total. Any change voids it.</p><p className="fine-print">The server checks validity again before any payment operation.</p></div></div>}
     {!locked && !approved && <div className="consent">
       {localExpired && <p className="alert is-warning">This review appears expired on this device. Reload the status and request a fresh review. The server’s time decides.</p>}
@@ -844,8 +844,8 @@ function CheckoutStart({ approval, session, busy, onStart, onReload }: { approva
   const ready = approval.status === 'APPROVED' && !!caps?.ai_ready && !!caps.paypal_ready;
   const permitted = ready && !!caps?.financial_actions_enabled;
   return <section className="panel checkout reveal" aria-labelledby="checkout-heading">
-    <div className="panel-head"><Icon name="card" /><div><h2 id="checkout-heading">Sandbox checkout</h2><p className="fine-print">App approval is <strong>{approval.status.toLowerCase()}</strong>. This approval has not started a payment.</p></div></div>
-    <ol className="mini-steps"><li>We create one PayPal order for this exact cart</li><li>You approve it in the PayPal window</li><li>The server captures and verifies the result</li></ol>
+    <div className="panel-head"><Icon name="card" /><div><h2 id="checkout-heading">Sandbox checkout</h2><p className="fine-print">Your approval is <strong>{approvalWord[approval.status]}</strong>. Nothing has been charged yet.</p></div></div>
+    <ol className="mini-steps"><li>We create one PayPal order for this exact cart</li><li>You approve it in the PayPal window</li><li>We take the payment and check it with PayPal</li></ol>
     {ready && !permitted && caps?.consent_mode !== 'buyer' && <div className="alert is-info"><Icon name="lock" /><div><strong>Waiting for payment permission</strong><p>This server runs in strict mode: a person gives one-time consent outside the browser by running <code>manage.py authorize_sandbox_purchase</code> and typing the total. This page updates by itself when it’s given.</p><button className="btn small" disabled={busy} onClick={onReload}><Icon name="refresh" />Check now</button></div></div>}
     {caps?.consent_mode === 'buyer' && permitted && <p className="consent-note"><Icon name="check" />Your approval above authorizes this one sandbox order, for this exact total, until it expires.</p>}
     <button className="btn primary wide" disabled={busy || !permitted} aria-describedby="checkout-permission" onClick={onStart}>Start sandbox checkout<Icon name="arrow" /></button>
@@ -853,15 +853,18 @@ function CheckoutStart({ approval, session, busy, onStart, onReload }: { approva
   </section>;
 }
 
+const approvalWord: Record<NonNullable<PurchaseRequest['approval']>['status'], string> = {
+  APPROVED: 'approved', EXPIRED: 'expired (approve again to pay)', REVOKED: 'no longer valid (the price or offer changed)', CONSUMED: 'used for this payment',
+};
 const attemptText: Record<Attempt['state'], { title: string; body: string; short: string }> = {
-  CREATING: { title: 'Creating the approved sandbox order', body: 'The outcome is still pending. Do not start another purchase.', short: 'Creating order…' },
-  AWAITING_BUYER: { title: 'Awaiting PayPal buyer approval', body: 'App approval is recorded. A completed payment has not been verified.', short: 'Approve in PayPal' },
-  CAPTURING: { title: 'Payment capture is pending', body: 'A capture may already have been dispatched. Check this existing attempt; do not pay again.', short: 'Capturing…' },
-  VERIFYING: { title: 'Verifying payment details', body: 'The server has not yet verified the final payment result.', short: 'Verifying…' },
-  UNKNOWN: { title: 'Payment status is unknown', body: 'A timeout does not prove failure. Check the existing payment status before taking any further action.', short: 'Status unknown' },
-  PAYMENT_REVIEW: { title: 'Payment needs manual review', body: 'A completed payment has mismatched details. Manual resolution is required. Do not start another purchase.', short: 'Needs review' },
-  PAID: { title: 'Payment confirmed', body: 'The server verified the completed payment against the approved cart. This does not confirm shipment or delivery.', short: 'Paid' },
-  STOPPED: { title: 'Payment attempt stopped', body: 'This attempt cannot capture. Check the decision history before preparing a fresh review.', short: 'Stopped' },
+  CREATING: { title: 'Creating your PayPal order', body: 'One order for this exact cart. Please don’t start another purchase meanwhile.', short: 'Creating order…' },
+  AWAITING_BUYER: { title: 'Waiting for you in PayPal', body: 'You approved the cart. Finish in the PayPal window; nothing is paid until you do.', short: 'Waiting for PayPal' },
+  CAPTURING: { title: 'Taking the payment', body: 'PayPal may already be taking the payment. Don’t pay again; check the payment status.', short: 'Taking payment…' },
+  VERIFYING: { title: 'Checking the payment with PayPal', body: 'We confirm the amount, shop and order with PayPal before saying it’s paid.', short: 'Checking…' },
+  UNKNOWN: { title: 'We’re confirming the payment', body: 'A slow reply doesn’t mean it failed. Check the payment status before doing anything else.', short: 'Confirming…' },
+  PAYMENT_REVIEW: { title: 'This payment needs a manual check', body: 'PayPal’s record doesn’t match the approved cart. Nothing more will be charged; please contact support.', short: 'Needs a check' },
+  PAID: { title: 'Payment confirmed', body: 'PayPal confirmed the payment for exactly the cart you approved.', short: 'Paid' },
+  STOPPED: { title: 'Payment cancelled', body: 'No money was taken for this payment. Review the cart again to buy it.', short: 'Not completed' },
 };
 export function paymentTransitionNotice(current: Attempt, incoming: Attempt): string | null {
   if (current.id !== incoming.id || current.state === incoming.state || Date.parse(incoming.updated_at) < Date.parse(current.updated_at)) return null;
@@ -882,12 +885,12 @@ export function PaymentStatus({ attempt: a, financialEnabled, busy, pollEnded, o
     <h2 id="payment-heading">{message.title}</h2>
     <p {...(uncertain ? { role: 'alert' } : {})}>{message.body}</p>
     <ol className="track" aria-label="Payment progress">{trackSteps.map((name, i) => <li key={name} className={i < at ? 'is-done' : i === at && a.state !== 'PAID' ? (uncertain ? 'is-alert' : a.state === 'STOPPED' ? 'is-stopped' : 'is-now') : undefined}><span aria-hidden="true" />{name}</li>)}</ol>
-    <dl className="receipt-facts"><div><dt>Approved total</dt><dd>{money(a.total_cents)} USD</dd></div><div><dt>Attempt reference</dt><dd>{idShort(a.id)}</dd></div><div><dt>Stored status</dt><dd>{a.state.replaceAll('_', ' ').toLowerCase()}</dd></div><div><dt>Last updated</dt><dd><time dateTime={a.updated_at}>{dateTime(a.updated_at)}</time></dd></div>{a.pending_operation && <div><dt>Pending operation</dt><dd>{a.pending_operation}</dd></div>}{a.capture_id && <div><dt>Capture reference</dt><dd className="mono">{a.capture_id}</dd></div>}</dl>
-    {pending(a) && <p className="fine-print">{pollEnded ? 'Automatic checks paused after a bounded wait. Check the existing payment manually.' : 'Checking the saved status every few seconds. No payment action is retried.'}</p>}
-    <div className="actions">{permitted(a, 'check_status', financialEnabled) && <button className="btn" disabled={busy} onClick={() => onAction('reconcile')}><Icon name="refresh" />Check existing payment status</button>}{permitted(a, 'stop', financialEnabled) && a.reason_code !== 'STOP_REQUESTED' && <button className="btn quiet" disabled={busy} onClick={() => onAction('stop')}>Request stop</button>}</div>
+    <dl className="receipt-facts"><div><dt>Approved total</dt><dd>{money(a.total_cents)} USD</dd></div><div><dt>Payment reference</dt><dd>{idShort(a.id)}</dd></div><div><dt>Status</dt><dd>{message.short}</dd></div><div><dt>Last updated</dt><dd><time dateTime={a.updated_at}>{dateTime(a.updated_at)}</time></dd></div>{a.pending_operation && <div><dt>Pending operation</dt><dd>{a.pending_operation}</dd></div>}{a.capture_id && <div><dt>Capture reference</dt><dd className="mono">{a.capture_id}</dd></div>}</dl>
+    {pending(a) && <p className="fine-print">{pollEnded ? 'Automatic checks paused. Use “Check payment status”.' : 'Checking with PayPal every few seconds. Nothing is charged twice.'}</p>}
+    <div className="actions">{permitted(a, 'check_status', financialEnabled) && <button className="btn" disabled={busy} onClick={() => onAction('reconcile')}><Icon name="refresh" />Check payment status</button>}{permitted(a, 'stop', financialEnabled) && a.reason_code !== 'STOP_REQUESTED' && <button className="btn quiet" disabled={busy} onClick={() => onAction('stop')}>Cancel this payment</button>}</div>
     {a.reason_code === 'STOP_REQUESTED'
-      ? <p className="consent-note"><Icon name="check" />Stop requested. The server first confirms with PayPal that nothing was captured, then stops this attempt. Use “Check existing payment status”.</p>
-      : permitted(a, 'stop', financialEnabled) && <p className="fine-print">Stopping cannot undo a dispatched payment. An uncertain outcome remains under status checks.</p>}
+      ? <p className="consent-note"><Icon name="check" />Cancellation requested. We’re confirming with PayPal that no money was taken, then this payment is cancelled. Use “Check payment status”.</p>
+      : permitted(a, 'stop', financialEnabled) && <p className="fine-print">If PayPal has already taken the payment, cancelling here can’t reverse it; you can then request a refund.</p>}
   </section>;
 }
 
@@ -896,25 +899,25 @@ const refundText: Record<RefundState, string> = {
   NOT_SENT: 'Refund permission was unavailable. Nothing was sent to PayPal.',
   PENDING: 'PayPal is processing the refund. Check again shortly.',
   UNKNOWN: 'The refund outcome is uncertain. Check again; it can never refund more than was paid.',
-  REFUNDED: 'Refunded in full to the buyer’s PayPal.',
+  REFUNDED: 'Cancelled. The full amount was refunded to the buyer’s PayPal.',
   DECLINED: 'PayPal did not complete the refund.',
 };
-// "Undo": one full PayPal refund of a verified paid purchase, after an explicit confirm.
+// Cancel order & refund: one full PayPal refund of a verified paid purchase, after an explicit confirm.
 export function RefundPanel({ attempt: a, busy, onRefund }: { attempt: Attempt; busy: boolean; onRefund: () => void }) {
   const [confirming, setConfirming] = useState(false);
   const r = a.refund;
   const can = a.allowed_actions.includes('refund');
   if (a.state !== 'PAID' || (!r && !can)) return null;
   return <section className={`panel refund reveal${r?.state === 'REFUNDED' ? ' is-refunded' : ''}`} aria-labelledby="refund-heading">
-    <h2 id="refund-heading">{r?.state === 'REFUNDED' ? 'Purchase undone' : 'Changed your mind?'}</h2>
+    <h2 id="refund-heading">{r?.state === 'REFUNDED' ? 'Order cancelled and refunded' : 'Need to cancel this order?'}</h2>
     {r ? <p role="status">{refundText[r.state]}{r.provider_refund_id && <span className="fine-print mono"> · {r.provider_refund_id}</span>}</p>
-      : <p className="fine-print">Undo sends one full refund of {money(a.total_cents)} through PayPal and returns the stock. It cannot refund more than was paid.</p>}
+      : <p className="fine-print">Cancelling refunds the full {money(a.total_cents)} to the buyer’s PayPal and returns the items to stock. Available for 7 days after payment.</p>}
     {can && (confirming || r
       ? <div className="actions">
-          <button className="btn primary" disabled={busy} onClick={() => { setConfirming(false); onRefund(); }}><Icon name="refresh" />{r ? (r.state === 'PENDING' ? 'Check refund' : 'Retry refund') : `Yes, refund ${money(a.total_cents)}`}</button>
-          {!r && <button className="btn quiet" disabled={busy} onClick={() => setConfirming(false)}>Keep purchase</button>}
+          <button className="btn primary" disabled={busy} onClick={() => { setConfirming(false); onRefund(); }}><Icon name="refresh" />{r ? (r.state === 'PENDING' ? 'Check refund status' : 'Try the refund again') : `Yes, cancel and refund ${money(a.total_cents)}`}</button>
+          {!r && <button className="btn quiet" disabled={busy} onClick={() => setConfirming(false)}>Keep the order</button>}
         </div>
-      : <div className="actions"><button className="btn" disabled={busy} onClick={() => setConfirming(true)}>Undo purchase</button></div>)}
+      : <div className="actions"><button className="btn" disabled={busy} onClick={() => setConfirming(true)}>Cancel order &amp; refund</button></div>)}
   </section>;
 }
 
@@ -937,8 +940,8 @@ export function PayPalCheckout({ session, attempt, busy, onApprove }: { session:
     setStatus('Loading sandbox checkout');
     void preparePayPal(session, attempt, {
       onApprove: id => approve.current(id),
-      onCancel: () => { if (active) { flow.current = null; setStatus('PayPal approval canceled. No payment outcome is assumed. Check the existing payment status.'); } },
-      onError: () => { if (active) { flow.current = null; setStatus('PayPal checkout could not continue. Check the existing payment status before reopening it.'); } },
+      onCancel: () => { if (active) { flow.current = null; setStatus('PayPal approval canceled. No payment outcome is assumed. Check the payment status.'); } },
+      onError: () => { if (active) { flow.current = null; setStatus('PayPal checkout could not continue. Check the payment status before reopening it.'); } },
     }).then(prepared => {
       if (!active) { prepared.dispose(); return; }
       preparedFlow = prepared; flow.current = prepared; setStatus('Ready to open the existing sandbox order');
@@ -951,7 +954,7 @@ export function PayPalCheckout({ session, attempt, busy, onApprove }: { session:
     const prepared = flow.current;
     if (!prepared || busy) return;
     flow.current = null; setStatus('Complete buyer approval in PayPal. The server must still verify payment.');
-    void prepared.start().catch(() => setStatus('Sandbox checkout could not open. Check the existing payment status.'));
+    void prepared.start().catch(() => setStatus('Sandbox checkout could not open. Check the payment status.'));
   }
   return <section className="panel paypal reveal" aria-label="PayPal buyer approval">
     <p className="paypal-status" role="status">{status === 'Loading sandbox checkout' && <span className="spinner" aria-hidden="true" />}{status}</p>
@@ -975,9 +978,9 @@ export function receiptHtml(r: Review, a: Attempt): string {
 <style>body{font:15px/1.5 system-ui,sans-serif;max-width:560px;margin:40px auto;padding:0 16px;color:#1a1714}h1{font-size:22px}table{width:100%;border-collapse:collapse}td{padding:6px 0;border-bottom:1px dashed #cfc6b6}td:last-child{text-align:right;font-family:monospace}.total td{font-weight:700;font-size:18px;border:0}p{color:#6a6258;font-size:13px}</style></head><body>
 <h1>Payment receipt</h1><p>PayPal sandbox — test money only. Fictional goods; no real shipment.</p><table>
 ${row('Merchant', r.merchant.name)}${row('Item', `${r.item.name} (${r.item.sku})`)}${row('Quantity', `${r.item.packs} packs × ${r.item.pack_units} = ${r.item.individual_units} units`)}
-${row('Items', money(r.subtotal_cents))}${row('Delivery', money(r.shipping_cents))}${row('Fixture tax', money(r.tax_cents))}${row('Discount', `−${money(r.discount_cents)}`)}
+${row('Items', money(r.subtotal_cents))}${row('Delivery', money(r.shipping_cents))}${row('Tax (test rate)', money(r.tax_cents))}${row('Discount', `−${money(r.discount_cents)}`)}
 <tr class="total"><td>Total paid</td><td>${escapeHtml(money(a.total_cents))} USD</td></tr></table><table>
-${row('Status', a.refund?.state === 'REFUNDED' ? 'Refunded in full' : a.state === 'PAID' ? 'Paid, verified by the server' : a.state.toLowerCase())}${row('Cart mandate (SHA-256)', r.digest)}${row('Capture reference', a.capture_id ?? '—')}${row('Attempt reference', idShort(a.id))}${row('Updated', dateTime(a.updated_at))}
+${row('Status', a.refund?.state === 'REFUNDED' ? 'Cancelled and refunded in full' : a.state === 'PAID' ? 'Paid, verified by the server' : a.state.toLowerCase())}${row('Cart mandate (SHA-256)', r.digest)}${row('PayPal transaction ID', a.capture_id ?? '—')}${row('Payment reference', idShort(a.id))}${row('Updated', dateTime(a.updated_at))}
 </table><p>Generated by SpendConsent from the server-verified payment record.</p></body></html>`;
 }
 function downloadReceipt(r: Review, a: Attempt) {
@@ -989,22 +992,28 @@ function downloadReceipt(r: Review, a: Attempt) {
   play('tick');
 }
 
-function purchaseState(p: PurchaseRequest): { label: string; tone: string } {
+function purchaseState(p: PurchaseRequest): { label: string; tone: string; hint: string } {
   const a = p.attempt;
-  if (a?.refund?.state === 'REFUNDED') return { label: 'Refunded', tone: 'muted' };
-  if (a && a.state !== 'STOPPED') return a.state === 'PAID' ? { label: a.refund ? 'Refund pending' : 'Paid', tone: a.refund ? 'busy' : 'ok' }
-    : ['UNKNOWN', 'PAYMENT_REVIEW'].includes(a.state) ? { label: attemptText[a.state].short, tone: 'warn' } : { label: attemptText[a.state].short, tone: 'busy' };
-  if (p.approval?.status === 'APPROVED') return { label: 'Approved', tone: 'busy' };
-  if (p.approval?.status === 'EXPIRED' || p.approval?.status === 'REVOKED') return { label: `Approval ${p.approval.status.toLowerCase()}`, tone: 'muted' };
-  return { label: 'Reviewed', tone: 'muted' };
+  if (a?.refund?.state === 'REFUNDED') return { label: 'Cancelled · refunded', tone: 'muted', hint: 'This order was cancelled and the full amount refunded through PayPal.' };
+  if (a?.state === 'PAID') return a.refund
+    ? { label: 'Refund in progress', tone: 'busy', hint: refundText[a.refund.state] }
+    : { label: 'Paid', tone: 'ok', hint: 'Paid and confirmed with PayPal. You can cancel and get a refund for 7 days after payment.' };
+  if (a && a.state !== 'STOPPED') return { label: attemptText[a.state].short, tone: ['UNKNOWN', 'PAYMENT_REVIEW'].includes(a.state) ? 'warn' : 'busy', hint: attemptText[a.state].body };
+  if (a?.state === 'STOPPED') return { label: 'Not completed', tone: 'muted', hint: 'The payment was cancelled before any money was taken.' };
+  if (p.approval?.status === 'APPROVED') return { label: 'Approved · not paid', tone: 'busy', hint: 'You approved this cart but haven’t paid yet.' };
+  if (p.approval?.status === 'EXPIRED') return { label: 'Not paid · approval expired', tone: 'muted', hint: 'Approvals last a few minutes. No money was taken. Buy again to start a fresh one.' };
+  if (p.approval?.status === 'REVOKED') return { label: 'Not paid · price changed', tone: 'muted', hint: 'The shop changed the price or offer after you approved, so the approval was cancelled. No money was taken.' };
+  return { label: 'Not approved', tone: 'muted', hint: 'You reviewed this cart but didn’t approve it. No money was taken.' };
 }
 function PurchasesPanel({ api, canBuyAgain, onClose, onBuyAgain }: { api: Api; canBuyAgain: boolean; onClose: () => void; onBuyAgain: (p: PurchaseRequest) => void }) {
   const [rows, setRows] = useState<PurchaseRequest[] | null>(null);
   const [failed, setFailed] = useState(false);
+  const [openId, setOpenId] = useState<string | null>(null);
   const close = useRef<HTMLButtonElement>(null);
+  const load = (signal?: AbortSignal) => api.purchases(signal).then(result => setRows(result.purchases)).catch(() => { if (!signal?.aborted) setFailed(true); });
   useEffect(() => {
     const controller = new AbortController();
-    api.purchases(controller.signal).then(result => setRows(result.purchases)).catch(() => { if (!controller.signal.aborted) setFailed(true); });
+    void load(controller.signal);
     close.current?.focus();
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
     window.addEventListener('keydown', onKey);
@@ -1013,26 +1022,66 @@ function PurchasesPanel({ api, canBuyAgain, onClose, onBuyAgain }: { api: Api; c
   const paid = rows?.filter(p => p.attempt?.state === 'PAID' && p.attempt.refund?.state !== 'REFUNDED') ?? [];
   const paidTotal = paid.reduce((sum, p) => sum + p.attempt!.total_cents, 0);
   const saved = paid.reduce((sum, p) => sum + Math.max(0, savings(p, p.review!.item.offer_id).vsNext ?? 0), 0);
+  const open = rows?.find(p => p.id === openId) ?? null;
   return <div className="drawer-backdrop" onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
     <aside className="drawer" role="dialog" aria-modal="true" aria-labelledby="purchases-heading">
-      <header className="drawer-head"><div><h2 id="purchases-heading">Your purchases</h2><p className="fine-print">In this browser · PayPal sandbox{rows?.length ? ` · ${money(paidTotal)} paid` : ''}{saved > 0 ? ` · ${money(saved)} saved vs next offers` : ''}</p></div>
+      <header className="drawer-head"><div><h2 id="purchases-heading">{open ? 'Order details' : 'Your purchases'}</h2><p className="fine-print">In this browser · PayPal sandbox{!open && rows?.length ? ` · ${money(paidTotal)} paid` : ''}{!open && saved > 0 ? ` · ${money(saved)} saved vs next offers` : ''}</p></div>
         <button ref={close} type="button" className="icon-button" aria-label="Close purchases" onClick={onClose}><Icon name="plus" /></button></header>
       {failed && <p className="alert is-error">Purchases could not be loaded. Close and try again.</p>}
       {!rows && !failed && <div className="skeletons"><div className="skeleton short" /><div className="skeleton short" /><div className="skeleton short" /></div>}
-      {rows && rows.length === 0 && <div className="empty"><Icon name="list" /><p>No purchases yet. Carts you review, approve and pay will appear here.</p></div>}
-      {rows && rows.length > 0 && <ol className="purchase-list">{rows.map((p, i) => {
+      {open && <OrderDetail api={api} purchase={open} canBuyAgain={canBuyAgain} onBack={() => setOpenId(null)} onBuyAgain={onBuyAgain} onChanged={() => void load()} />}
+      {!open && rows && rows.length === 0 && <div className="empty"><Icon name="list" /><p>No purchases yet. Carts you review, approve and pay will appear here.</p></div>}
+      {!open && rows && rows.length > 0 && <ol className="purchase-list">{rows.map((p, i) => {
         const r = p.review!; const s = purchaseState(p);
         return <li key={p.id} className="purchase reveal" style={delay(i)}>
-          <div className="purchase-main"><p className="purchase-name">{r.item.name}</p>
-            <p className="fine-print">{r.item.packs} × {r.item.pack_units} = {r.item.individual_units} units · <time dateTime={r.created_at}>{dateTime(r.created_at)}</time></p></div>
-          <div className="purchase-side"><strong className="mono">{money(r.total_cents)}</strong><span className={`status-chip is-${s.tone}`}>{s.label}</span></div>
-          <div className="purchase-actions">
-            {p.attempt?.state === 'PAID' && <button type="button" className="btn small" onClick={() => downloadReceipt(r, p.attempt!)}><Icon name="download" />Receipt</button>}
-            <button type="button" className="btn small quiet" disabled={!canBuyAgain} onClick={() => onBuyAgain(p)}><Icon name="refresh" />Buy again</button>
-          </div>
+          <button type="button" className="purchase-open" onClick={() => { setOpenId(p.id); play('tick'); }} aria-label={`Open order: ${r.item.name}, ${s.label}`}>
+            <span className="purchase-main"><span className="purchase-name">{r.item.name}</span>
+              <span className="fine-print">{plural(r.item.individual_units, 'unit')} · <time dateTime={r.created_at}>{dateTime(r.created_at)}</time></span></span>
+            <span className="purchase-side"><strong className="mono">{money(r.total_cents)}</strong><span className={`status-chip is-${s.tone}`}>{s.label}</span></span>
+            <span className="purchase-more">View order<Icon name="arrow" /></span>
+          </button>
         </li>;
       })}</ol>}
     </aside>
+  </div>;
+}
+// One order: what was bought, what it cost, its payment, its history, and what you can do now.
+function OrderDetail({ api, purchase: p, canBuyAgain, onBack, onBuyAgain, onChanged }: { api: Api; purchase: PurchaseRequest; canBuyAgain: boolean; onBack: () => void; onBuyAgain: (p: PurchaseRequest) => void; onChanged: () => void }) {
+  const [busy, setBusy] = useState('');
+  const [error, setError] = useState('');
+  const r = p.review!; const a = p.attempt; const s = purchaseState(p);
+  async function act(label: string, path: string) {
+    setBusy(label); setError('');
+    try { await api.mutateAttempt(path); play('success'); onChanged(); }
+    catch (e) { setError(asError(e).message); play('error'); }
+    finally { setBusy(''); }
+  }
+  return <div className="order reveal">
+    <button type="button" className="ghost-link" onClick={onBack}>← All purchases</button>
+    <header className="order-head"><div><h3>{r.item.name}</h3><p className="fine-print">{r.merchant.name} · {a?.state === 'PAID' ? 'ordered' : 'cart prepared'} <time dateTime={r.created_at}>{dateTime(r.created_at)}</time></p></div>
+      <span className={`status-chip is-${s.tone}`}>{s.label}</span></header>
+    <p className="order-hint">{s.hint}</p>
+    {error && <p className="alert is-error" role="alert">{error}</p>}
+    <dl className="receipt-facts">
+      <div><dt>Quantity</dt><dd>{r.item.packs} packs × {r.item.pack_units} = {plural(r.item.individual_units, 'unit')}</dd></div>
+      <div><dt>Size</dt><dd>{r.item.specification}</dd></div>
+      <div><dt>Delivery to</dt><dd>{r.shipping.destination_label}</dd></div>
+    </dl>
+    <PriceBreakdown charges={r} />
+    {a && <dl className="receipt-facts">
+      <div><dt>Payment</dt><dd>{attemptText[a.state].short}{a.state === 'PAID' && <> · <time dateTime={a.updated_at}>{dateTime(a.updated_at)}</time></>}</dd></div>
+      {a.capture_id && <div><dt>PayPal transaction ID</dt><dd className="mono">{a.capture_id}</dd></div>}
+      <div><dt>Cart mandate</dt><dd className="mono" title={r.digest}>{fingerprint(r.digest)}</dd></div>
+    </dl>}
+    {a && <RefundPanel attempt={a} busy={!!busy} onRefund={() => void act('Sending the refund to PayPal', `/api/attempts/${a.id}/refund`)} />}
+    {busy && <p className="fine-print" role="status">{busy}…</p>}
+    <div className="purchase-actions">
+      {a?.state === 'PAID' && <button type="button" className="btn small" onClick={() => downloadReceipt(r, a)}><Icon name="download" />Receipt</button>}
+      {a && pending(a) && <button type="button" className="btn small" disabled={!!busy} onClick={() => void act('Checking the payment status', `/api/attempts/${a.id}/reconcile`)}><Icon name="refresh" />Check payment status</button>}
+      <button type="button" className="btn small quiet" disabled={!canBuyAgain} onClick={() => onBuyAgain(p)}><Icon name="refresh" />Buy again</button>
+    </div>
+    <details className="order-history"><summary>Order history · {plural(p.events.length, 'event')}</summary>
+      <ol>{p.events.map(e => <li key={e.id}><time dateTime={e.created_at}>{dateTime(e.created_at)}</time><span>{e.message}</span></li>)}</ol></details>
   </div>;
 }
 

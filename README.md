@@ -31,7 +31,7 @@ the human approves the exact cart, PayPal moves the money.**
 | Review | Server | Immutable snapshot + digest, 5-minute expiry |
 | Approve | Buyer, in the app | Binds that exact cart. Any later price or offer change revokes it, even within budget |
 | Pay | PayPal Orders v2 + JS SDK v6 (sandbox) | Server creates and captures the order, then reads it back independently (amount, currency, payee, order) before showing "Payment confirmed". Uncertain outcomes stay UNKNOWN; nothing is retried blindly |
-| Undo | PayPal Payments v2 refund, owner-confirmed, 7 days | One full refund per purchase with its own idempotency key; verified against the original capture; stock returned once |
+| Cancel & refund | PayPal Payments v2 refund, owner-confirmed, 7 days | One full refund per purchase with its own idempotency key; verified against the original capture; stock returned once |
 
 ## Evidence
 

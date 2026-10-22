@@ -52,7 +52,7 @@ Deadline 12 Nov 2026 noon PST (13 Nov 01:30 IST).
 - Built: redesigned UI, sounds, live AI progress, owner approval links, purchases
   drawer, MCP server (agents shop, cannot approve/pay), Channel3 market check
   (user's free key in `.env`), savings insight, cart-mandate fingerprint,
-  **Undo = owner-confirmed full PayPal refund within 7 days** (review PASS).
+  **Cancel order & refund = owner-confirmed full PayPal refund within 7 days** (review PASS).
 - **AI re-qualified after the refund change: report a01b9f9, 160/160**, warm
   medians 16–23 s (f7f75ab run kept: interrupted by a power-off).
 - **Docker** one-command start verified end to end; **CI** green on GitHub.
@@ -62,7 +62,7 @@ Deadline 12 Nov 2026 noon PST (13 Nov 01:30 IST).
   `docs/impact-evidence.md`). Judge audit: `docs/judge-audit.md`.
 - Buyer-consent mode (cap $100) is how the API runs. Public/money steps need the
   user's approval.
-- **Next:** user live-tests Undo; demo video (`docs/demo-script.md`), Devpost
+- **Next:** user live-tests Cancel & refund; demo video (`docs/demo-script.md`), Devpost
   (`docs/submission-draft.md`), judge sandbox access, public repo, submit by 10 Nov.
 
 ## Known limits

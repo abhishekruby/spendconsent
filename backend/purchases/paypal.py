@@ -350,7 +350,7 @@ class SandboxClient:
         except (TypeError, ValueError, KeyError, Refund.DoesNotExist):
             raise PayPalUnavailable("BINDING_UNVERIFIED") from None
         raw = self._json("POST", f"/v2/payments/captures/{capture_id}/refund",
-                         {"amount": _money(refund.total_cents), "note_to_payer": "Purchase undone in SpendConsent."}, key, (200, 201))
+                         {"amount": _money(refund.total_cents), "note_to_payer": "Order cancelled in SpendConsent; full refund."}, key, (200, 201))
         return normalize_refund(raw, capture_id, refund.total_cents)
 
     def get_refund(self, refund_id):

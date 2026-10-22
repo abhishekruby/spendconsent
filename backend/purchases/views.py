@@ -288,7 +288,7 @@ def _attempt_action(acting_owner, pk, action):
     attempt = _owned_attempt(acting_owner, pk)
     if action == "refund":
         if attempt.state != "PAID":
-            raise services.DomainError("NOT_REFUNDABLE", "Only a verified paid purchase can be undone.", 409, attempt.request_id)
+            raise services.DomainError("NOT_REFUNDABLE", "Only a paid order can be cancelled and refunded.", 409, attempt.request_id)
         config = runtime_paypal.configuration()
         if not config or not runtime_paypal.refund_allowed(attempt, config):
             raise checkout.DispatchDenied()

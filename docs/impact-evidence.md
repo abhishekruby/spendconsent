@@ -15,7 +15,7 @@ attitudes in general, not our users; they do not prove demand for SpendConsent.
 | Safeguard people ask for | SpendConsent |
 | --- | --- |
 | Explicit approval before checkout | Exact-cart review; approval binds merchant, item, quantity, charges and total; any change voids it |
-| Hard spending limits | Spending rule (category, per-order cap, monthly count), checked by code, not the model |
-| Protected payment details | The agent never sees payment data; PayPal holds the saved account |
-| Accountability when it goes wrong | One-tap undo: a full PayPal refund, verified against the capture |
+| Hard spending limits | The buyer's max total (delivery and tax included) is enforced by code, not the model; sandbox orders are capped at $100 |
+| Protected payment details | The AI and the agent never see payment data; the buyer pays in PayPal's own window |
+| Accountability when it goes wrong | Cancel order & refund for 7 days: a full PayPal refund, verified against the capture |
 | Agent mistakes | Exact size/quantity/budget checks; 160/160 on blind AI tests; the agent cannot approve or pay |

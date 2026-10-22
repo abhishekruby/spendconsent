@@ -15,7 +15,7 @@ single most requested safeguard, and a guaranteed return window made people far
 more willing to give an agent a budget.
 
 We took that literally. The agent does all the tedious work. A person approves
-the exact cart. PayPal moves the money, and you can undo it.
+the exact cart. PayPal moves the money, and you can cancel and get a refund.
 
 Our test case is the small business that reorders the same supplies every month
 (cloths, bin bags, spray bottles, notebooks). The hard part is not clicking "buy";
@@ -38,7 +38,7 @@ needed, and keeping the delivered total, with tax, inside the budget.
 4. **Pay with PayPal.** The server creates and captures the order, then reads it
    back from PayPal (amount, payee, order) before it says "Paid". Uncertain
    outcomes stay "unknown"; nothing is retried blindly.
-5. **Undo for 7 days.** One tap issues a full PayPal refund, verified against the
+5. **Cancel & refund for 7 days.** One click issues a full PayPal refund, verified against the
    original capture.
 
 **Any AI agent can use it.** SpendConsent is also an MCP server. Claude Desktop (or
@@ -92,11 +92,11 @@ that never claims "paid" without PayPal's own record.
 ## What we learned
 
 Trust is the product. "Can the AI buy it?" is easy; "will people let it?" needs
-exact approvals, hard limits, protected payment details and an undo.
+exact approvals, hard limits, protected payment details and an easy refund.
 
 ## What's next
 
-Spending rules for low-risk reorders (approve once within a limit, with undo),
+Spending rules for low-risk reorders (approve once within a limit, with cancel & refund),
 real supplier catalogs, and approval by push notification.
 
 ## Built with

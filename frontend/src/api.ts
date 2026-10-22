@@ -16,7 +16,7 @@ const messages: Record<string, string> = {
   STALE_VERSION: 'The saved request changed. Reload its current version before continuing.',
   VERSION_CONFLICT: 'The saved request changed. Reload its current version before continuing.',
   FINANCIAL_ACTIONS_DISABLED: 'Payment was not allowed for this cart: its approval expired or is no longer valid. No money was taken. Review the cart and approve again to pay.',
-  NOT_REFUNDABLE: 'Only a verified paid purchase can be undone.',
+  NOT_REFUNDABLE: 'Only a paid order can be cancelled and refunded, within 7 days of payment.',
   INTEGRATION_UNAVAILABLE: 'Payment integration is unavailable. The stored status has not been resolved.',
 };
 export class ApiError extends Error {
