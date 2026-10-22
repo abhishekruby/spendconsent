@@ -1,0 +1,32 @@
+# Tests on every push: real PostgreSQL 16, no network services, no secrets.
+name: tests
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  backend:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Python packages (hash-pinned)
+        run: python3 -m venv .venv && .venv/bin/pip install --require-hashes -r backend/requirements.txt
+      - name: Project PostgreSQL (socket only)
+        run: python3 scripts/local_postgres.py --init --start
+      - name: Migrate and test
+        run: |
+          .venv/bin/python backend/manage.py migrate --noinput
+          .venv/bin/python backend/manage.py test purchases --keepdb --noinput
+      - name: Helper self-tests
+        run: |
+          python3 scripts/spendconsent_mcp.py --self-test
+          .venv/bin/python scripts/ai_application_eval.py --self-test
+  frontend:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm --prefix frontend ci
+      - run: npm --prefix frontend test
+      - run: npm --prefix frontend run build
