@@ -414,9 +414,10 @@ export function App() {
         {!thinking && drafting && session && <ol className="how reveal" style={delay(6)} aria-label="How it works">
           <li><b>Describe</b><span>Plain words. The AI reads them; nothing is guessed.</span></li>
           <li><b>Compare</b><span>Full delivered cost, wrong sizes ruled out.</span></li>
-          <li><b>Approve</b><span>One exact cart, and only you can approve it.</span></li>
-          <li><b>Pay</b><span>PayPal sandbox, verified by the server.</span></li>
+          <li><b>Approve</b><span>One exact cart, approved by a person: you or the owner, from any phone.</span></li>
+          <li><b>Pay</b><span>PayPal, verified by the server. Undo within 7 days.</span></li>
         </ol>}
+        {!thinking && drafting && session && <p className="why reveal" style={delay(7)}>Why a person approves: 60% of shoppers would stop using an AI shopping agent after one mistake, and approval before checkout is the safeguard they ask for most. <span className="fine-print">ACI Worldwide/YouGov and RTB House surveys, 2026.</span></p>}
 
         {!thinking && !draftMode && request && <div className="flow">
           {request.constraints && Object.keys(request.constraints).length > 0 && <div className="needs reveal">
@@ -711,7 +712,8 @@ export function ReviewCard({ review: r, approval, locked, disabled, onApprove }:
       <dl className="receipt-facts"><div><dt>Material quote version</dt><dd>{r.quote_version}</dd></div><div><dt>Quote snapshot</dt><dd><time dateTime={r.created_at}>{dateTime(r.created_at)}</time></dd></div><div><dt>Review expires</dt><dd><time dateTime={r.expires_at}>{dateTime(r.expires_at)}</time></dd></div></dl>
       <EvidenceList evidence={r.evidence} />
     </details>
-    {approval && <div className={`approval-note${approved ? ' is-ok' : ''}`}><Icon name={approved ? 'check' : 'clock'} /><div><strong>App approval: {approval.status.toLowerCase()}</strong><p>Recorded {dateTime(approval.approved_at)}. Expires {dateTime(approval.expires_at)}.</p><p className="fine-print">The server checks validity again before any payment operation.</p></div></div>}
+    {approval && <div className={`approval-note${approved ? ' is-ok' : ''}`}><Icon name={approved ? 'check' : 'clock'} /><div><strong>App approval: {approval.status.toLowerCase()}</strong><p>Recorded {dateTime(approval.approved_at)}. Expires {dateTime(approval.expires_at)}.</p>
+      <p className="fine-print">Cart mandate <span className="mono" title={r.digest}>{fingerprint(r.digest)}</span>: a fingerprint of this exact merchant, item, quantity, charges and total. Any change voids it.</p><p className="fine-print">The server checks validity again before any payment operation.</p></div></div>}
     {!locked && !approved && <div className="consent">
       {localExpired && <p className="alert is-warning">This review appears expired on this device. Reload the status and request a fresh review. The server’s time decides.</p>}
       <label className="check"><input type="checkbox" checked={expiryAcknowledged} onChange={e => setExpiryAcknowledged(e.target.checked)} disabled={disabled || !!approval} /><span>I have reviewed this exact cart and its total.</span></label>
@@ -849,6 +851,8 @@ function ModelEvidence({ model }: { model: PurchaseRequest['model'] }) {
 
 const escapeHtml = (value: string | number) => String(value).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
 // A self-contained HTML receipt for a server-verified sandbox payment.
+// The approval is a cart mandate: a SHA-256 fingerprint of exactly what was approved.
+const fingerprint = (digest: string) => `${digest.slice(0, 8)}…${digest.slice(-8)}`;
 export function receiptHtml(r: Review, a: Attempt): string {
   const row = (label: string, value: string) => `<tr><td>${escapeHtml(label)}</td><td>${escapeHtml(value)}</td></tr>`;
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>SpendConsent receipt</title>
@@ -857,7 +861,7 @@ export function receiptHtml(r: Review, a: Attempt): string {
 ${row('Merchant', r.merchant.name)}${row('Item', `${r.item.name} (${r.item.sku})`)}${row('Quantity', `${r.item.packs} packs × ${r.item.pack_units} = ${r.item.individual_units} units`)}
 ${row('Items', money(r.subtotal_cents))}${row('Delivery', money(r.shipping_cents))}${row('Fixture tax', money(r.tax_cents))}${row('Discount', `−${money(r.discount_cents)}`)}
 <tr class="total"><td>Total paid</td><td>${escapeHtml(money(a.total_cents))} USD</td></tr></table><table>
-${row('Status', a.state === 'PAID' ? 'Paid, verified by the server' : a.state.toLowerCase())}${row('Capture reference', a.capture_id ?? '—')}${row('Attempt reference', idShort(a.id))}${row('Updated', dateTime(a.updated_at))}
+${row('Status', a.refund?.state === 'REFUNDED' ? 'Refunded in full' : a.state === 'PAID' ? 'Paid, verified by the server' : a.state.toLowerCase())}${row('Cart mandate (SHA-256)', r.digest)}${row('Capture reference', a.capture_id ?? '—')}${row('Attempt reference', idShort(a.id))}${row('Updated', dateTime(a.updated_at))}
 </table><p>Generated by SpendConsent from the server-verified payment record.</p></body></html>`;
 }
 function downloadReceipt(r: Review, a: Attempt) {

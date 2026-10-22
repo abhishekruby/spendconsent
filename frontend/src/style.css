@@ -164,6 +164,8 @@ h1 { font-size: clamp(36px, 5.4vw, 60px); line-height: 1.02; letter-spacing: -.0
 .how { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; counter-reset: how; }
 .how li { counter-increment: how; display: grid; gap: 4px; padding: 16px 16px 0 0; font-size: 13px; color: var(--muted); line-height: 1.4; }
 .how li::before { content: counter(how, decimal-leading-zero); font: 500 12px var(--mono); color: var(--accent-ink); }
+.why { max-width: 62ch; margin-top: 18px; font-size: 13px; color: var(--muted); line-height: 1.5; }
+.why .fine-print { display: block; margin-top: 2px; }
 .how b { color: var(--ink); font-size: 15px; }
 
 /* AI thinking */
@@ -506,3 +508,6 @@ details[open] > summary::after { transform: rotate(225deg) translateY(-1px); }
 /* Refund ("undo") */
 .panel.refund h2 { font-size: 18px; }
 .panel.refund.is-refunded { border-color: color-mix(in srgb, var(--ok) 35%, var(--line)); }
+/* Phones: keep the top bar inside 375 px (no sideways scroll). */
+@media (max-width: 420px) { .topbar-end { gap: 8px; } .topbar { gap: 8px; } .brand { gap: 8px; font-size: 16px; } .sandbox-chip { padding: 5px 9px 5px 8px; } }
+@media (max-width: 380px) { .brand span { display: none; } }
