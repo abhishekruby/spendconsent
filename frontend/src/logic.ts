@@ -93,3 +93,16 @@ export function readRequest(text: string, c: Constraints): Reading[] {
   if (at < text.length) out.push({ text: text.slice(at) });
   return out;
 }
+// The server lists missing fields ("Please confirm: quantity, budget_cents."); say it like a person.
+const ASK: Record<string, string> = {
+  category: 'what item you need', quantity: 'how many you need', budget_cents: 'the most you want to spend, including delivery and tax',
+  currency: 'that prices are in US dollars', one_time: 'that this is a one-time purchase', 'attributes.width_cm': 'the cloth size (for example 40 × 40 cm)',
+  'attributes.height_cm': 'the cloth size (for example 40 × 40 cm)', 'attributes.capacity_l': 'the bag size in litres',
+  'attributes.volume_ml': 'the bottle size in ml', 'attributes.paper_size': 'the paper size (A4, A5 or A6)',
+};
+export function friendlyQuestion(question: string, missing: string[]): string {
+  const asks = [...new Set(missing.map(field => ASK[field]).filter(Boolean))];
+  if (!asks.length || !/Please confirm: [^.]*\.$/.test(question)) return question;
+  const list = asks.length === 1 ? asks[0] : `${asks.slice(0, -1).join(', ')} and ${asks[asks.length - 1]}`;
+  return question.replace(/Please confirm: [^.]*\.$/, `Please tell me ${list}.`);
+}

@@ -85,7 +85,9 @@ class Shop:
             self.current()
         r = self.request
         if r["status"] == "NEEDS_CLARIFICATION":
-            return f"The buyer must clarify: {r['clarification']['question']} Call find_offers again with the full request."
+            missing = ", ".join(f.removeprefix("attributes.").replace("_cents", "").replace("_", " ") for f in r["clarification"]["missing_fields"])
+            return (f"The buyer must clarify: {r['clarification']['question']}" + (f" (missing: {missing})" if missing else "")
+                    + " Call find_offers again with the full request.")
         lines = [f"Status: {r['status']}. Understood: {json.dumps(r['constraints'])}"]
         lines += [f"- offer_id {c['id']}: {c['name']} ({c['specification']}), {c['packs']} pack(s) = {c['individual_units']} units, "
                   f"delivered total {money(c['total_cents'])} incl. {money(c['shipping_cents'])} delivery and {money(c['tax_cents'])} tax"

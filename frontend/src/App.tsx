@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { CSSProperties, FormEvent, ReactNode } from 'react';
 import { Api, ApiError } from './api.js';
 import type { Attempt, Candidate, Charges, Constraints, Evidence, LinkView, Market, Progress, PurchaseRequest, RefundState, Review, Session } from './contract.js';
-import { canStartNew, locksRequest, money, newerAttempt, newerRequest, parseCents, pending, permitted, purchaseDisplay, readRequest, savings, unitCost } from './logic.js';
+import { canStartNew, locksRequest, money, newerAttempt, newerRequest, parseCents, pending, permitted, friendlyQuestion, purchaseDisplay, readRequest, savings, unitCost } from './logic.js';
 import { PayPalError, preparePayPal } from './paypal.js';
 import { play, setSoundOn, soundOn, unlockAudio } from './sound.js';
 
@@ -425,7 +425,7 @@ export function App() {
             <RequirementChips constraints={request.constraints} />
             {editor && !asksForDetails && <button type="button" className="ghost-link" aria-expanded={editing} onClick={() => setEditing(v => !v)}>{editing ? 'Close' : 'Edit'}</button>}
           </div>}
-          {request.clarification && <div className="question reveal"><Icon name="question" /><div><p className="question-label">Confirm the missing details</p><p>{request.clarification.question}</p></div></div>}
+          {request.clarification && <div className="question reveal"><Icon name="question" /><div><p className="question-label">Confirm the missing details</p><p>{friendlyQuestion(request.clarification.question, request.clarification.missing_fields)}</p></div></div>}
           {editor && (asksForDetails || editing) && <div className="reveal">{editor}</div>}
           {request.status === 'COMPARING' && <div className="alert is-info reveal"><Icon name="clock" /><div><strong>Comparison is still in progress</strong><p>Reload the status to see the server’s result. Nothing is assumed in the meantime.</p><button className="btn small" disabled={!!busy} onClick={() => void refresh()}>Reload status</button></div></div>}
           {(ordered.length > 0 || request.excluded.length > 0) && (collapseComparison

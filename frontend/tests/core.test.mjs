@@ -4,7 +4,7 @@ import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { Api, ApiError, safeApiError } from '../.test-build/api.js';
 import { isAttempt, isConstraints, isLinkCreated, isLinkView, isMarket, isProgress, isPurchaseList, isPurchaseRequest, isSession, linkToken } from '../.test-build/contract.js';
-import { canStartNew, locksRequest, money, newerAttempt, newerRequest, parseCents, pending, permitted, purchaseDisplay, readRequest, savings, unitCost } from '../.test-build/logic.js';
+import { canStartNew, locksRequest, money, newerAttempt, newerRequest, parseCents, pending, permitted, friendlyQuestion, purchaseDisplay, readRequest, savings, unitCost } from '../.test-build/logic.js';
 import { Offer, PaymentStatus, PayPalCheckout, RefundPanel, ReviewCard, paymentTransitionNotice, receiptHtml } from '../.test-build/App.js';
 
 // Explicit local test fixtures only. The running application has no seeded results.
@@ -286,4 +286,12 @@ test('readRequest highlights the buyer words that grounded each value, without o
   const text = 'need cloths';
   assert.equal(readRequest(text, { category: 'cloth' }).map(r => r.text).join(''), text, 'segments rebuild the exact text');
   assert.deepEqual(tags('20 notebooks', { quantity: 7 }), [], 'a value not in the words is never highlighted');
+});
+
+test('missing details are asked like a person, other messages untouched', () => {
+  assert.equal(friendlyQuestion('Please confirm: quantity, budget_cents.', ['quantity', 'budget_cents']),
+    'Please tell me how many you need and the most you want to spend, including delivery and tax.');
+  assert.equal(friendlyQuestion('Confirm USD and one-time terms explicitly. Please confirm: currency.', ['currency']),
+    'Confirm USD and one-time terms explicitly. Please tell me that prices are in US dollars.');
+  assert.equal(friendlyQuestion('No sample offer meets the exact specification.', []), 'No sample offer meets the exact specification.');
 });
