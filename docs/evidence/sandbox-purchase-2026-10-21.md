@@ -50,3 +50,14 @@ transmission (covered by fake-transport tests only).
 The user explicitly confirmed closing or cancelling the PayPal popup before
 reopening it and paying in the recovery test. This remains human-reported
 client-side cancellation; no server cancellation event is asserted.
+
+## 22 Oct 2026: cancel order & refund, live in the sandbox
+
+The user paid an exact cart (CLOTH-B, 2 × 20, USD 41.80; capture
+`6S035772B0342284H`, PAID 13:22:15 UTC), then used **Cancel order & refund** from
+the order page. The server committed one Refund row and key, sent one full refund,
+and verified PayPal's answer against that capture and amount before marking it:
+`REFUND_REQUESTED` 13:32:26 → `REFUNDED` 13:32:29, PayPal refund
+`2LM540587F734534L`, USD 41.80. The refund's `up` link bound it to the capture as
+expected (the realistic-response question from the refund review is answered).
+User-performed sandbox action; test money only.

@@ -510,6 +510,7 @@ function headline({ request, drafting, thinking, offline, stage, attempt, approv
   if (drafting) return { eyebrow: 'New purchase', title: 'What do you need to buy?', sub: 'Describe it the way you’d text a colleague. We compare the full delivered cost, and nothing happens without your OK.' };
   if (!request) return { eyebrow: '', title: 'Your purchase', sub: '' };
   if (stage === 'Payment' && attempt) {
+    if (attempt.refund?.state === 'REFUNDED') return { eyebrow: 'Cancelled', title: 'Order cancelled. Refunded.', sub: 'The full amount went back to the buyer’s PayPal, checked against the original payment.' };
     if (attempt.state === 'PAID') return { eyebrow: 'Done', title: 'Paid. All verified.', sub: 'The server checked the PayPal result against the exact cart you approved.' };
     if (['UNKNOWN', 'PAYMENT_REVIEW'].includes(attempt.state)) return { eyebrow: 'Payment', title: 'Let’s confirm the payment.', sub: 'We never guess an outcome. Check the status before doing anything else.' };
     return { eyebrow: 'Payment', title: 'Paying with PayPal.', sub: 'One approved cart, one saved attempt. The server verifies the result.' };
