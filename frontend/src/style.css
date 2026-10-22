@@ -517,10 +517,12 @@ details[open] > summary::after { transform: rotate(225deg) translateY(-1px); }
 .ai-reading header { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 16px; }
 .ai-reading h2 { display: inline-flex; align-items: center; gap: 8px; font-size: 16px; }
 .ai-reading h2 .icon { color: var(--accent-ink); }
-.reading { margin: 0; font-size: 17px; line-height: 2.5; }
-.reading mark { position: relative; background: color-mix(in srgb, var(--accent) 16%, transparent); color: inherit; border-bottom: 2px solid var(--accent); border-radius: 4px 4px 0 0; padding: 1px 2px; }
-.reading mark[data-field='cost'] { background: transparent; border-bottom-style: dashed; }
-.reading-tag { position: absolute; left: 0; top: calc(100% + 2px); font: 600 10px/1 var(--mono); letter-spacing: .02em; text-transform: uppercase; color: var(--accent-ink); white-space: nowrap; }
+.reading { margin: 0; font-size: 17px; line-height: 1.9; }
+/* Each tagged phrase is a small column (word over its label), so labels never overlap. */
+.reading mark { display: inline-flex; flex-direction: column; vertical-align: baseline; background: none; color: inherit; margin: 0 1px 6px; }
+.reading-word { background: color-mix(in srgb, var(--accent) 16%, transparent); border-bottom: 2px solid var(--accent); border-radius: 4px 4px 0 0; padding: 1px 2px; }
+.reading mark[data-field='cost'] .reading-word { background: transparent; border-bottom-style: dashed; }
+.reading-tag { margin-top: 3px; padding-inline: 2px; font: 600 10px/1 var(--mono); letter-spacing: .02em; text-transform: uppercase; color: var(--accent-ink); white-space: nowrap; }
 .reading-missing { display: flex; gap: 8px; align-items: center; font-size: 14px; color: var(--warn); }
 .division { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; counter-reset: division; }
 .division li { counter-increment: division; display: grid; gap: 4px; padding: 12px 14px; border-radius: var(--r-sm, 10px); background: var(--bg); font-size: 13px; color: var(--muted); }

@@ -58,7 +58,11 @@ export function savings(p: PurchaseRequest, offerId: string): { vsNext: number |
 export type ReadingField = 'item' | 'quantity' | 'size' | 'budget' | 'terms' | 'cost';
 export type Reading = { text: string; field?: ReadingField };
 const ITEM_WORDS = { cloth: 'microfib(?:er|re)\\s+cloths?|cloths?|rags?|towels?', bag: '(?:waste|garbage|trash|bin)\\s+bags?|bin\\s+liners?|bags?',
-  bottle: 'spray\\s+bottles?|bottles?', notebook: 'notebooks?' } as const;
+  bottle: 'spray\\s+bottles?|bottles?|sprays?|sprayers?', notebook: 'notebooks?' } as const;
+const NUMBER_WORDS = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen',
+  'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen', 'twenty'];
+const TENS: Record<number, string> = { 30: 'thirty', 40: 'forty', 50: 'fifty', 60: 'sixty', 70: 'seventy', 80: 'eighty', 90: 'ninety', 100: 'a hundred|one hundred' };
+const quantityWords = (n: number) => [NUMBER_WORDS[n], TENS[n], n === 12 ? 'a dozen|one dozen' : undefined].filter(Boolean).join('|');
 export function readRequest(text: string, c: Constraints): Reading[] {
   const a = c.attributes ?? {};
   const dollars = c.budget_cents === undefined ? null : c.budget_cents % 100 ? (c.budget_cents / 100).toFixed(2) : `${c.budget_cents / 100}(?:\\.00)?`;
@@ -69,7 +73,7 @@ export function readRequest(text: string, c: Constraints): Reading[] {
   const patterns: [ReadingField, string | null][] = [
     ['size', size],
     ['budget', dollars && `\\$\\s?${dollars}\\b|\\b${dollars}\\s?(?:dollars|usd)\\b`],
-    ['quantity', c.quantity ? `(?<![\\d$.])${c.quantity}(?![\\d.])` : null],
+    ['quantity', c.quantity ? `(?<![\\d$.])${c.quantity}(?![\\d.])${quantityWords(c.quantity) ? `|\\b(?:${quantityWords(c.quantity)})\\b` : ''}` : null],
     ['item', c.category ? ITEM_WORDS[c.category] : null],
     ['terms', c.one_time ? 'one[- ]time|\\bonce\\b|single purchase' : null],
     ['cost', 'includ(?:ing|es)\\s+(?:delivery|shipping)(?:\\s+and\\s+tax)?|\\bdelivered\\b'],
@@ -95,14 +99,14 @@ export function readRequest(text: string, c: Constraints): Reading[] {
 }
 // The server lists missing fields ("Please confirm: quantity, budget_cents."); say it like a person.
 const ASK: Record<string, string> = {
-  category: 'what item you need', quantity: 'how many you need', budget_cents: 'the most you want to spend, including delivery and tax',
+  category: 'what item you need', quantity: 'how many you need', budget_cents: 'your max total (including delivery and tax)',
   currency: 'that prices are in US dollars', one_time: 'that this is a one-time purchase', 'attributes.width_cm': 'the cloth size (for example 40 × 40 cm)',
   'attributes.height_cm': 'the cloth size (for example 40 × 40 cm)', 'attributes.capacity_l': 'the bag size in litres',
   'attributes.volume_ml': 'the bottle size in ml', 'attributes.paper_size': 'the paper size (A4, A5 or A6)',
 };
 export function friendlyQuestion(question: string, missing: string[]): string {
   const asks = [...new Set(missing.map(field => ASK[field]).filter(Boolean))];
-  if (!asks.length || !/Please confirm: [^.]*\.$/.test(question)) return question;
+  if (!asks.length || !/Please confirm: .*$/.test(question)) return question;
   const list = asks.length === 1 ? asks[0] : `${asks.slice(0, -1).join(', ')} and ${asks[asks.length - 1]}`;
-  return question.replace(/Please confirm: [^.]*\.$/, `Please tell me ${list}.`);
+  return question.replace(/Please confirm: .*$/, `Please tell me ${list}.`);
 }

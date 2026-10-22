@@ -290,8 +290,16 @@ test('readRequest highlights the buyer words that grounded each value, without o
 
 test('missing details are asked like a person, other messages untouched', () => {
   assert.equal(friendlyQuestion('Please confirm: quantity, budget_cents.', ['quantity', 'budget_cents']),
-    'Please tell me how many you need and the most you want to spend, including delivery and tax.');
+    'Please tell me how many you need and your max total (including delivery and tax).');
   assert.equal(friendlyQuestion('Confirm USD and one-time terms explicitly. Please confirm: currency.', ['currency']),
     'Confirm USD and one-time terms explicitly. Please tell me that prices are in US dollars.');
   assert.equal(friendlyQuestion('No sample offer meets the exact specification.', []), 'No sample offer meets the exact specification.');
+});
+
+test('short requests: number words and single item words are recognised', () => {
+  const tags = readRequest('one spray', { category: 'bottle', quantity: 1, one_time: true }).filter(r => r.field).map(r => `${r.field}:${r.text}`);
+  assert.deepEqual(tags, ['quantity:one', 'item:spray']);
+  assert.deepEqual(readRequest('a dozen notebooks', { category: 'notebook', quantity: 12 }).filter(r => r.field).map(r => r.field), ['quantity', 'item']);
+  assert.equal(friendlyQuestion('Please confirm: budget_cents, attributes.volume_ml.', ['budget_cents', 'attributes.volume_ml']),
+    'Please tell me your max total (including delivery and tax) and the bottle size in ml.');
 });

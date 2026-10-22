@@ -478,7 +478,7 @@ function journey({ request, drafting, thinking, stage, currentReview, currentApp
   const paid = attempt?.state === 'PAID';
   const tone = (i: number, alert = false): Step['tone'] => paid || i < at ? 'done' : i > at ? 'todo' : alert ? 'alert' : thinking ? 'busy' : 'current';
   const c = request && !drafting ? request.constraints : null;
-  const ask = c && (c.quantity || c.budget_cents) ? [c.quantity && `${c.quantity} units`, c.budget_cents && `up to ${money(c.budget_cents)}`].filter(Boolean).join(' · ') : 'Say what you need';
+  const ask = c && (c.quantity || c.budget_cents) ? [c.quantity && plural(c.quantity, 'unit'), c.budget_cents && `up to ${money(c.budget_cents)}`].filter(Boolean).join(' · ') : 'Say what you need';
   const compare = thinking ? 'AI is comparing…' : drafting || !request ? 'Full delivered cost' : request.status === 'NEEDS_CLARIFICATION' ? 'Needs one more detail'
     : request.status === 'NO_MATCH' ? 'Nothing fits yet' : request.status === 'MODEL_ERROR' ? 'Try again' : request.status === 'COMPARING' ? 'Comparing…'
     : best !== null ? `${plural(request.candidates.length, 'offer')} · from ${money(best)}` : 'Full delivered cost';
@@ -599,14 +599,17 @@ export function AiReading({ request }: { request: PurchaseRequest }) {
   const m = request.model;
   if (!m?.used) return null;
   const parts = readRequest(request.text, request.constraints);
-  const understood = parts.filter(p => p.field && p.field !== 'cost').length;
+  const c = request.constraints;
+  const understood = [c.category, c.quantity, c.budget_cents, c.attributes && Object.keys(c.attributes).length ? 1 : undefined, c.one_time].filter(v => v !== undefined).length;
+  const assumedOneTime = c.one_time === true && !parts.some(p => p.field === 'terms');
   const missing = [...new Set(request.clarification?.missing_fields.map(missingLabel) ?? [])];
   const checked = request.candidates.length + request.excluded.length;
   return <section className="ai-reading reveal" aria-labelledby="ai-reading-heading">
     <header><h2 id="ai-reading-heading"><Icon name="spark" />What the AI understood</h2>
       <p className="fine-print">{m.name.startsWith('qwen3-4b') ? 'Qwen3-4B' : m.name}, a local AI model on this computer · read in {(m.elapsed_ms / 1000).toFixed(1)} s · {m.tool_calls.map(t => t.name).join(', ')} called once</p></header>
     <blockquote className="reading">{parts.map((p, i) => p.field
-      ? <mark key={i} data-field={p.field}>{p.text}<span className="reading-tag">{readingLabel[p.field]}</span></mark> : <span key={i}>{p.text}</span>)}</blockquote>
+      ? <mark key={i} data-field={p.field}><span className="reading-word">{p.text}</span><span className="reading-tag">{readingLabel[p.field]}</span></mark> : <span key={i}>{p.text}</span>)}</blockquote>
+    {assumedOneTime && <p className="fine-print">One-time purchase by default: SpendConsent never sets up subscriptions or repeat orders.</p>}
     {missing.length > 0 && <p className="reading-missing"><Icon name="question" />Not in your words: {missing.join(', ')}. The AI asks instead of guessing.</p>}
     <ol className="division" aria-label="Who did what">
       <li><b>The AI read your words</b><span>{plural(understood, 'detail')} turned into an exact order form. It did no maths and picked nothing.</span></li>
@@ -620,7 +623,7 @@ function RequirementChips({ constraints: c }: { constraints: Constraints }) {
   const names = { cloth: 'Microfiber cloths', bag: 'Waste bags', bottle: 'Spray bottles', notebook: 'Notebooks' } as const;
   const spec = c.category === 'cloth' ? (a?.width_cm && a?.height_cm ? `${a.width_cm} × ${a.height_cm} cm` : null) : c.category === 'bag' ? (a?.capacity_l ? `${a.capacity_l} L` : null)
     : c.category === 'bottle' ? (a?.volume_ml ? `${a.volume_ml} mL` : null) : c.category === 'notebook' ? a?.paper_size ?? null : null;
-  const chips: [string, string | null][] = [['What', c.category ? names[c.category] : null], ['How many', c.quantity ? `${c.quantity} units` : null], ['Size', spec],
+  const chips: [string, string | null][] = [['What', c.category ? names[c.category] : null], ['How many', c.quantity ? plural(c.quantity, 'unit') : null], ['Size', spec],
     ['Max total', c.budget_cents === undefined ? null : money(c.budget_cents)], ['Terms', c.one_time === true ? 'One-time' : null]];
   return <ul className="chips" aria-label="Your requirements">{chips.map(([label, value]) => <li key={label} className={value ? undefined : 'is-missing'}><span className="chip-label">{label}</span>{value ?? 'Not confirmed'}</li>)}</ul>;
 }
