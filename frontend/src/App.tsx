@@ -15,7 +15,7 @@ const sampleRequests = [
   { category: 'bottle', label: '10 spray bottles', text: 'Find exactly 10 spray bottles, 500 mL each, under $40 including delivery and tax. One-time purchase only.' },
   { category: 'notebook', label: '20 A5 notebooks', text: 'Find exactly 20 A5 notebooks, under $60 including delivery and tax. One-time purchase only.' },
 ] as const;
-const AI_LABEL = 'Waiting for actual AI comparison';
+const AI_LABEL = 'The AI is reading your request';
 const dateTime = (value: string) => new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'medium' }).format(new Date(value));
 const clock = (value: string) => new Intl.DateTimeFormat(undefined, { timeStyle: 'short' }).format(new Date(value));
 const idShort = (id: string) => id.slice(0, 8);
@@ -476,12 +476,13 @@ export function App() {
 }
 
 type Step = { name: string; detail: string; tone: 'done' | 'current' | 'todo' | 'alert' | 'busy'; current: boolean };
-function journey({ request, drafting, thinking, stage, currentReview, currentApproval, attempt, best }: {
+export function journey({ request, drafting, thinking, stage, currentReview, currentApproval, attempt, best }: {
   request: PurchaseRequest | null; drafting: boolean; thinking: boolean; stage: string; currentReview: Review | null;
   currentApproval: PurchaseRequest['approval']; attempt: Attempt | null; best: number | null;
 }): Step[] {
-  // A new draft starts a fresh journey: nothing from the previous purchase carries over.
-  if (drafting && !thinking) { currentReview = null; currentApproval = null; attempt = null; }
+  // A new draft, or a comparison in flight, starts a fresh journey: the previous
+  // purchase's approval and payment never show against the new request.
+  if (drafting || thinking) { currentReview = null; currentApproval = null; attempt = null; }
   const approvedNow = stage === 'Review' && !!currentApproval && ['APPROVED', 'CONSUMED'].includes(currentApproval.status);
   const at = thinking ? 1 : drafting ? 0 : approvedNow ? 3 : ['Request', 'Compare', 'Review', 'Payment'].indexOf(stage);
   const paid = attempt?.state === 'PAID';

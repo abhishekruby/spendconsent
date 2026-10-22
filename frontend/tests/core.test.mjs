@@ -5,7 +5,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { Api, ApiError, safeApiError } from '../.test-build/api.js';
 import { isAttempt, isConstraints, isLinkCreated, isLinkView, isMarket, isProgress, isPurchaseList, isPurchaseRequest, isSession, linkToken } from '../.test-build/contract.js';
 import { canStartNew, locksRequest, money, newerAttempt, newerRequest, parseCents, pending, permitted, friendlyQuestion, purchaseDisplay, readRequest, savings, unitCost } from '../.test-build/logic.js';
-import { Offer, PaymentStatus, PayPalCheckout, RefundPanel, ReviewCard, paymentTransitionNotice, receiptHtml } from '../.test-build/App.js';
+import { Offer, PaymentStatus, PayPalCheckout, RefundPanel, ReviewCard, journey, paymentTransitionNotice, receiptHtml } from '../.test-build/App.js';
 
 // Explicit local test fixtures only. The running application has no seeded results.
 const id = '11111111-1111-4111-8111-111111111111';
@@ -330,4 +330,13 @@ test('suggestions are validated before they become buttons', async () => {
   assert.ok(isSuggestions({ ...ok, category_hint: { category: 'cloth', label: 'Microfiber cloths, 40 × 40 cm', attributes: { width_cm: 40, height_cm: 40 } } }));
   assert.equal(isSuggestions({ ...ok, category_hint: { category: 'pens', label: 'x', attributes: {} } }), false);
   assert.equal(isSuggestions({ ...ok, quantities: [-1] }), false);
+});
+
+test('a new comparison never shows the previous order as approved or paid', () => {
+  const paid = { ...attempt, state: 'PAID', capture_id: 'C1', pending_operation: null, allowed_actions: [] };
+  const old = { status: 'PAID', constraints: {}, candidates: [], excluded: [] };
+  const steps = journey({ request: old, drafting: false, thinking: true, stage: 'Payment', currentReview: { total_cents: 4180 },
+    currentApproval: { status: 'CONSUMED' }, attempt: paid, best: null });
+  assert.deepEqual(steps.map(s => s.tone), ['done', 'busy', 'todo', 'todo']);
+  assert.equal(steps.some(s => /Paid|Approved/.test(s.detail)), false);
 });
