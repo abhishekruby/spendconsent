@@ -72,7 +72,8 @@ export function readRequest(text: string, c: Constraints): Reading[] {
     : c.category === 'notebook' && a.paper_size ? `\\b${a.paper_size}\\b` : null;
   const patterns: [ReadingField, string | null][] = [
     ['size', size],
-    ['budget', dollars && `\\$\\s?${dollars}\\b|\\b${dollars}\\s?(?:dollars|usd)\\b`],
+    ['budget', dollars && `\\$\\s?${dollars}\\b|\\b${dollars}\\s?(?:dollars?|usd|bucks|budget)\\b`
+      + `|\\b(?:budget|max(?:imum)?|under|below|up to|at most|no more than|limit)(?:\\s+(?:of|is))?\\s+(?:usd\\s?|\\$\\s?)?${dollars}(?:\\s?(?:dollars?|usd|bucks))?\\b`],
     ['quantity', c.quantity ? `(?<![\\d$.])${c.quantity}(?![\\d.])${quantityWords(c.quantity) ? `|\\b(?:${quantityWords(c.quantity)})\\b` : ''}` : null],
     ['item', c.category ? ITEM_WORDS[c.category] : null],
     ['terms', c.one_time ? 'one[- ]time|\\bonce\\b|single purchase' : null],

@@ -279,10 +279,10 @@ test('readRequest highlights the buyer words that grounded each value, without o
   const tags = (text, c) => readRequest(text, c).filter(r => r.field).map(r => `${r.field}:${r.text}`);
   const cloth = { category: 'cloth', quantity: 40, budget_cents: 6000, one_time: true, attributes: { width_cm: 40, height_cm: 40 } };
   assert.deepEqual(tags('Find exactly 40 microfiber cloths, 40 × 40 cm, under $60 including delivery and tax. One-time purchase only.', cloth),
-    ['quantity:40', 'item:microfiber cloths', 'size:40 × 40 cm', 'budget:$60', 'cost:including delivery and tax', 'terms:One-time']);
+    ['quantity:40', 'item:microfiber cloths', 'size:40 × 40 cm', 'budget:under $60', 'cost:including delivery and tax', 'terms:One-time']);
   const bags = { category: 'bag', quantity: 50, budget_cents: 4000, one_time: true, attributes: { capacity_l: 30 } };
   assert.deepEqual(tags('I need 50 garbage bags, 30 liters, max 40 dollars, once', bags),
-    ['quantity:50', 'item:garbage bags', 'size:30 liters', 'budget:40 dollars', 'terms:once']);
+    ['quantity:50', 'item:garbage bags', 'size:30 liters', 'budget:max 40 dollars', 'terms:once']);
   const text = 'need cloths';
   assert.equal(readRequest(text, { category: 'cloth' }).map(r => r.text).join(''), text, 'segments rebuild the exact text');
   assert.deepEqual(tags('20 notebooks', { quantity: 7 }), [], 'a value not in the words is never highlighted');
@@ -302,4 +302,12 @@ test('short requests: number words and single item words are recognised', () => 
   assert.deepEqual(readRequest('a dozen notebooks', { category: 'notebook', quantity: 12 }).filter(r => r.field).map(r => r.field), ['quantity', 'item']);
   assert.equal(friendlyQuestion('Please confirm: budget_cents, attributes.volume_ml.', ['budget_cents', 'attributes.volume_ml']),
     'Please tell me your max total (including delivery and tax) and the bottle size in ml.');
+});
+
+test('budgets written without a dollar sign are still shown as the max total', () => {
+  const budget = (text, cents) => readRequest(text, { budget_cents: cents }).filter(r => r.field === 'budget').map(r => r.text);
+  assert.deepEqual(budget('one spray 10 budget', 1000), ['10 budget']);
+  assert.deepEqual(budget('cloths, budget of 60', 6000), ['budget of 60']);
+  assert.deepEqual(budget('keep it under 40 with delivery', 4000), ['under 40']);
+  assert.deepEqual(budget('max usd 25', 2500), ['max usd 25']);
 });
