@@ -40,12 +40,23 @@ _MONEY_AFTER = re.compile(r"\s*(?:dollars?|usd|bucks|budget)\b", re.I)
 _MONEY_BEFORE = re.compile(r"(?:\$|\b(?:usd|budget|budget of|budget is|max(?:imum)?|under|below|up to|at most|no more than|limit))\s*$", re.I)
 
 
+_NUMBER = re.compile(r"\d[\d,]{0,15}(?:\.\d{1,6})?")
+# Units a repaired size may take ("100 ml", "30 litres"); cloth sizes are not repaired.
+_REPAIR_UNITS = {"volume": re.compile(r"\s*-?\s*(?:ml|millilit(?:er|re)s?|l|liters?|litres?)\b", re.I),
+                 "capacity": re.compile(r"\s*-?\s*(?:l|liters?|litres?)\b", re.I)}
+
+
 def _role_checked(native, text):
     """Role check on top of the qualified adapter's presence check (agent.py is
     unchanged). Drop the model's quantity or budget when every place that number
     is written in the request is a size, and a size written only as money; the
     buyer is then asked instead.
     Values grounded only by number words are left to the adapter.
+
+    Repair: when a value was dropped this way and the text holds exactly one
+    number in the right role (one money amount; one volume/capacity with its
+    unit), that number takes its place. The adapter still grounds and converts
+    it; anything ambiguous stays missing and the buyer is asked.
     """
     checked = dict(native)
     words = {float(item) for item in agent._number_words(text)}
@@ -69,6 +80,20 @@ def _role_checked(native, text):
         hits = written(value)
         if hits and all(_SIZE_AFTER.match(text, m.end()) or _SIZE_BEFORE.search(text, 0, m.start()) for m in hits):
             checked[key] = None
+    numbers = list(_NUMBER.finditer(text))
+    def value_of(m):
+        value = float(m.group().replace(",", ""))
+        return int(value) if value.is_integer() else value
+    if native.get("budget") is not None and checked.get("budget") is None:
+        amounts = {value_of(m) for m in numbers if (_MONEY_AFTER.match(text, m.end()) or _MONEY_BEFORE.search(text, 0, m.start()))
+                   and not _SIZE_AFTER.match(text, m.end())}
+        if len(amounts) == 1:
+            checked["budget"] = amounts.pop()
+    for key, unit in _REPAIR_UNITS.items():
+        if isinstance(native.get("attributes"), dict) and native["attributes"].get(key) is not None and checked["attributes"].get(key) is None:
+            values = {value_of(m) for m in numbers if unit.match(text, m.end())}
+            if len(values) == 1:
+                checked["attributes"][key] = values.pop()
     return checked
 
 

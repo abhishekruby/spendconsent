@@ -279,6 +279,9 @@ text (the documented presence-not-role limit). The app now adds a role check in
 whose every written digit occurrence is a size ("500 ml", "40 × 40 cm") is dropped
 and the buyer is asked; symmetrically, a size written only as money ("10 budget",
 "$10", "under 10") is dropped (found live: "one spray 10 budget 100 ml" had come
-back as 10 ml with a $100 budget). It can only remove values, never human-confirmed ones. `scripts/role_check_replay.py`
+back as 10 ml with a $100 budget). When the request holds exactly one number in the right role (one money
+amount; one volume/capacity with its unit), that number replaces the dropped one
+and is grounded as usual; anything ambiguous is asked. Never touches
+human-confirmed values. `scripts/role_check_replay.py`
 replays it over all 160 a01b9f9 outcomes: 0 values wrongly dropped (one early
 false drop, "forty … 40 cm wide", was fixed by honouring number words). Runs in CI.
