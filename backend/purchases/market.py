@@ -16,6 +16,44 @@ UNITS = re.compile(r"(\d{1,4})\s*(?:-|/)?\s*(?:pack|pk|count|ct|pcs|pieces|towel
                    r"|(?:pack|set|box) of (\d{1,4})\b|includes (\d{1,4})\b", re.I)
 
 
+LITRES = re.compile(r"(\d+(?:\.\d+)?)\s*-?\s*(?:l|liters?|litres?)\b", re.I)
+GALLONS = re.compile(r"(\d+(?:\.\d+)?)\s*-?\s*(?:gal|gallons?)\b", re.I)
+MILLILITRES = re.compile(r"(\d+(?:\.\d+)?)\s*-?\s*ml\b", re.I)
+OUNCES = re.compile(r"(\d+(?:\.\d+)?)\s*-?\s*(?:fl\.?\s*)?(?:oz|ounces?)\b", re.I)
+PAPER = re.compile(r"\b(A[3-6])\b")
+
+
+def stated_size(category, texts):
+    """The listing's own size, normalised to the request's unit (None if not stated)."""
+    for text in (t for t in texts if isinstance(t, str)):
+        if category == "bag":
+            if match := LITRES.search(text):
+                return float(match.group(1))
+            if match := GALLONS.search(text):
+                return float(match.group(1)) * 3.785
+        elif category == "bottle":
+            if match := MILLILITRES.search(text):
+                return float(match.group(1))
+            if match := OUNCES.search(text):
+                return float(match.group(1)) * 29.57
+        elif category == "notebook" and (match := PAPER.search(text)):
+            return match.group(1)
+    return None
+
+
+def size_matches(category, attributes, texts):
+    """True / False / None (not stated). Cloth size is already filtered by Channel3."""
+    if category == "cloth":
+        return True
+    wanted = {"bag": "capacity_l", "bottle": "volume_ml", "notebook": "paper_size"}[category]
+    size = stated_size(category, texts)
+    if size is None:
+        return None
+    if category == "notebook":
+        return size == attributes[wanted]
+    return abs(size - attributes[wanted]) <= 0.15 * attributes[wanted]
+
+
 def size_filter(category, attributes):
     """Channel3 dimension filter (±5%) so cloth listings are the same size, not just the same word."""
     if category != "cloth":
@@ -53,13 +91,17 @@ def units(texts):
     return None
 
 
-def listing(product):
+def listing(product, category="cloth", attributes=None):
     offer = next((o for o in product.get("offers") or [] if o.get("availability") == "InStock"
                   and (o.get("price") or {}).get("currency") == "USD" and str(o.get("url", "")).startswith("https://")), None)
     if not offer or not isinstance(offer["price"].get("price"), (int, float)) or offer["price"]["price"] <= 0:
         return None
     cents = round(offer["price"]["price"] * 100)
-    count = units([product.get("title")] + list(product.get("key_features") or [])[:10])
+    texts = [product.get("title")] + list(product.get("key_features") or [])[:10]
+    fits = size_matches(category, attributes or {}, texts)
+    if fits is False:
+        return None  # a different size is not a price reference
+    count = units(texts) if fits else None
     image = next((i.get("url") for i in product.get("images") or [] if str(i.get("url", "")).startswith("https://")), None)
     return {"title": str(product.get("title", ""))[:160], "domain": str(offer.get("domain", ""))[:80], "url": offer["url"][:2000],
             "image": image[:2000] if image else None, "price_cents": cents, "units": count,
@@ -86,7 +128,7 @@ def check(purchase):
         try:
             with _OPENER.open(request, timeout=10) as response:
                 products = json.loads(response.read(2_000_000)).get("products") or []
-            rows = [row for row in map(listing, products) if row][:5]
+            rows = [row for row in (listing(p, constraints["category"], attributes) for p in products) if row][:5]
         except (OSError, ValueError, AttributeError, TypeError, OverflowError):
             return {"available": False}  # not cached: a later look may succeed
         shown = f"{query}, {attributes['width_cm']} × {attributes['height_cm']} cm ±5%" if filters else query

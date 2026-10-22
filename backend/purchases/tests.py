@@ -13,7 +13,7 @@ from django.core.management import CommandError, call_command
 from django.db import IntegrityError, close_old_connections, connection, transaction
 from django.test import Client, TestCase, TransactionTestCase
 from django.utils import timezone
-from . import catalog, services
+from . import catalog, market, services
 from .models import Approval, DecisionEvent, Offer, PaymentAttempt, PurchaseRequest, Review
 
 CONSTRAINTS = {"category": "cloth", "quantity": 40, "budget_cents": 6000, "currency": "USD",
@@ -304,6 +304,18 @@ class AnonymousAPITests(TestCase):
         with patch("purchases.market.api_key", return_value=None):
             fresh = ready_request(self.owner)
             self.assertEqual(self.client.get(f"/api/requests/{fresh.id}/market").json(), {"available": False})
+
+    def test_market_check_drops_wrong_size_listings_and_prices_only_matching_ones(self):
+        bags = {"capacity_l": 30}
+        self.assertFalse(market.size_matches("bag", bags, ["Glad 40-Count 30 Gallon Trash Bags"]), "30 gal is about 113 L")
+        self.assertTrue(market.size_matches("bag", bags, ["8 Gallon Trash Bags"]))
+        self.assertIsNone(market.size_matches("bag", bags, ["Tall Trash Bags"]))
+        self.assertTrue(market.size_matches("bottle", {"volume_ml": 500}, ["16 oz spray bottle"]))
+        self.assertFalse(market.size_matches("notebook", {"paper_size": "A5"}, ["A4 notebook, 5 pack"]))
+        offer = {"url": "https://shop.example/x", "domain": "shop.example", "availability": "InStock", "price": {"price": 10, "currency": "USD"}}
+        self.assertIsNone(market.listing({"title": "30 Gallon Bags, 40 Count", "offers": [offer]}, "bag", bags))
+        unstated = market.listing({"title": "Tall Trash Bags, 40 Count", "offers": [offer]}, "bag", bags)
+        self.assertEqual((unstated["units"], unstated["unit_cents"]), (None, None), "no per-item price without a stated size")
 
     def test_material_offer_change_shows_existing_approval_as_no_longer_valid(self):
         request = ready_request(self.owner)
