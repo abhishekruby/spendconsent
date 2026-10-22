@@ -7,7 +7,9 @@ jobs:
   backend:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0  # the AI-evaluation self-test reads frozen sources from history
       - name: Python packages (hash-pinned)
         run: python3 -m venv .venv && .venv/bin/pip install --require-hashes -r backend/requirements.txt
       - name: Project PostgreSQL (socket only)
@@ -23,8 +25,8 @@ jobs:
   frontend:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
       - run: npm --prefix frontend ci
