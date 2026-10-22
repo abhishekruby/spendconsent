@@ -56,7 +56,7 @@ Deadline 12 Nov 2026 noon PST (13 Nov 01:30 IST).
   (`GET /api/progress`: "Understood…" before the final call; agent.py unchanged),
   model warm-up at runserver start, background sync (focus, waiting states,
   approval expiry).
-- **One AI call (eeb94c5), report 34ec5e1: 160/160**, warm medians 17–20 s;
+- **One AI call (eeb94c5), report a01b9f9: 160/160** (re-run after the refund change), warm medians 16–23 s;
   readiness granted. All 8 suites now exposed. Busy model queues 60 s; paid
   orders get Buy again + receipt download.
 - **Week-1 build (21 Oct):** `scripts/run_demo.sh` one-command start; purchases

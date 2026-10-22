@@ -69,7 +69,7 @@ owner's browser and never enters the agent's context.
 ## Proof
 
 - **AI quality:** 160/160 on eight test suites (six written blind by a separate
-  author) run against the real application code. <!-- TODO: replace with the f7f75ab re-run result -->
+  author) run against the real application code. Re-run on the current code (a01b9f9): 160/160 again, warm medians 16–23 s per comparison on a laptop CPU.
 - **Five usability tasks** through the real app: 5/5 correct, median 18.9 s.
 - **122 backend tests** on real PostgreSQL (state machine, idempotency, races,
   stale approvals, refunds) and 17 frontend tests.

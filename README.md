@@ -34,9 +34,9 @@ the human approves the exact cart, PayPal moves the money.**
 
 - **AI:** eight suites × 20 outcomes against the real application code, six of
   them written by a separate author who never shared them before inference.
-  Current qualified run [34ec5e1](docs/evidence/ai-application-qualification-34ec5e1.json):
+  Current qualified run [a01b9f9](docs/evidence/ai-application-qualification-a01b9f9.json):
   **160/160** (gate: ≥ 18/20 per suite), one model call per comparison, warm
-  medians 17–20 s on a laptop CPU. Earlier failed runs are kept; see
+  medians 16–23 s on a laptop CPU. Earlier failed runs are kept; see
   [AI evaluation](docs/ai-application-evaluation.md).
 - **PayPal sandbox:** a real end-to-end purchase (USD 47.60, captured, read back,
   stock decremented), with the problems found on the way:
@@ -65,7 +65,7 @@ scripts/run_demo.sh          # start · scripts/run_demo.sh stop · scripts/run_
 3. **Enable AI** for the qualified adapter (or rerun the qualification yourself
    with `scripts/ai_application_eval.py`):
    ```bash
-   .venv/bin/python backend/manage.py grant_ai_readiness docs/evidence/ai-application-qualification-34ec5e1.json
+   .venv/bin/python backend/manage.py grant_ai_readiness docs/evidence/ai-application-qualification-a01b9f9.json
    ```
 4. **PayPal sandbox:** create a sandbox REST app on a **US** sandbox business
    account (see [docs/sandbox-setup.md](docs/sandbox-setup.md)). Copy
