@@ -47,27 +47,23 @@ Deadline 12 Nov 2026 noon PST (13 Nov 01:30 IST).
   person types the total, writes one-time permission; TTY only). Review PASS.
 - README rewritten for judges; Devpost draft in docs/submission-draft.md.
 
-## Current session and next action (Claude, 21 Oct 17:00 IST)
+## Current session and next action (Claude, 22 Oct)
 
-- Frontend redesigned (8512a26): journey tracker, honest AI loader, receipt
-  review + stamp, payment track, light/dark, 375 px. Codex UI WIP preserved at
-  `refs/codex-wip/frontend-2026-10-21`.
-- Added: interface sounds (Web Audio, mute toggle), live AI progress
-  (`GET /api/progress`: "Understood…" before the final call; agent.py unchanged),
-  model warm-up at runserver start, background sync (focus, waiting states,
-  approval expiry).
-- **One AI call (eeb94c5), report a01b9f9: 160/160** (re-run after the refund change), warm medians 16–23 s;
-  readiness granted. All 8 suites now exposed. Busy model queues 60 s; paid
-  orders get Buy again + receipt download.
-- **Week-1 build (21 Oct):** `scripts/run_demo.sh` one-command start; purchases
-  drawer; **owner approval links** (requester → owner approves + pays one exact
-  cart; review PASS). Wk2: `scripts/spendconsent_mcp.py` MCP server (agents
-  shop, can't approve/pay); Channel3 market check (needs user's free key in `.env`); Vault deferred. Next:
-  usability; wk3 video, Devpost, public repo, submit by 10 Nov.
-- **Buyer-consent mode** (`SPENDCONSENT_PAYPAL_CONSENT=buyer`, cap $100): the
-  buyer's own unexpired in-app approval authorizes one sandbox order; default
-  stays operator (typed permission). API currently runs in buyer mode.
-- Popup cancel confirmed by the user. Public/money steps need user approval.
+- Built: redesigned UI, sounds, live AI progress, owner approval links, purchases
+  drawer, MCP server (agents shop, cannot approve/pay), Channel3 market check
+  (user's free key in `.env`), savings insight, cart-mandate fingerprint,
+  **Undo = owner-confirmed full PayPal refund within 7 days** (review PASS).
+- **AI re-qualified after the refund change: report a01b9f9, 160/160**, warm
+  medians 16–23 s (f7f75ab run kept: interrupted by a power-off).
+- **Docker** one-command start verified end to end; **CI** green on GitHub.
+- Agent-autonomous spending rules were started and parked in `git stash`
+  ("spending-rule WIP"): Claude Code's safety classifier blocks agent-initiated
+  purchases. Pitch instead: a person approves the exact cart (survey evidence in
+  `docs/impact-evidence.md`). Judge audit: `docs/judge-audit.md`.
+- Buyer-consent mode (cap $100) is how the API runs. Public/money steps need the
+  user's approval.
+- **Next:** user live-tests Undo; demo video (`docs/demo-script.md`), Devpost
+  (`docs/submission-draft.md`), judge sandbox access, public repo, submit by 10 Nov.
 
 ## Known limits
 

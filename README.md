@@ -1,5 +1,7 @@
 # SpendConsent
 
+[![tests](https://github.com/abhishekruby/paypal-ai-hackathon-2026/actions/workflows/ci.yml/badge.svg)](https://github.com/abhishekruby/paypal-ai-hackathon-2026/actions/workflows/ci.yml)
+
 **An AI purchasing assistant that can't spend money you didn't approve.**
 
 A small-business owner types what they need ("exactly 40 microfiber cloths,
@@ -134,8 +136,6 @@ in the buyer's text, not its role, so the exact review remains the final check.
 Model latency is about 15–20 s per comparison on CPU. No usability claim is made yet.
 
 ## Repository map
-
-[![tests](https://github.com/abhishekruby/paypal-ai-hackathon-2026/actions/workflows/ci.yml/badge.svg)](https://github.com/abhishekruby/paypal-ai-hackathon-2026/actions/workflows/ci.yml)
 
 
 `backend/` Django 5.2 + DRF + PostgreSQL (authority, checkout, PayPal adapter,
