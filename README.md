@@ -29,6 +29,7 @@ the human approves the exact cart, PayPal moves the money.**
 | Review | Server | Immutable snapshot + digest, 5-minute expiry |
 | Approve | Buyer, in the app | Binds that exact cart. Any later price or offer change revokes it, even within budget |
 | Pay | PayPal Orders v2 + JS SDK v6 (sandbox) | Server creates and captures the order, then reads it back independently (amount, currency, payee, order) before showing "Payment confirmed". Uncertain outcomes stay UNKNOWN; nothing is retried blindly |
+| Undo | PayPal Payments v2 refund, owner-confirmed, 7 days | One full refund per purchase with its own idempotency key; verified against the original capture; stock returned once |
 
 ## Evidence
 
@@ -45,6 +46,22 @@ the human approves the exact cart, PayPal moves the money.**
   idempotency, concurrency, stale approvals) and frontend unit tests.
 
 ## Run it locally
+
+### Quickest: Docker (one command)
+
+Needs Docker, about 8 GB RAM and 6 GB of disk. The first start downloads and
+hash-checks the 2.5 GB model once; the app then switches its AI on from the
+committed qualification report.
+
+```bash
+docker compose up --build        # then open http://127.0.0.1:5173
+```
+
+PayPal sandbox checkout stays off (the app says so) until you add sandbox keys:
+copy `.env.example` to `.env` (`chmod 600`), fill the `PAYPAL_*` values for a US
+sandbox business app, and uncomment the `.env` line in `compose.yaml`.
+
+### Without Docker
 
 Tested on Ubuntu x86-64 with Python 3.12 + [uv](https://docs.astral.sh/uv/),
 PostgreSQL 16 binaries, Node 22, about 3 GB of disk for the model and 8 GB of RAM.
@@ -117,6 +134,9 @@ in the buyer's text, not its role, so the exact review remains the final check.
 Model latency is about 15–20 s per comparison on CPU. No usability claim is made yet.
 
 ## Repository map
+
+[![tests](https://github.com/abhishekruby/paypal-ai-hackathon-2026/actions/workflows/ci.yml/badge.svg)](https://github.com/abhishekruby/paypal-ai-hackathon-2026/actions/workflows/ci.yml)
+
 
 `backend/` Django 5.2 + DRF + PostgreSQL (authority, checkout, PayPal adapter,
 AI adapter in `purchases/agent.py`) · `frontend/` React + TypeScript + Vite ·

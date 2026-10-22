@@ -1,0 +1,16 @@
+.git
+.env
+.env.*
+!.env.example
+.runtime
+.ai-cache
+.venv
+**/node_modules
+**/__pycache__
+frontend/dist
+frontend/.test-build
+.claude
+.idea
+.vscode
+*.log
+vite.out

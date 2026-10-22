@@ -23,3 +23,6 @@ docs/sandbox-app-created.jpg
 
 .runtime/
 .ai-cache/
+
+docker/wheels/
+docker/*.tar.gz

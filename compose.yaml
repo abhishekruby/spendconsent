@@ -1,0 +1,14 @@
+# docker compose up --build   then open http://127.0.0.1:5173
+# First start downloads the 2.5 GB model once (kept in the "model" volume).
+services:
+  spendconsent:
+    build: .
+    ports: ["127.0.0.1:5173:5173"]
+    volumes:
+      - model:/app/.ai-cache
+      - runtime:/app/.runtime
+      # PayPal sandbox (optional): create .env from .env.example, chmod 600, then uncomment.
+      # - ./.env:/app/.env:ro
+volumes:
+  model:
+  runtime:
