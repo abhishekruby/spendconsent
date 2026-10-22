@@ -497,3 +497,8 @@ details[open] > summary::after { transform: rotate(225deg) translateY(-1px); }
 .market li a { color: inherit; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
 .market-price { grid-column: 3; grid-row: 1 / span 2; text-align: right; }
 .market-price small { display: block; color: var(--muted); font-size: 12px; }
+
+/* Insight: what the comparison saved */
+.insight > .icon { color: var(--ok); flex: none; margin-top: 2px; }
+.insight { display: flex; gap: 12px; align-items: flex-start; padding: 14px 18px; border-radius: var(--r-md); border: 1px solid color-mix(in srgb, var(--ok) 35%, var(--line)); background: var(--ok-soft); font-size: 14px; }
+.insight p { color: var(--muted); margin-top: 2px; }

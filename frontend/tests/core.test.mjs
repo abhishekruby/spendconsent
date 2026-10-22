@@ -4,7 +4,7 @@ import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { Api, ApiError, safeApiError } from '../.test-build/api.js';
 import { isAttempt, isConstraints, isLinkCreated, isLinkView, isMarket, isProgress, isPurchaseList, isPurchaseRequest, isSession, linkToken } from '../.test-build/contract.js';
-import { canStartNew, locksRequest, money, newerAttempt, newerRequest, parseCents, pending, permitted, purchaseDisplay, unitCost } from '../.test-build/logic.js';
+import { canStartNew, locksRequest, money, newerAttempt, newerRequest, parseCents, pending, permitted, purchaseDisplay, savings, unitCost } from '../.test-build/logic.js';
 import { Offer, PaymentStatus, PayPalCheckout, ReviewCard, paymentTransitionNotice, receiptHtml } from '../.test-build/App.js';
 
 // Explicit local test fixtures only. The running application has no seeded results.
@@ -252,4 +252,11 @@ test('market check accepts only bounded https listings', () => {
   assert.ok(!isMarket({ available: true, source: 'Channel3', query: 'q', listings: [{ ...listing, url: 'javascript:alert(1)' }] }));
   assert.ok(!isMarket({ available: true, source: 'Channel3', query: 'q', listings: [{ ...listing, image: 'http://x.example/i.png' }] }));
   assert.ok(!isMarket({ available: true, source: 'Channel3', query: 'q', listings: Array(6).fill(listing) }));
+});
+
+test('savings compares the chosen offer with the next one that fits', () => {
+  const p = { candidates: [{ offer_id: 'a', total_cents: 4180 }, { offer_id: 'b', total_cents: 4760 }], excluded: [{ reasons: ['Wrong size.'] }] };
+  assert.deepEqual(savings(p, 'a'), { vsNext: 580, fitting: 2, ruledOut: 1 });
+  assert.equal(savings(p, 'b').vsNext, -580);
+  assert.equal(savings({ candidates: [{ offer_id: 'a', total_cents: 1 }], excluded: [] }, 'a').vsNext, null);
 });

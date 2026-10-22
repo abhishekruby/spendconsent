@@ -8,7 +8,7 @@ from . import catalog
 from .models import ACTIVE_STATES, Approval, DecisionEvent, Offer, PurchaseRequest, Review
 from .serializers import Constraints
 
-MERCHANT = {"id": "sample-merchant", "name": "Fictional Supply Merchant"}
+MERCHANT = {"id": "sample-merchant", "name": "Corner Supply Co. (test shop)"}
 SHIPPING = {"option_id": "fixture-standard", "label": "Synthetic standard delivery",
             "destination_ref": "sample-business", "destination_label": "Fictional sample only — SpendConsent Demo Business, 100 Fictional Supply Lane, San Jose, CA 95131, US"}
 TERMS = {"one_time": True, "description": "Fictional catalog; no real goods or fulfillment."}

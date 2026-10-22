@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { CSSProperties, FormEvent, ReactNode } from 'react';
 import { Api, ApiError } from './api.js';
 import type { Attempt, Candidate, Charges, Constraints, Evidence, LinkView, Market, Progress, PurchaseRequest, Review, Session } from './contract.js';
-import { canStartNew, locksRequest, money, newerAttempt, newerRequest, parseCents, pending, permitted, purchaseDisplay, unitCost } from './logic.js';
+import { canStartNew, locksRequest, money, newerAttempt, newerRequest, parseCents, pending, permitted, purchaseDisplay, savings, unitCost } from './logic.js';
 import { PayPalError, preparePayPal } from './paypal.js';
 import { play, setSoundOn, soundOn, unlockAudio } from './sound.js';
 
@@ -316,7 +316,7 @@ export function App() {
       {ordered.map((candidate, i) => <Offer key={candidate.id} candidate={candidate} lowest={candidate.total_cents === best} deltaCents={best === null ? undefined : candidate.total_cents - best}
         disabled={!!busy || recoveryBlocked || requestLocked || request.status !== 'READY'} order={i}
         onReview={() => void mutate(`/api/requests/${request.id}/reviews`, { expected_version: request.version, candidate_id: candidate.id }, 'Preparing the exact cart for review')} />)}
-      <p className="fine-print">Sample merchant catalog. Fictional goods and prices. Per-unit costs are rounded to the nearest cent.</p>
+      <p className="fine-print">Test shop catalog: fictional goods and prices. Per-unit costs are rounded to the nearest cent.</p>
     </section>}
     {request.status === 'READY' && session?.capabilities.ai_ready && <MarketCheck key={`${request.id}:${request.version}`} api={api} requestId={request.id} best={ordered[0]} />}
     {request.excluded.length > 0 && <details className="ruled-out" open={request.status === 'NO_MATCH'}>
@@ -429,6 +429,7 @@ export function App() {
           {(ordered.length > 0 || request.excluded.length > 0) && (collapseComparison
             ? <details className="earlier reveal"><summary><span>Earlier comparison</span><span className="summary-hint">{plural(ordered.length, 'eligible offer')}</span></summary>{comparison}</details>
             : comparison)}
+          {currentReview && <Insight request={request} review={currentReview} />}
           {currentReview && <ReviewCard review={currentReview} approval={currentApproval} locked={requestLocked} disabled={!!busy || recoveryBlocked}
             onApprove={() => void mutate(`/api/reviews/${currentReview.id}/approve`, { expected_version: currentReview.version, expected_digest: currentReview.digest }, 'Recording your exact-cart approval')} />}
           {currentReview && !currentApproval && !requestLocked && <AskOwner api={api} review={currentReview} busy={!!busy || recoveryBlocked} onSent={() => setAskedOwner(true)} />}
@@ -662,6 +663,24 @@ function Countdown({ from, to, now }: { from: string; to: string; now: number })
     <span className="countdown-ring" aria-hidden="true" /><span>{left ? `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')} left` : 'Expired'}</span>
   </div>;
 }
+const plainReason: Record<string, string> = {
+  'Declared specification does not match.': 'wrong size or spec',
+  'Pack size cannot provide the exact individual-unit quantity.': 'packs can’t make the exact quantity',
+  'Full delivered total exceeds the budget.': 'over budget once delivery and tax are added',
+  'Insufficient available packs.': 'not enough stock',
+  'One-time terms are not available.': 'subscription only',
+};
+// Why this cart: the measurable value of the comparison, shown before anyone approves.
+export function Insight({ request, review }: { request: PurchaseRequest; review: Review }) {
+  const s = savings(request, review.item.offer_id);
+  const reasons = [...new Set(request.excluded.flatMap(x => x.reasons))].map(r => plainReason[r] ?? r.replace(/\.$/, '').toLowerCase());
+  if (s.fitting === 0) return null;
+  const lead = s.vsNext === null ? `The only offer of ${request.candidates.length + request.excluded.length} that fits exactly.`
+    : s.vsNext >= 0 ? `Cheapest of ${plural(s.fitting, 'offer')} that fit exactly: ${money(s.vsNext)} less than the next.`
+    : `${money(-s.vsNext)} more than the cheapest offer that fits.`;
+  return <div className="insight reveal"><Icon name="check" /><div><strong>{lead}</strong>
+    {s.ruledOut > 0 && <p>{plural(s.ruledOut, 'offer')} ruled out before you saw them: {reasons.join('; ')}.</p>}</div></div>;
+}
 export function ReviewCard({ review: r, approval, locked, disabled, onApprove }: { review: Review; approval: PurchaseRequest['approval']; locked: boolean; disabled: boolean; onApprove: () => void }) {
   const [expiryAcknowledged, setExpiryAcknowledged] = useState(false);
   const [now, setNow] = useState(Date.now());
@@ -842,10 +861,12 @@ function PurchasesPanel({ api, canBuyAgain, onClose, onBuyAgain }: { api: Api; c
     window.addEventListener('keydown', onKey);
     return () => { controller.abort(); window.removeEventListener('keydown', onKey); };
   }, []);
-  const paidTotal = rows?.filter(p => p.attempt?.state === 'PAID').reduce((sum, p) => sum + p.attempt!.total_cents, 0) ?? 0;
+  const paid = rows?.filter(p => p.attempt?.state === 'PAID') ?? [];
+  const paidTotal = paid.reduce((sum, p) => sum + p.attempt!.total_cents, 0);
+  const saved = paid.reduce((sum, p) => sum + Math.max(0, savings(p, p.review!.item.offer_id).vsNext ?? 0), 0);
   return <div className="drawer-backdrop" onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
     <aside className="drawer" role="dialog" aria-modal="true" aria-labelledby="purchases-heading">
-      <header className="drawer-head"><div><h2 id="purchases-heading">Your purchases</h2><p className="fine-print">In this browser · PayPal sandbox{rows?.length ? ` · ${money(paidTotal)} paid` : ''}</p></div>
+      <header className="drawer-head"><div><h2 id="purchases-heading">Your purchases</h2><p className="fine-print">In this browser · PayPal sandbox{rows?.length ? ` · ${money(paidTotal)} paid` : ''}{saved > 0 ? ` · ${money(saved)} saved vs next offers` : ''}</p></div>
         <button ref={close} type="button" className="icon-button" aria-label="Close purchases" onClick={onClose}><Icon name="plus" /></button></header>
       {failed && <p className="alert is-error">Purchases could not be loaded. Close and try again.</p>}
       {!rows && !failed && <div className="skeletons"><div className="skeleton short" /><div className="skeleton short" /><div className="skeleton short" /></div>}
@@ -954,6 +975,7 @@ export function OwnerApproval({ token }: { token: string }) {
       {error && <div className="alert is-error" role="alert"><Icon name="alert" /><div><strong>That didn’t go through</strong><p>{error}</p></div></div>}
       {view && !review && <div className="alert is-warning"><Icon name="alert" /><div><strong>This cart has changed</strong><p>A newer review replaced it. Ask for a new approval link.</p></div></div>}
       {!view && !error && <div className="skeletons"><div className="skeleton" /><div className="skeleton short" /></div>}
+      {review && view && <Insight request={view.request} review={review} />}
       {review && <ReviewCard review={review} approval={approval} locked={!!attempt} disabled={!!busy}
         onApprove={() => void act('Recording your approval', () => api.linkApprove(token, { expected_version: review.version, expected_digest: review.digest }), 'stamp')} />}
       {approval?.status === 'APPROVED' && !attempt && view && <section className="panel checkout reveal" aria-labelledby="owner-pay-heading">

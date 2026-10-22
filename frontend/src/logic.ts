@@ -46,3 +46,9 @@ export function newerAttempt(current: PurchaseRequest | null, incoming: Attempt)
   if (current.attempt && Date.parse(incoming.updated_at) < Date.parse(current.attempt.updated_at)) return current;
   return { ...current, attempt: incoming };
 }
+// What the comparison saved: chosen offer vs the next cheapest that also fits exactly.
+export function savings(p: PurchaseRequest, offerId: string): { vsNext: number | null; fitting: number; ruledOut: number } {
+  const mine = p.candidates.find(c => c.offer_id === offerId);
+  const others = p.candidates.filter(c => c.offer_id !== offerId).map(c => c.total_cents);
+  return { vsNext: mine && others.length ? Math.min(...others) - mine.total_cents : null, fitting: p.candidates.length, ruledOut: p.excluded.length };
+}
