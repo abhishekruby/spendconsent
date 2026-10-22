@@ -258,3 +258,14 @@ implementer did not read it before inference. Report `34ec5e1` (eight suites,
 (first, cold case). Readiness granted with `grant_ai_readiness`. Real-app smoke
 test: sample cloth request READY CLOTH-B/CLOTH-A in 15.8 s; label-sheet request
 NO_MATCH in 17.0 s. unseen6 is now exposed.
+
+## 22 Oct 2026: re-qualification after the refund change
+
+`f7f75ab` changed `models.py` (Refund), one of the hashed sources, so the 34ec5e1
+report no longer grants readiness on a fresh install (the running marker is
+unaffected: the adapter is unchanged). Report
+[f7f75ab](evidence/ai-application-qualification-f7f75ab.json) was interrupted by a
+laptop power-off after 71 cases (70 correct; the in-flight case is recorded as
+`EVALUATION_INTERRUPTED` with no timing, so that suite cannot pass). It is kept.
+A fresh run of the same suites on unchanged sources is
+[a01b9f9](evidence/ai-application-qualification-a01b9f9.json).
