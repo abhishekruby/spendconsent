@@ -536,5 +536,8 @@ details[open] > summary::after { transform: rotate(225deg) translateY(-1px); }
 .icon-button.voice.is-listening { color: var(--accent); border-color: var(--accent); animation: listen 1.4s var(--ease) infinite; }
 @keyframes listen { 0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 45%, transparent); } 50% { box-shadow: 0 0 0 8px transparent; } }
 .voice-note { flex-basis: 100%; order: 3; font-size: 13px; color: var(--muted); min-height: 0; }
-.voice-note:empty { display: none; }
+
 @media (prefers-reduced-motion: reduce) { .icon-button.voice.is-listening { animation: none; } }
+.voice-note { display: grid; gap: 4px; }
+.voice-note:not(:has(p)) { display: none; }
+.voice-heard { color: var(--ink); font-style: italic; }

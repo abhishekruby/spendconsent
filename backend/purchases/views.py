@@ -10,9 +10,10 @@ from django.utils import timezone
 from rest_framework.authentication import CSRFCheck, BaseAuthentication
 from rest_framework.decorators import api_view, authentication_classes
 from rest_framework.exceptions import ValidationError
+from rest_framework.fields import CharField
 from rest_framework.response import Response
 from rest_framework.views import exception_handler as drf_exception_handler
-from . import checkout, inference, market, runtime_paypal, serializers, services
+from . import checkout, dictation, inference, market, runtime_paypal, serializers, services
 from .models import Approval, ApprovalLink, Offer, PaymentAttempt, PurchaseRequest, Refund, Review
 
 
@@ -198,6 +199,16 @@ def progress(request):
 @endpoint(["GET"])
 def request_detail(request, pk):
     return Response(request_data(inference.recover(owner(request), pk)))
+
+
+class Dictation(serializers.StrictSerializer):
+    text = CharField(min_length=1, max_length=2000)
+
+
+@endpoint(["POST"])
+def tidy_dictation(request):
+    owner(request)  # a browser session, like every other write
+    return Response(dictation.tidy(validated(Dictation, request)["text"].strip()))
 
 
 @endpoint(["GET"])

@@ -1,4 +1,5 @@
 """Application wiring checks with explicit test-only model fakes; no inference/HTTP."""
+import io
 from concurrent.futures import ThreadPoolExecutor
 from copy import deepcopy
 from datetime import timedelta
@@ -129,6 +130,29 @@ class InferenceTests(TransactionTestCase):
         with patch.object(inference, "_original_search", side_effect=lambda native, confirmed, text: seen.append(native) or {}):
             agent._search({"quantity": 500, "budget": None, "category": "bottle"}, {}, "500 ml bottles")
         self.assertEqual(seen[0]["quantity"], None, "the app's search path applies the role check")
+
+    def test_dictation_tidy_keeps_or_removes_numbers_but_never_adds_one(self):
+        from . import dictation
+        raw = "um we need fifty no wait forty garbage bags under 40 dollars"
+        self.assertTrue(dictation.accepted(raw, "we need forty garbage bags under 40 dollars"))
+        self.assertFalse(dictation.accepted(raw, "we need 45 garbage bags under 40 dollars"), "45 was never said")
+        self.assertFalse(dictation.accepted(raw, ""))
+
+        class Reply(io.BytesIO):
+            def __enter__(self): return self
+            def __exit__(self, *exc): return False
+        def model(content):
+            return lambda request, timeout: Reply(json.dumps({"choices": [{"message": {"content": content}}]}).encode())
+        with patch.object(inference, "ready", return_value=True):
+            with patch.object(dictation._OPENER, "open", model("<think></think>we need forty garbage bags under 40 dollars")):
+                self.assertEqual(dictation.tidy(raw), {"text": "we need forty garbage bags under 40 dollars", "tidied": True})
+            with patch.object(dictation._OPENER, "open", model("we need 400 garbage bags")):
+                self.assertEqual(dictation.tidy(raw), {"text": raw, "tidied": False}, "an invented number falls back to the raw words")
+            with patch.object(dictation._OPENER, "open", side_effect=OSError):
+                self.assertEqual(dictation.tidy(raw), {"text": raw, "tidied": False})
+        with patch.object(inference, "ready", return_value=False):
+            self.assertEqual(self.post("/api/dictation", {"text": raw}).json(), {"text": raw, "tidied": False})
+        self.assertEqual(self.post("/api/dictation", {"text": ""}).status_code, 400)
 
     def test_create_compare_review_approve_keeps_financial_disabled(self):
         def model(text, confirmed):

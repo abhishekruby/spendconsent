@@ -405,7 +405,7 @@ export function App() {
           {draftMode && request && <button type="button" className="ghost-link composer-back" onClick={() => { setDraftMode(false); setNotice(''); }}>← Back to current request</button>}
           <div className="composer-bar">
             <p id="request-help" className="composer-help">Include <b>how many</b>, <b>what size</b> and your <b>max total</b>.</p>
-            <VoiceButton text={text} disabled={!!busy || requestLocked} onText={setText} />
+            <VoiceButton disabled={!!busy || requestLocked} onText={setText} tidy={raw => api.dictation(raw)} />
             <button className="btn primary" disabled={!session || !!busy || requestLocked || !text.trim()}>
               {session?.capabilities.ai_ready ? 'Compare offers' : 'Save request'}<Icon name="arrow" />
             </button>
@@ -625,14 +625,29 @@ export function AiReading({ request }: { request: PurchaseRequest }) {
     </ol>
   </section>;
 }
-// Speak the request: the browser turns speech into the exact words in the box.
-function VoiceButton({ text, disabled, onText }: { text: string; disabled: boolean; onText: (value: string) => void }) {
+// Speak the request. While listening, words show in a preview line only, so the box
+// is never overwritten; on stop the local AI applies the speaker's own corrections
+// ("fifty, no, forty") and the result is added to the box for the buyer to check.
+function VoiceButton({ disabled, onText, tidy }: { disabled: boolean; onText: (update: (current: string) => string) => void; tidy: (raw: string) => Promise<{ text: string; tidied: boolean }> }) {
   const [Recognizer] = useState(() => recognitionClass());
   const [listening, setListening] = useState(false);
+  const [heard, setHeard] = useState('');
   const [note, setNote] = useState('');
+  const [last, setLast] = useState<{ raw: string; text: string } | null>(null);
   const active = useRef<Recognition | null>(null);
+  const words = useRef('');
   useEffect(() => () => active.current?.abort(), []);
   if (!Recognizer) return null;
+  async function finish() {
+    const raw = words.current;
+    active.current = null; setListening(false); setHeard(''); play('tick');
+    if (!raw) { setNote(n => n.startsWith('Listening') ? 'Didn’t hear anything. Try again.' : n); return; }
+    setNote('Tidying up what you said…');
+    const result = await tidy(raw).catch(() => ({ text: raw, tidied: false }));
+    onText(current => [current.trim(), result.text].filter(Boolean).join(' '));
+    setLast(result.tidied ? { raw, text: result.text } : null);
+    setNote(result.tidied ? 'Your spoken corrections were applied. Check the words, then compare.' : 'Added what you said. Check the words, then compare.');
+  }
   async function toggle() {
     if (active.current) { active.current.stop(); return; }
     const lang = navigator.language || 'en-US';
@@ -640,20 +655,25 @@ function VoiceButton({ text, disabled, onText }: { text: string; disabled: boole
     const local = await onDevice(Recognizer!, lang);
     recognition.lang = lang; recognition.continuous = true; recognition.interimResults = true;
     if (local) recognition.processLocally = true;
-    const before = text.trim();
-    recognition.onresult = event => onText([before, transcript(event.results)].filter(Boolean).join(' '));
+    words.current = ''; setLast(null);
+    recognition.onresult = event => { words.current = transcript(event.results); setHeard(words.current); };
     recognition.onerror = event => setNote(event.error === 'not-allowed' || event.error === 'service-not-allowed'
       ? 'Microphone blocked. Allow it in the browser to speak your request.' : event.error === 'no-speech' ? 'Didn’t hear anything. Try again.' : 'Voice input stopped. You can type instead.');
-    recognition.onend = () => { active.current = null; setListening(false); play('tick'); };
+    recognition.onend = () => void finish();
     active.current = recognition;
-    setNote(local ? 'Listening on this device. Say what you need, then tap again.' : 'Listening (browser speech service). Say what you need, then tap again.');
+    setNote(local ? 'Listening on this device. Tap the mic again when you’re done.' : 'Listening (browser speech service). Tap the mic again when you’re done.');
     setListening(true); play('tick');
     try { recognition.start(); } catch { active.current = null; setListening(false); setNote('Voice input could not start. You can type instead.'); }
   }
   return <>
-    <button type="button" className={`icon-button voice${listening ? ' is-listening' : ''}`} disabled={disabled} aria-pressed={listening}
-      aria-label={listening ? 'Stop voice input' : 'Speak your request'} title={listening ? 'Stop' : 'Speak your request'} onClick={() => void toggle()}><Icon name="mic" /></button>
-    <p className="voice-note" role="status">{note}</p>
+    <button type="button" className={`icon-button voice${listening ? ' is-listening' : ''}`} disabled={disabled || note === 'Tidying up what you said…'} aria-pressed={listening}
+      aria-label={listening ? 'Stop and add what I said' : 'Speak your request'} title={listening ? 'Stop' : 'Speak your request'} onClick={() => void toggle()}><Icon name="mic" /></button>
+    <div className="voice-note" role="status">
+      {listening && heard && <p className="voice-heard">“{heard}”</p>}
+      {note && <p>{note}</p>}
+      {last && !listening && <p className="fine-print">You said: “{last.raw}” <button type="button" className="ghost-link"
+        onClick={() => { onText(current => current.replace(last.text, last.raw)); setLast(null); setNote('Restored exactly what you said.'); }}>Use exactly what I said</button></p>}
+    </div>
   </>;
 }
 function RequirementChips({ constraints: c }: { constraints: Constraints }) {

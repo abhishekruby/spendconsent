@@ -5,6 +5,7 @@ urlpatterns = [
     path("api/session", views.session),
     path("api/requests", views.requests),
     path("api/progress", views.progress),
+    path("api/dictation", views.tidy_dictation),
     path("api/purchases", views.purchases),
     path("api/requests/<uuid:pk>", views.request_detail),
     path("api/requests/<uuid:pk>/clarify", views.clarify),

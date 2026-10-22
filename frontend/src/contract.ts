@@ -165,3 +165,7 @@ export function isMarket(v: unknown): v is Market {
   return v.available === true && Object.keys(v).length === 4 && v.source === 'Channel3' && string(v.query)
     && Array.isArray(v.listings) && v.listings.length <= 5 && v.listings.every(isListing);
 }
+
+export function isDictation(v: unknown): v is { text: string; tidied: boolean } {
+  return object(v) && Object.keys(v).length === 2 && typeof v.text === 'string' && v.text.length <= 2100 && typeof v.tidied === 'boolean';
+}
