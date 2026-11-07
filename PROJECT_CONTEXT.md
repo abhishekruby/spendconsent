@@ -22,8 +22,6 @@ Deadline 12 Nov 2026 noon PST (13 Nov 01:30 IST).
   number's unit from the text right after it, converts to cents/cm/l/ml in code;
   anything else becomes unknown → buyer is asked. Whole-cent budgets only.
 - Foreign-dollar markers never become USD; recurring phrases → unsupported.
-- Model server `--parallel 2` (prefix cache): ~20–30 s per request.
-- Independent reviews passed for every change through ef89dff (re-review PASS).
 
 ## AI evidence (never pool, never erase failures)
 
@@ -42,10 +40,7 @@ Deadline 12 Nov 2026 noon PST (13 Nov 01:30 IST).
   no shipping.options (SHIPPING_OPTIONS_NOT_SUPPORTED), definitive create
   declines, advisory SDK eligibility; `.env` now uses a **US** sandbox business
   account (India one gave UNSUPPORTED_PAYEE_CURRENCY). API runs with AI+PayPal on.
-- **Operator commands:** `grant_ai_readiness <report>` (checks report + all
-  hashed backend sources); `authorize_sandbox_purchase` (shows exact cart,
-  person types the total, writes one-time permission; TTY only). Review PASS.
-- README rewritten for judges; Devpost draft in docs/submission-draft.md.
+- **Operator commands:** `grant_ai_readiness <report>`; `authorize_sandbox_purchase` (TTY).
 
 ## Current session and next action (Claude, 22 Oct)
 
