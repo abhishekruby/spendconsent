@@ -65,6 +65,16 @@ Deadline 12 Nov 2026 noon PST (13 Nov 01:30 IST).
 - **Next:** user live-tests Cancel & refund; demo video (`docs/demo-script.md`), Devpost
   (`docs/submission-draft.md`), judge sandbox access, public repo, submit by 10 Nov.
 
+## Hosted demo (7 Nov)
+
+https://136-111-237-69.sslip.io — Google Cloud free trial (user added card and paid
+the ₹1,000 India prepayment; user-approved exception to zero-cost). VM `spendconsent`,
+n2d-standard-4, us-central1-a, static IP; `compose.public.yaml` (Caddy HTTPS, 20/min
+action limit). Deploy: `git archive HEAD | ssh … tar -x -C ~/spendconsent`, then
+`docker compose --env-file deploy.env -f compose.yaml -f compose.public.yaml up -d --build`.
+SSH key `.runtime/ssh/` (ignored). AI 13.8 s/comparison there. Review PASS after fixes.
+Delete the VM after judging (15 Dec); never upgrade the billing account.
+
 ## Known limits
 
 Grounding checks number presence, not role. Run one API process (inference
