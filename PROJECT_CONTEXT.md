@@ -62,7 +62,7 @@ Deadline 12 Nov 2026 noon PST (13 Nov 01:30 IST).
 
 ## Hosted demo (7 Nov)
 
-https://136-111-237-69.sslip.io — Google Cloud free trial (user added card and paid
+https://spendconsent.ullagecloud.com (A record → 136.111.237.69, Namecheap) — Google Cloud free trial (user added card and paid
 the ₹1,000 India prepayment; user-approved exception to zero-cost). VM `spendconsent`,
 n2d-standard-4, us-central1-a, static IP; `compose.public.yaml` (Caddy HTTPS, 20/min
 action limit). Deploy: `git archive HEAD | ssh … tar -x -C ~/spendconsent`, then
