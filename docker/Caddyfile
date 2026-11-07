@@ -1,12 +1,18 @@
 # Public HTTPS front for compose.public.yaml. Caddy gets the certificate itself.
-# No access log: approval-link tokens travel in /api/links/<token> paths.
+# Logs off (access and error): approval-link tokens travel in /api/links/<token> paths.
+{
+	log {
+		output discard
+	}
+}
+
 {$SPENDCONSENT_PUBLIC_HOST} {
 	encode zstd gzip
 	header {
 		Strict-Transport-Security "max-age=31536000"
 		X-Content-Type-Options nosniff
 		X-Frame-Options DENY
-		Referrer-Policy no-referrer
+		Referrer-Policy same-origin
 		-Server
 	}
 	handle /api/* {

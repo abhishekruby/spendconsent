@@ -591,7 +591,11 @@ class ActionThrottleTests(SimpleTestCase):
         factory = APIRequestFactory()
         allowed = lambda req: ActionThrottle().allow_request(Request(req), None)
         self.assertTrue(all(allowed(factory.get("/api/attempts/x")) for _ in range(40)))
+        factory.cookies["spendconsent_session"] = "existing"
+        self.assertTrue(all(allowed(factory.get("/api/session")) for _ in range(40)))
+        del factory.cookies["spendconsent_session"]
         self.assertTrue(all(allowed(factory.post("/api/requests")) for _ in range(20)))
         self.assertFalse(allowed(factory.get("/api/requests/x/market")))
+        self.assertFalse(allowed(factory.get("/api/session")))
         self.assertFalse(allowed(factory.post("/api/requests")))
         self.assertTrue(allowed(factory.get("/api/progress")))
