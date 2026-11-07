@@ -551,7 +551,7 @@ export function Thinking({ text, progress }: { text: string; progress: Progress 
         {progress?.stage === 'UNDERSTOOD'
           ? <p className="thinking-caption">Confirming the result with the AI…</p>
           : <p className="thinking-caption" key={Math.floor(elapsed / 4)}>{captions[Math.floor(elapsed / 4) % captions.length]}</p>}
-        <p className="fine-print">Local AI on this laptop · usually 20–40 s{elapsed > 45 ? ' · taking longer than usual, still working' : ''}</p>
+        <p className="fine-print">Self-hosted open AI model, no cloud AI · usually 15–40 s{elapsed > 45 ? ' · taking longer than usual, still working' : ''}</p>
       </div>
     </div>
     {progress?.stage === 'UNDERSTOOD'
@@ -617,7 +617,7 @@ export function AiReading({ request }: { request: PurchaseRequest }) {
   const checked = request.candidates.length + request.excluded.length;
   return <section className="ai-reading reveal" aria-labelledby="ai-reading-heading">
     <header><h2 id="ai-reading-heading"><Icon name="spark" />What the AI understood</h2>
-      <p className="fine-print">{m.name.startsWith('qwen3-4b') ? 'Qwen3-4B' : m.name}, a local AI model on this computer · read in {(m.elapsed_ms / 1000).toFixed(1)} s · {m.tool_calls.map(t => t.name).join(', ')} called once</p></header>
+      <p className="fine-print">{m.name.startsWith('qwen3-4b') ? 'Qwen3-4B' : m.name}, a self-hosted open AI model · read in {(m.elapsed_ms / 1000).toFixed(1)} s · {m.tool_calls.map(t => t.name).join(', ')} called once</p></header>
     <blockquote className="reading">{parts.map((p, i) => p.field
       ? <mark key={i} data-field={p.field}><span className="reading-word">{p.text}</span><span className="reading-tag">{readingLabel[p.field]}</span></mark> : <span key={i}>{p.text}</span>)}</blockquote>
     {assumedOneTime && <p className="fine-print">One-time purchase by default: SpendConsent never sets up subscriptions or repeat orders.</p>}
