@@ -3,7 +3,7 @@ import type { Attempt, PurchaseRequest, Session } from './contract.js';
 
 const messages: Record<string, string> = {
   MODEL_UNAVAILABLE: 'Actual AI comparison is unavailable. Your request was saved; no comparison or payment was made.',
-  MODEL_BUSY: 'The local model is busy. Check the saved request before trying again.',
+  MODEL_BUSY: 'The AI is busy with another request. Check the saved request before trying again.',
   MODEL_ERROR: 'The model could not produce a validated comparison. No purchase was approved.',
   INVALID_REQUEST: 'The request was rejected. Check the requirements and try again.',
   CSRF_FAILED: 'This page’s security token is no longer valid. Reload the connection before retrying.',

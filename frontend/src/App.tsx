@@ -22,18 +22,18 @@ const idShort = (id: string) => id.slice(0, 8);
 const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`;
 const delay = (i: number) => ({ '--i': i }) as CSSProperties;
 
+const THEME_KEY = 'spendconsent-theme';
+function savedTheme(): 'light' | 'dark' {
+  try { return window.localStorage.getItem(THEME_KEY) === 'dark' ? 'dark' : 'light'; } catch { return 'light'; }
+}
+
 export function App() {
   const [api] = useState(() => new Api());
-  const [appearance, setAppearance] = useState<'light' | 'dark'>(() => {
-    try {
-      const saved = window.localStorage.getItem('spendconsent-appearance');
-      if (saved === 'light' || saved === 'dark') return saved;
-      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-    } catch { return 'light'; }
-  });
+  // Light by default; dark only after this visitor picks it with the toggle.
+  const [appearance, setAppearance] = useState<'light' | 'dark'>(savedTheme);
   const [session, setSession] = useState<Session | null>(null);
   const [request, setRequest] = useState<PurchaseRequest | null>(null);
-  const [busy, setBusy] = useState('Connecting to the local workspace');
+  const [busy, setBusy] = useState('Connecting to SpendConsent');
   const [error, setError] = useState<ApiError | null>(null);
   const [notice, setNotice] = useState('');
   const [text, setText] = useState('');
@@ -55,7 +55,6 @@ export function App() {
 
   useEffect(() => {
     document.documentElement.dataset.theme = appearance;
-    try { window.localStorage.setItem('spendconsent-appearance', appearance); } catch { /* Appearance still works when storage is unavailable. */ }
   }, [appearance]);
   useEffect(() => {
     if (focusRequested.current) { heading.current?.focus(); focusRequested.current = false; }
@@ -79,7 +78,7 @@ export function App() {
     return { controller, serial: generation.current };
   }
   async function connect() {
-    const { controller, serial } = begin('Connecting to the local workspace');
+    const { controller, serial } = begin('Connecting to SpendConsent');
     try {
       const next = await api.session(controller.signal);
       if (generation.current !== serial) return;
@@ -341,7 +340,7 @@ export function App() {
         {session && <button type="button" className="btn small quiet history-button" aria-label="Your purchases" onClick={() => setHistoryOpen(true)}><Icon name="list" /><span className="wide-only">Purchases</span></button>}
         <button type="button" className="icon-button" aria-pressed={sound} aria-label={sound ? 'Mute interface sounds' : 'Turn interface sounds on'}
           onClick={() => { const next = !sound; setSound(next); setSoundOn(next); if (next) play('tick'); }}><Icon name={sound ? 'sound' : 'mute'} /></button>
-        <button type="button" className="icon-button" aria-label={`Use ${appearance === 'light' ? 'dark' : 'light'} appearance`} onClick={() => setAppearance(value => value === 'light' ? 'dark' : 'light')}>
+        <button type="button" className="icon-button" aria-label={`Use ${appearance === 'light' ? 'dark' : 'light'} appearance`} onClick={() => { const next = appearance === 'light' ? 'dark' : 'light'; setAppearance(next); try { window.localStorage.setItem(THEME_KEY, next); } catch { /* Lasts this page only. */ } }}>
           <Icon name={appearance === 'light' ? 'moon' : 'sun'} />
         </button>
       </div>
@@ -390,9 +389,9 @@ export function App() {
 
         <div className="live-status sr-only" role="status" aria-live="polite" aria-atomic="true">{busy || notice}</div>
         {error && <div className="alert is-error reveal" role="alert"><Icon name="alert" /><div><strong>That didn’t go through</strong><p>{error.message}</p>{error.code === 'CSRF_FAILED' && <button className="btn small" disabled={!!busy} onClick={() => void connect()}>Reload connection</button>}</div></div>}
-        {offline && <div className="empty reveal"><Icon name="plug" /><h2>The local workspace isn’t answering</h2><p>Start the project’s backend, then reconnect. Anything you typed stays on this page.</p><button className="btn primary" onClick={() => void connect()}>Retry connection</button></div>}
+        {offline && <div className="empty reveal"><Icon name="plug" /><h2>SpendConsent’s server isn’t answering</h2><p>Check your connection (running it yourself? start the backend), then retry. Anything you typed stays on this page.</p><button className="btn primary" onClick={() => void connect()}>Retry connection</button></div>}
         {recoveryBlocked && !busy && <div className="alert is-warning reveal"><Icon name="alert" /><div><strong>Reload the saved purchase before continuing</strong><p>This session has a saved request whose current status could not be read. A new request stays blocked until its status is known.</p><button className="btn small" onClick={() => void connect()}>Retry saved purchase recovery</button></div></div>}
-        {session && !session.capabilities.ai_ready && <div className="alert is-info reveal"><Icon name="spark" /><div><strong>AI comparison is not ready</strong><p>You can save a request and confirm requirements. Comparison opens after the local AI passes its checks.</p></div></div>}
+        {session && !session.capabilities.ai_ready && <div className="alert is-info reveal"><Icon name="spark" /><div><strong>AI comparison is not ready</strong><p>You can save a request and confirm requirements. Comparison opens after the AI passes its checks.</p></div></div>}
 
         {thinking && <Thinking text={text || request?.text || ''} progress={progress} />}
 
@@ -1125,7 +1124,7 @@ export function OwnerApproval({ token }: { token: string }) {
   const [busy, setBusy] = useState('Opening the approval request');
   const [error, setError] = useState('');
   useEffect(() => {
-    try { const saved = window.localStorage.getItem('spendconsent-appearance'); if (saved === 'dark' || saved === 'light') document.documentElement.dataset.theme = saved; } catch { /* Default theme. */ }
+    document.documentElement.dataset.theme = savedTheme();
     return unlockAudio();
   }, []);
   async function load() {
