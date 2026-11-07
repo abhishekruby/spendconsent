@@ -1,76 +1,87 @@
 # Prompt for Codex — build the SpendConsent demo video
 
-Paste everything below the line into Codex (local Codex CLI or the Codex app,
-working in this repository folder, highest reasoning setting).
+Paste everything below the line into Codex (Codex CLI or the Codex app, working
+in this repository folder, strongest model, highest reasoning). Before pasting,
+read the "User approval" paragraph — keep it only if you agree.
 
 ---
 
-You are a senior motion designer and video engineer. Build the 2:45 demo video
+You are a senior motion designer and video engineer. Produce the 2:45 demo video
 for SpendConsent, our PayPal AI Hackathon 2026 entry, as code in a new `video/`
 folder of this repository. Judges may score us from this video alone, so it must
-look like a polished product launch film: calm, premium, clear, honest.
+feel like a polished product-launch film: calm, premium, clear, honest — and
+the viewer must leave with one idea: *AI can shop for you but never pay; a person
+approves the exact cart; PayPal verifies the payment.*
 
 ## Read first (and only these)
-- `AGENTS.md` — the rules apply to you: zero cost, no secrets, sandbox only.
-- `docs/video-plan.md` — the script, timing, shot list and quality checklist.
-  It is the source of truth for the story and the voiceover text.
-- `frontend/src/style.css` (top: design tokens) and `frontend/package.json`
-  (font packages) — match the product's look.
-- `README.md` sections "AI" and "MCP" — for the true numbers and claims.
+- `AGENTS.md` — its rules apply to you (zero cost, no secrets, sandbox only).
+- `docs/video-plan.md` — source of truth for story, script, timing, the
+  automated-recording method and the quality checklist.
+- `frontend/src/style.css` (design tokens at the top), `frontend/package.json`
+  (font packages), `README.md` ("AI" and "MCP" sections), `docs/impact-evidence.md`.
+
+## User approval (the user keeps or deletes this paragraph)
+For recording this video only, I approve Codex to create, pay and refund
+SpendConsent PayPal **sandbox** test orders (test money, each under USD 100, at
+most 6 payments in total) on the local app. I will sign in to the PayPal sandbox
+buyer myself when asked; Codex never types or reads a PayPal password.
 
 ## Hard rules
-- Work only inside `video/` (plus one line in `.gitignore` if needed). Never edit
-  app code, never read `.env` or `.runtime/`, never start or approve payments.
-- Zero cost: open-source/free tools only; no paid APIs, no trials, no stock sites.
-- Honesty: the product is shown only through real screen recordings from
-  `video/raw/`. Motion graphics explain; they never fake product screens. Any
-  speed-up or cut of a wait gets an on-screen label (e.g. "AI wait shortened ·
-  real: 14 s"). Keep "Sandbox · test money" visible in payment scenes.
+- Work only inside `video/` (plus `.gitignore` lines). Never edit app code, never
+  read `.env` or `.runtime/`. Sandbox only; never switch anything to Live.
+- Zero cost: open-source/free tools only; no paid APIs, trials or stock sites.
+- Honesty: the product appears only through real recordings of the running app.
+  Motion graphics explain; they never fake product screens. Label every speed-up
+  or cut wait (e.g. "AI wait shortened · real: ~14 s"). Keep "Sandbox · test
+  money" visible in payment scenes. Every number must match its source file.
 - No third-party music, logos or trademarks except PayPal and Channel3 UI as it
-  appears inside our product. Do not show Claude/ChatGPT/OpenAI branding.
-- Blur approval-link URLs/tokens, emails and any account identifiers in clips.
-- Pin exact dependency versions; record every asset and licence in
-  `video/CREDITS.md`.
+  appears inside our product. No Claude/ChatGPT/OpenAI branding on screen.
+- Blur approval-link URLs/tokens, emails and account identifiers.
+- Pin exact dependency versions; list every asset and licence in `video/CREDITS.md`.
 
 ## Stack
-- Remotion (free for individuals) with React + TypeScript, 1920×1080, 30 fps.
-- Fonts: Bricolage Grotesque + IBM Plex Mono from the same OFL npm packages the
-  frontend uses. Colours: the app's paper/ink/persimmon tokens.
-- Voice: Kokoro TTS run locally (Apache-2.0; prefer `kokoro-onnx`). First render
-  4 short samples (2 female, 2 male US/UK voices) to `video/out/voice-samples/`
-  and stop for the user to choose. Then one WAV per scene; scene lengths follow
-  the voice durations plus breathing room.
-- Music: none from third parties. Optional: a very quiet ambient pad you
-  synthesise yourself in code, ducked under the voice. The app's own UI sounds
-  in the recordings are welcome.
-- ffmpeg for remux/loudness (if missing, tell the user: `sudo apt install ffmpeg`).
+- Remotion (free for individuals), React + TypeScript, 1920×1080, 30 fps.
+- Fonts Bricolage Grotesque + IBM Plex Mono (the frontend's OFL npm packages);
+  colours from the app's paper/ink/persimmon tokens.
+- Voice: Kokoro TTS run locally (Apache-2.0; prefer `kokoro-onnx`). First make
+  4 short samples (2 female, 2 male, US/UK) in `video/out/voice-samples/` and stop
+  for the user to choose. Then one WAV per scene; scene lengths follow voice
+  durations plus breathing room.
+- Music: none from third parties. Optional: a very quiet ambient pad synthesised
+  in code, ducked under the voice. The app's own UI sounds in recordings are welcome.
+- Recording: Playwright (headed Chrome, kiosk, 1920×1080, persistent profile in
+  `video/.chrome-profile/`) + ffmpeg `x11grab` (this is an X11 desktop), exactly
+  as described in the plan, with an injected smooth cursor and click ripples.
+  QR code for the end card from a free library.
 
-## Build
-1. `video/` Remotion project: one composition per scene (8 scenes from the plan)
-   plus a `Main` composition that sequences them; shared components:
-   kinetic title, caption track, callout chip, zoom/pan on a clip region
-   (smooth ease, no shaky Ken Burns), highlight ring, split laptop+phone frame,
-   animated terminal, stat counter, flow diagram, end card, chapter progress bar.
-2. Motion style: restrained and premium — 250–600 ms ease-out moves, spring
-   only for the APPROVED/VOID stamps, no spinning, no glitch, no stock
-   transitions. Text ≥ 36 px, key text ≥ 64 px, safe margins 96 px.
-3. Scenes 1, 2, 7 (terminal) and 8 need no footage: build them now. For the
-   terminal, run the real MCP server against the local app if it is running
-   (`scripts/run_demo.sh`, `python3 scripts/spendconsent_mcp.py`) and animate
-   that real transcript; label it "real MCP session". If the app is not
-   running, ask the user to start it — never invent tool output.
-4. Footage scenes (3–7) use `video/raw/C1…C7`. Until the clips exist, show a
-   labelled placeholder with the clip name so timing can be reviewed.
-5. Captions: burned in (bottom, 2 lines max) and exported as `video/out/captions.srt`.
-6. Render `video/out/spendconsent-demo.mp4` (H.264, yuv420p, AAC 48 kHz, audio
-   normalised to −14 LUFS, ≤ 2:55).
+## Order of work
+1. Set up `video/` and the voice samples; stop for the voice choice.
+2. Build scenes that need no footage: 1 (kinetic hook; montage slots), 2 (stats
+   with source line, who-it's-for, title card), 7 (terminal — run the real MCP
+   server against the local app and animate that real transcript, labelled
+   "real MCP session"; never invent tool output), 8 (proof, flow line, end card
+   with QR). Shared components: kinetic title, caption track, callout chip,
+   eased zoom/pan on a clip region, highlight ring, laptop+phone split frame,
+   animated terminal, stat counter, flow diagram, chapter progress bar.
+3. Write the recorder and record clips C1–C7 + C3b from the plan on the local
+   app (start it with `scripts/run_demo.sh` if not running). Ask the user before
+   the first PayPal popup so they can sign in; tell them not to use the laptop
+   while recording. Retake anything shaky.
+4. Edit footage scenes 3–7 and the cold-open montage from the clips.
+5. Captions burned in (bottom, max 2 lines) and `video/out/captions.srt`.
+6. Render `video/out/spendconsent-demo-vN.mp4` (H.264 high, yuv420p, CRF 18,
+   AAC 48 kHz, loudness −14 LUFS, ≤ 2:55).
 
-## Deliver for review (every version)
+Motion style: restrained and premium — 250–600 ms ease-out moves, springs only
+for APPROVED/VOID stamps, no spinning, glitch or stock transitions. Text ≥ 36 px,
+key text ≥ 64 px, 96 px safe margins. One idea per shot.
+
+## Deliver for review (every version N)
 - `video/out/spendconsent-demo-vN.mp4`
-- `video/out/contact-sheet-vN.jpg` — one frame every 3 s in a grid with timestamps
+- `video/out/contact-sheet-vN.jpg` — a frame every 3 s in a grid, with timestamps
 - `video/out/timeline-vN.json` — per scene: start, end, voiceover text, clips used
 - `video/REVIEW.md` — what changed, what is still placeholder, open questions
-- Commit `video/` source (not `raw/` or `out/`; gitignore them) with a clear message.
+- Commit `video/` source only (gitignore `raw/`, `out/`, `.chrome-profile/`).
 
 Then stop and summarise in under 150 words. The user will bring Claude's review
-back to you as the next prompt.
+back as the next prompt.
