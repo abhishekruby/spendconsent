@@ -52,6 +52,9 @@ def exception_handler(exc, context):
     if isinstance(exc, checkout.DispatchDenied):
         return Response({"error": {"code": "FINANCIAL_ACTIONS_DISABLED", "message": "This sandbox operation needs current permission for the exact approved cart.", "retryable": False}}, status=503)
     response = drf_exception_handler(exc, context)
+    if response is not None and response.status_code == 429:
+        response.data = {"error": {"code": "RATE_LIMITED", "message": "Too many actions in a short time. Wait a minute, then try again.", "retryable": True}}
+        return response
     if response is None:
         # Do not expose traceback, model input, DB details, provider payload or credentials.
         return Response({"error": {"code": "SERVER_ERROR", "message": "The request could not be completed. Reload its saved status.", "retryable": False}}, status=500)

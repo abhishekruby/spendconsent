@@ -58,6 +58,16 @@ REST_FRAMEWORK = {
     "UNAUTHENTICATED_USER": None,
     "EXCEPTION_HANDLER": "purchases.views.exception_handler",
 }
+# Public demo (compose.public.yaml): Django listens only on the private Docker
+# network behind Caddy, which terminates HTTPS and sets X-Forwarded-Proto/-For.
+PUBLIC_HOST = os.environ.get("SPENDCONSENT_PUBLIC_HOST", "")
+if PUBLIC_HOST:
+    ALLOWED_HOSTS.append(PUBLIC_HOST)
+    CSRF_TRUSTED_ORIGINS.append(f"https://{PUBLIC_HOST}")
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    SESSION_COOKIE_SECURE = CSRF_COOKIE_SECURE = True
+    REST_FRAMEWORK["DEFAULT_THROTTLE_CLASSES"] = ["purchases.throttles.ActionThrottle"]
+    REST_FRAMEWORK["NUM_PROXIES"] = 1
 # Root may enable only after independent actual-model qualification. A matching
 # private readiness marker is also required; no request can override either gate.
 SPENDCONSENT_AI_ENABLED = os.environ.get("SPENDCONSENT_AI_ENABLED") == "1"

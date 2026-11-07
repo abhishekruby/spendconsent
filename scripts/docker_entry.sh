@@ -31,6 +31,14 @@ export SPENDCONSENT_AI_ENABLED=1 SPENDCONSENT_PAYPAL_CONSENT="${SPENDCONSENT_PAY
   --gpu-layers 0 --jinja --chat-template-file .ai-cache/qwen3.jinja --reasoning off --offline --log-disable --no-webui \
   >.runtime/logs/model.log 2>&1 &
 until curl -sf http://127.0.0.1:11435/health >/dev/null; do sleep 2; done
+if [ -n "${SPENDCONSENT_PUBLIC_HOST:-}" ]; then
+  # Public demo (compose.public.yaml): build the web app into the volume Caddy serves,
+  # then run the API on the private Docker network; Caddy adds HTTPS in front.
+  (cd frontend && npm run build >/app/.runtime/logs/build.log 2>&1)
+  echo "SpendConsent API up; open https://${SPENDCONSENT_PUBLIC_HOST}"
+  # ponytail: runserver behind Caddy; one process keeps the in-process inference lock.
+  exec .venv/bin/python backend/manage.py runserver 0.0.0.0:8000 --noreload
+fi
 .venv/bin/python backend/manage.py runserver 127.0.0.1:8000 --noreload >.runtime/logs/api.log 2>&1 &
 echo "SpendConsent is starting: open http://127.0.0.1:5173"
 cd frontend && exec node_modules/.bin/vite --host 0.0.0.0 --port 5173 --strictPort

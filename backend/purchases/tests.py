@@ -11,7 +11,7 @@ from unittest.mock import patch
 from django.apps import apps
 from django.core.management import CommandError, call_command
 from django.db import IntegrityError, close_old_connections, connection, transaction
-from django.test import Client, TestCase, TransactionTestCase
+from django.test import Client, SimpleTestCase, TestCase, TransactionTestCase
 from django.utils import timezone
 from . import catalog, market, services
 from .models import Approval, DecisionEvent, Offer, PaymentAttempt, PurchaseRequest, Review
@@ -579,3 +579,19 @@ class PostgreSQLRaceTests(TransactionTestCase):
             cursor.execute("SELECT current_database(), current_user, rolsuper, rolcreatedb, rolcreaterole FROM pg_roles WHERE rolname=current_user")
             identity = cursor.fetchone()
         self.assertEqual(identity, ("test_spendconsent", "spendconsent_app", False, False, False))
+
+
+class ActionThrottleTests(SimpleTestCase):
+    def test_counts_actions_and_market_checks_but_not_status_polling(self):
+        from django.core.cache import cache
+        from rest_framework.request import Request
+        from rest_framework.test import APIRequestFactory
+        from .throttles import ActionThrottle
+        cache.clear()
+        factory = APIRequestFactory()
+        allowed = lambda req: ActionThrottle().allow_request(Request(req), None)
+        self.assertTrue(all(allowed(factory.get("/api/attempts/x")) for _ in range(40)))
+        self.assertTrue(all(allowed(factory.post("/api/requests")) for _ in range(20)))
+        self.assertFalse(allowed(factory.get("/api/requests/x/market")))
+        self.assertFalse(allowed(factory.post("/api/requests")))
+        self.assertTrue(allowed(factory.get("/api/progress")))

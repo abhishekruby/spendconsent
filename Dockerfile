@@ -29,6 +29,6 @@ RUN mkdir -p .runtime && if [ -f /tmp/docker/llama-b11696-bin-ubuntu-x64.tar.gz 
  && tar -xzf .runtime/llama.tar.gz -C .runtime && rm .runtime/llama.tar.gz \
  && echo "6c7e275a5fe0b9f2b3d90dd53d8fd441d653af415350cfc05ca41e45eb18abfb  .runtime/llama-b11696/llama-server" | sha256sum --check -
 COPY --chown=app . .
-RUN mkdir -p .ai-cache .runtime/logs
+RUN mkdir -p .ai-cache .runtime/logs frontend/dist
 EXPOSE 5173
 CMD ["scripts/docker_entry.sh"]

@@ -1,0 +1,26 @@
+# Public HTTPS demo on a server (ports 80/443 open, DNS name pointing at it):
+#   SPENDCONSENT_PUBLIC_HOST=<name> docker compose -f compose.yaml -f compose.public.yaml up -d --build
+# PayPal sandbox: put .env next to this file, owned by uid 1000, chmod 600.
+services:
+  spendconsent:
+    ports: !reset []
+    environment:
+      SPENDCONSENT_PUBLIC_HOST: ${SPENDCONSENT_PUBLIC_HOST:?set SPENDCONSENT_PUBLIC_HOST}
+    volumes:
+      - ./.env:/app/.env:ro
+      - web:/app/frontend/dist
+    restart: unless-stopped
+  caddy:
+    image: caddy:2.8.4
+    ports: ["80:80", "443:443"]
+    environment:
+      SPENDCONSENT_PUBLIC_HOST: ${SPENDCONSENT_PUBLIC_HOST}
+    volumes:
+      - ./docker/Caddyfile:/etc/caddy/Caddyfile:ro
+      - web:/srv/web:ro
+      - caddy:/data
+    depends_on: [spendconsent]
+    restart: unless-stopped
+volumes:
+  web:
+  caddy:
