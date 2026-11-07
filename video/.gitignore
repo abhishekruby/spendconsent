@@ -1,0 +1,10 @@
+raw/
+out/
+.chrome-profile/
+.venv/
+.cache/
+models/
+node_modules/
+__pycache__/
+*.tsbuildinfo
+dist/
