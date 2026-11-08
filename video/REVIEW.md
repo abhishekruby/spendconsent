@@ -104,3 +104,10 @@ No product-footage or voice placeholders remain. No input is needed for this rev
 `out/timeline-v3.json`, `out/captions.srt`, `out/captions-v3.srt`,
 `out/qa-v3.json` and this file. Generated media is ignored; only `video/` source
 and notices are committed.
+
+## V4 (patch of v3, finished by Claude after Codex's limit)
+
+2:33 · same pipeline; `scripts/render_v4.sh`. Attempt 3 re-ordered so the voice lands
+on the real `Unknown tool pay.`; the requester's real change now happens on camera
+before the APPROVED slam; real footage in the promise beat; checks and "this cart"
+beside real screens; offers → rejections → Channel3 → cart. No new recordings or payments.

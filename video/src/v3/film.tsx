@@ -9,7 +9,7 @@ type Rect=number[];
 type Ring={rect:Rect;at:number};
 type Camera={overview:boolean;base:Rect;start:Rect;end:Rect};
 type Asset={src:string;kind:string;width:number;height:number;durationFrames:number;sidebar:Rect|null};
-type Shot={id:number;scene:number;from:number;duration:number;kind:string;asset?:string;camera?:Camera;text?:string;size?:number;kicker?:string;sub?:string;source?:string;value?:string;label?:string;offset?:number;holdAtFrame?:number;focus?:string;overview?:boolean;close?:boolean;rings?:Ring[];tags?:boolean;live?:boolean;shields?:boolean;wordRate?:number;wait?:string;note?:string};
+type Shot={id:number;scene:number;from:number;duration:number;kind:string;asset?:string;camera?:Camera;text?:string;size?:number;kicker?:string;sub?:string;source?:string;value?:string;label?:string;offset?:number;holdAtFrame?:number;changeFrame?:number;splice?:boolean;focus?:string;overview?:boolean;close?:boolean;rings?:Ring[];tags?:boolean;live?:boolean;shields?:boolean;wordRate?:number;wait?:string;note?:string};
 export const v3=timelineData;
 const shots=v3.shots as Shot[];
 const assets=assetData as Record<string,Asset>;
@@ -33,7 +33,7 @@ export function validCrop(r:Rect,asset:Asset,portrait=false){
 }
 export function validateV3(){
   for(const bad of [[500,260,1104,621],[728,260,650,80],[728,260,700,393.75]]){let rejected=false;try{validCrop(bad,assets.understood);}catch{rejected=true;}if(!rejected)throw Error('Crop regression: sliced/sidebar/narrow accepted');}
-  if(v3.totalFrames!==4950||v3.fps!==30)throw Error('Unexpected duration/fps');
+  if(v3.totalFrames<=0||v3.totalFrames>5250||v3.fps!==30)throw Error('Unexpected duration/fps');
   if(evidence.transcript[2].response.result.content![0].text!=='Unknown tool pay.'||!evidence.transcript[2].response.result.isError||evidence.money_moved_cents!==0)throw Error('Real rejection evidence required');
   for(const [i,s]of shots.entries()){
     if(s.duration<=0||(s.duration>150&&s.kind!=='dare')||(i&&shots[i-1].from+shots[i-1].duration!==s.from))throw Error('Gap, long hold or invalid shot');
@@ -44,6 +44,8 @@ export function validateV3(){
     }
     if(s.wait&&s.wait.length>27)throw Error('Wait label must remain a single readable line');
   }
+  const live=shots.find(s=>s.kind==='approval-live')!;
+  if(live.from+live.changeFrame! !==v3.events.approved||v3.events.block3!==v3.events.error)throw Error('V4 change/stamp/tracker must land together');
   if(shots.at(-1)!.from+shots.at(-1)!.duration!==v3.totalFrames)throw Error('Bad end card');
 }
 const Paper=({children}:{children:React.ReactNode})=><AbsoluteFill style={{background:t.paper,color:t.ink,fontFamily:t.font}}>{children}</AbsoluteFill>;
@@ -113,10 +115,38 @@ function OwnerSplit(){
 }
 function Phone({shot}:{shot:Shot}){
   const f=useCurrentFrame(),a=assets[shot.asset!],rect=[285,28,1350,900];
-  const detail=[5,490,380,253.333333],p=shot.overview===false?1:progress(f,30,8);
-  return <Frame rect={rect}>{p<1&&<VideoLayer asset={a} crop={[0,0,390,844]} panel={rect}/>}
-    {(f>=30||shot.overview===false)&&<VideoLayer asset={a} crop={detail} panel={rect} opacity={p}/>}</Frame>;
+  const detail=[5,490,380,253.333333];
+  // V4: show the real checkbox and tap at1x; cut only their intervening wait.
+  const sourceFrame=shot.splice?(f<12?15+f:63+Math.min(f-12,23)):f;
+  return <Frame rect={rect}><Freeze frame={sourceFrame}><VideoLayer asset={a} crop={detail} panel={rect}/></Freeze></Frame>;
 }
+function ApprovalLive({shot}:{shot:Shot}){
+  const f=useCurrentFrame(),a=assets[shot.asset!],change=shot.changeFrame!;
+  return <><Frame><VideoLayer asset={a} crop={shot.camera!.end} offset={shot.offset}/>
+    {f>=change&&f<change+21&&<AbsoluteFill style={{background:'#1a171466'}}/>}
+  </Frame><Sequence from={change} durationInFrames={21}><Stamp text="APPROVED"/></Sequence></>;
+}
+function Beside({shot}:{shot:Shot}){
+  const a=assets[shot.asset!];
+  let rect=[96,140,1152,648],crop:Rect,hold=false;
+  if(shot.focus==='offers'){
+    rect=full;crop=[704,140,1216,684];
+  }else if(shot.focus==='phone'){
+    rect=[96,76,1120,746.666667];crop=[5,490,380,253.333333];
+  }else if(shot.focus==='mandate'){
+    crop=[430,418,768,432];hold=true;
+  }else{crop=[728,270,768,432];hold=true;}
+  validCrop(crop,a,a.kind==='phone');
+  return <><Frame rect={rect}><VideoLayer asset={a} crop={crop} panel={rect} offset={hold?a.durationFrames-1:0}/></Frame>
+    <div style={{position:'absolute',left:shot.focus==='offers'?1240:1320,width:shot.focus==='offers'?500:504,top:235,height:430,display:'flex',alignItems:'center',fontSize:shot.focus==='confirmed'?100:112,fontWeight:680,lineHeight:1.04,letterSpacing:'-.04em',whiteSpace:'pre-line'}}>{shot.text}</div></>;
+}
+function Verification({shot}:{shot:Shot}){
+  const f=useCurrentFrame(),a=assets.confirmed,rect=[96,140,1152,648];
+  const labels=['AMOUNT','PAYEE','ORDER','VERIFIED'],index=labels.indexOf(shot.focus!);
+  return <><Frame rect={rect}><VideoLayer asset={a} crop={[728,270,768,432]} panel={rect} offset={a.durationFrames-1}/></Frame>
+    <div style={{position:'absolute',left:1320,top:200,width:504,display:'flex',flexDirection:'column',gap:48,fontSize:68,fontWeight:650}}>{labels.map((label,i)=><div key={label} style={{opacity:i<index?1:i===index?progress(f,0,8):0,color:i===3?t.persimmon:t.ink}}>{i<3?'✓ ':''}{label}</div>)}</div></>;
+}
+
 function Paypal({shot}:{shot:Shot}){
   const f=useCurrentFrame(),a=assets[shot.asset!];
   if(shot.focus==='button'){
@@ -172,6 +202,9 @@ function Content({shot}:{shot:Shot}){
     case 'clip':case 'requester':return <CameraClip shot={shot}/>;
     case 'owner-split':return <OwnerSplit/>;
     case 'phone':return <Phone shot={shot}/>;
+    case 'approval-live':return <ApprovalLive shot={shot}/>;
+    case 'beside':return <Beside shot={shot}/>;
+    case 'verification':return <Verification shot={shot}/>;
     case 'paypal':return <Paypal shot={shot}/>;
     case 'stamp':return <Stamp text={shot.text!}/>;
     case 'cold-terminal':case 'rpc-request':case 'rpc-result':return <Terminal kind={shot.kind}/>;
@@ -185,7 +218,6 @@ function Content({shot}:{shot:Shot}){
 export function SpendConsentV3(){
   const f=useCurrentFrame(),active=shots.find(s=>f>=s.from&&f<s.from+s.duration)!;
   const local=f-active.from;
-  const note=active.live&&local>=39?'live, no refresh':active.wait??active.note;
-  return <Paper>{shots.map(s=><Sequence key={s.id} from={s.from} durationInFrames={s.duration}><Content shot={s}/></Sequence>)}<Audio src={staticFile('soundtrack-v3.wav')}/><Tracker/><Captions/>{note&&<div style={{position:'absolute',right:96,top:990,width:420,textAlign:'right',...mono,fontSize:26,whiteSpace:'nowrap',color:active.live?t.persimmon:t.muted}}>{note}</div>}</Paper>;
+  const note=active.live&&local>=(active.changeFrame??39)?'live, no refresh':active.wait??active.note;
+  return <Paper>{shots.map(s=><Sequence key={s.id} from={s.from} durationInFrames={s.duration}><Content shot={s}/></Sequence>)}<Audio src={staticFile('soundtrack-v'+v3.version+'.wav')}/><Tracker/><Captions/>{note&&<div style={{position:'absolute',right:96,top:990,width:420,textAlign:'right',...mono,fontSize:26,whiteSpace:'nowrap',color:active.live?t.persimmon:t.muted}}>{note}</div>}</Paper>;
 }
-

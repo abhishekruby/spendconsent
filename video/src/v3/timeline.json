@@ -1,6 +1,7 @@
 {
+  "version": 4,
   "fps": 30,
-  "totalFrames": 4950,
+  "totalFrames": 4602,
   "voice": "af_heart",
   "speed": 1.05,
   "scenes": [
@@ -10,7 +11,7 @@
       "startFrame": 0,
       "durationFrames": 270,
       "voiceStartFrame": 0,
-      "voicePath": "voice/v3/scene-1.wav",
+      "voicePath": "voice/v4/scene-1.wav",
       "text": "We gave an AI a shopping job. Then we tried three ways to make it spend the wrong money.",
       "captions": [
         {
@@ -29,29 +30,29 @@
       "id": 2,
       "name": "The stakes",
       "startFrame": 270,
-      "durationFrames": 420,
+      "durationFrames": 351,
       "voiceStartFrame": 270,
-      "voicePath": "voice/v3/scene-2.wav",
+      "voicePath": "voice/v4/scene-2.wav",
       "text": "One major retailer's terms already say your AI agent's purchases count as authorized by you. Only one in five people trust AI to buy for them. And most would quit after one mistake.",
       "captions": [
         {
-          "startFrame": 6,
-          "endFrame": 71,
+          "startFrame": 0,
+          "endFrame": 65,
           "text": "One major retailer's terms already say"
         },
         {
-          "startFrame": 81,
-          "endFrame": 184,
+          "startFrame": 71,
+          "endFrame": 174,
           "text": "your AI agent's purchases count as authorized by you."
         },
         {
-          "startFrame": 213,
-          "endFrame": 303,
+          "startFrame": 180,
+          "endFrame": 270,
           "text": "Only one in five people trust AI to buy for them."
         },
         {
-          "startFrame": 334,
-          "endFrame": 393,
+          "startFrame": 277,
+          "endFrame": 336,
           "text": "And most would quit after one mistake."
         }
       ]
@@ -59,35 +60,35 @@
     {
       "id": 3,
       "name": "The promise",
-      "startFrame": 690,
-      "durationFrames": 300,
-      "voiceStartFrame": 690,
-      "voicePath": "voice/v3/scene-3.wav",
+      "startFrame": 621,
+      "durationFrames": 369,
+      "voiceStartFrame": 621,
+      "voicePath": "voice/v4/scene-3.wav",
       "text": "SpendConsent is for small teams where one person orders and someone else pays. The AI shops. A person decides. PayPal verifies.",
       "captions": [
         {
-          "startFrame": 6,
-          "endFrame": 66,
+          "startFrame": 0,
+          "endFrame": 60,
           "text": "SpendConsent is for small teams"
         },
         {
-          "startFrame": 78,
-          "endFrame": 150,
+          "startFrame": 67,
+          "endFrame": 138,
           "text": "where one person orders and someone else pays."
         },
         {
-          "startFrame": 156,
-          "endFrame": 187,
+          "startFrame": 144,
+          "endFrame": 175,
           "text": "The AI shops."
         },
         {
-          "startFrame": 200,
-          "endFrame": 236,
+          "startFrame": 219,
+          "endFrame": 255,
           "text": "A person decides."
         },
         {
-          "startFrame": 250,
-          "endFrame": 289,
+          "startFrame": 294,
+          "endFrame": 332,
           "text": "PayPal verifies."
         }
       ]
@@ -98,7 +99,7 @@
       "startFrame": 990,
       "durationFrames": 780,
       "voiceStartFrame": 990,
-      "voicePath": "voice/v3/scene-4.wav",
+      "voicePath": "voice/v4/scene-4.wav",
       "text": "Say what you need in plain words. Our self-hosted AI reads it in about fourteen seconds. Attempt one: we left out the size. It doesn't guess. It asks. Then code, not the AI, checks every offer to the cent. And real retail prices from Channel3 show if the deal is fair.",
       "captions": [
         {
@@ -132,8 +133,8 @@
           "text": "Then code, not the AI, checks every offer to the cent."
         },
         {
-          "startFrame": 633,
-          "endFrame": 748,
+          "startFrame": 573,
+          "endFrame": 688,
           "text": "And real retail prices from Channel3 show if the deal is fair."
         }
       ]
@@ -142,9 +143,9 @@
       "id": 5,
       "name": "The only way through",
       "startFrame": 1770,
-      "durationFrames": 960,
+      "durationFrames": 612,
       "voiceStartFrame": 1770,
-      "voicePath": "voice/v3/scene-5.wav",
+      "voicePath": "voice/v4/scene-5.wav",
       "text": "This is the exact cart. It expires in ten minutes. And nothing moves until the person paying says yes. One tap on their phone, and the laptop updates by itself. That yes fits this cart, and nothing else.",
       "captions": [
         {
@@ -158,28 +159,28 @@
           "text": "It expires in ten minutes."
         },
         {
-          "startFrame": 243,
-          "endFrame": 328,
+          "startFrame": 210,
+          "endFrame": 295,
           "text": "And nothing moves until the person paying says yes."
         },
         {
-          "startFrame": 390,
-          "endFrame": 428,
+          "startFrame": 303,
+          "endFrame": 341,
           "text": "One tap on their phone,"
         },
         {
-          "startFrame": 504,
-          "endFrame": 561,
+          "startFrame": 390,
+          "endFrame": 447,
           "text": "and the laptop updates by itself."
         },
         {
-          "startFrame": 702,
-          "endFrame": 742,
+          "startFrame": 474,
+          "endFrame": 514,
           "text": "That yes fits this cart,"
         },
         {
-          "startFrame": 855,
-          "endFrame": 883,
+          "startFrame": 531,
+          "endFrame": 559,
           "text": "and nothing else."
         }
       ]
@@ -187,10 +188,10 @@
     {
       "id": 6,
       "name": "PayPal verifies",
-      "startFrame": 2730,
+      "startFrame": 2382,
       "durationFrames": 600,
-      "voiceStartFrame": 2730,
-      "voicePath": "voice/v3/scene-6.wav",
+      "voiceStartFrame": 2382,
+      "voicePath": "voice/v4/scene-6.wav",
       "text": "PayPal runs the payment. We call it paid only after our server captures it and reads it back from PayPal. Change your mind? A full refund, verified the same way.",
       "captions": [
         {
@@ -223,11 +224,11 @@
     {
       "id": 7,
       "name": "Change the price. Make the agent pay.",
-      "startFrame": 3330,
+      "startFrame": 2982,
       "durationFrames": 870,
-      "voiceStartFrame": 3330,
-      "voicePath": "voice/v3/scene-7.wav",
-      "text": "Attempt two: after approval, we raised the price by one cent. Approval revoked. Attempt three: the agent calls pay. It can find offers, prepare the cart, and ask the owner. But that tool does not exist.",
+      "voiceStartFrame": 2982,
+      "voicePath": "voice/v4/scene-7.wav",
+      "text": "Attempt two: after approval, we raised the price by one cent. Approval revoked. Attempt three: the agent calls pay. That tool does not exist. It can find offers, prepare the cart, and ask the owner. It cannot pay.",
       "captions": [
         {
           "startFrame": 9,
@@ -250,34 +251,39 @@
           "text": "Attempt three: the agent calls pay."
         },
         {
-          "startFrame": 477,
-          "endFrame": 511,
+          "startFrame": 561,
+          "endFrame": 604,
+          "text": "That tool does not exist."
+        },
+        {
+          "startFrame": 621,
+          "endFrame": 655,
           "text": "It can find offers,"
         },
         {
-          "startFrame": 520,
-          "endFrame": 549,
+          "startFrame": 659,
+          "endFrame": 687,
           "text": "prepare the cart,"
         },
         {
-          "startFrame": 578,
-          "endFrame": 608,
+          "startFrame": 691,
+          "endFrame": 721,
           "text": "and ask the owner."
         },
         {
-          "startFrame": 681,
-          "endFrame": 730,
-          "text": "But that tool does not exist."
+          "startFrame": 724,
+          "endFrame": 751,
+          "text": "It cannot pay."
         }
       ]
     },
     {
       "id": 8,
       "name": "The dare",
-      "startFrame": 4200,
+      "startFrame": 3852,
       "durationFrames": 750,
-      "voiceStartFrame": 4125,
-      "voicePath": "voice/v3/scene-8.wav",
+      "voiceStartFrame": 3777,
+      "voicePath": "voice/v4/scene-8.wav",
       "text": "One hundred and sixty out of one hundred and sixty AI tests. Live right now. AI agents are already at the checkout. This is what yes should look like. Try to make it pay without you.",
       "captions": [
         {
@@ -286,8 +292,8 @@
           "text": "160 out of 160 AI tests."
         },
         {
-          "startFrame": 138,
-          "endFrame": 165,
+          "startFrame": 98,
+          "endFrame": 125,
           "text": "Live right now."
         },
         {
@@ -331,7 +337,7 @@
       "from": 150,
       "duration": 60,
       "kind": "words",
-      "text": "WRONG|MONEY.",
+      "text": "WRONG|THE WRONG\nMONEY.",
       "wordRate": 1
     },
     {
@@ -346,14 +352,14 @@
       "id": 5,
       "scene": 2,
       "from": 270,
-      "duration": 96,
+      "duration": 105,
       "kind": "quote"
     },
     {
       "id": 6,
       "scene": 2,
-      "from": 366,
-      "duration": 117,
+      "from": 375,
+      "duration": 75,
       "kind": "words",
       "text": "AUTHORIZED\nBY YOU.",
       "source": "A major US retailer\u2019s terms \u00b7 updated Sept 2026"
@@ -361,8 +367,8 @@
     {
       "id": 7,
       "scene": 2,
-      "from": 483,
-      "duration": 120,
+      "from": 450,
+      "duration": 90,
       "kind": "stat",
       "value": "19%",
       "label": "trust AI to buy for them",
@@ -371,8 +377,8 @@
     {
       "id": 8,
       "scene": 2,
-      "from": 603,
-      "duration": 87,
+      "from": 540,
+      "duration": 81,
       "kind": "stat",
       "value": "60%",
       "label": "would quit after one mistake",
@@ -381,8 +387,8 @@
     {
       "id": 9,
       "scene": 3,
-      "from": 690,
-      "duration": 78,
+      "from": 621,
+      "duration": 66,
       "kind": "words",
       "text": "SpendConsent",
       "size": 174
@@ -390,7 +396,7 @@
     {
       "id": 10,
       "scene": 3,
-      "from": 768,
+      "from": 687,
       "duration": 78,
       "kind": "words",
       "text": "ONE PERSON ORDERS.\nSOMEONE ELSE PAYS.",
@@ -399,29 +405,32 @@
     {
       "id": 11,
       "scene": 3,
-      "from": 846,
-      "duration": 44,
-      "kind": "words",
-      "text": "AI SHOPS.",
-      "size": 180
+      "from": 765,
+      "duration": 75,
+      "kind": "beside",
+      "text": "AI\nSHOPS.",
+      "asset": "offers",
+      "focus": "offers"
     },
     {
       "id": 12,
       "scene": 3,
-      "from": 890,
-      "duration": 50,
-      "kind": "words",
-      "text": "YOU DECIDE.",
-      "size": 176
+      "from": 840,
+      "duration": 75,
+      "kind": "beside",
+      "text": "YOU\nDECIDE.",
+      "asset": "phone-gesture",
+      "focus": "phone"
     },
     {
       "id": 13,
       "scene": 3,
-      "from": 940,
-      "duration": 50,
-      "kind": "words",
+      "from": 915,
+      "duration": 75,
+      "kind": "beside",
       "text": "PAYPAL\nVERIFIES.",
-      "size": 176
+      "asset": "confirmed",
+      "focus": "confirmed"
     },
     {
       "id": 14,
@@ -607,6 +616,64 @@
       "from": 1500,
       "duration": 90,
       "kind": "clip",
+      "asset": "rejections",
+      "camera": {
+        "overview": false,
+        "base": [
+          0,
+          0,
+          1920,
+          1080
+        ],
+        "start": [
+          704,
+          572,
+          832,
+          468.0
+        ],
+        "end": [
+          728,
+          590,
+          768,
+          432
+        ]
+      }
+    },
+    {
+      "id": 21,
+      "scene": 4,
+      "from": 1590,
+      "duration": 90,
+      "kind": "clip",
+      "asset": "market",
+      "camera": {
+        "overview": false,
+        "base": [
+          0,
+          0,
+          1920,
+          1080
+        ],
+        "start": [
+          704,
+          232,
+          832,
+          468.0
+        ],
+        "end": [
+          728,
+          250,
+          768,
+          432
+        ]
+      }
+    },
+    {
+      "id": 22,
+      "scene": 4,
+      "from": 1680,
+      "duration": 90,
+      "kind": "clip",
       "asset": "savings",
       "camera": {
         "overview": false,
@@ -640,64 +707,6 @@
           "at": 0.2
         }
       ]
-    },
-    {
-      "id": 21,
-      "scene": 4,
-      "from": 1590,
-      "duration": 90,
-      "kind": "clip",
-      "asset": "rejections",
-      "camera": {
-        "overview": false,
-        "base": [
-          0,
-          0,
-          1920,
-          1080
-        ],
-        "start": [
-          704,
-          572,
-          832,
-          468.0
-        ],
-        "end": [
-          728,
-          590,
-          768,
-          432
-        ]
-      }
-    },
-    {
-      "id": 22,
-      "scene": 4,
-      "from": 1680,
-      "duration": 90,
-      "kind": "clip",
-      "asset": "market",
-      "camera": {
-        "overview": false,
-        "base": [
-          0,
-          0,
-          1920,
-          1080
-        ],
-        "start": [
-          704,
-          232,
-          832,
-          468.0
-        ],
-        "end": [
-          728,
-          250,
-          768,
-          432
-        ]
-      }
     },
     {
       "id": 23,
@@ -780,133 +789,69 @@
       "id": 26,
       "scene": 5,
       "from": 2085,
-      "duration": 105,
+      "duration": 48,
       "kind": "phone",
       "asset": "phone-gesture",
-      "close": true,
-      "overview": false
+      "overview": false,
+      "splice": true,
+      "wait": "Tap wait shortened"
     },
     {
       "id": 27,
       "scene": 5,
-      "from": 2190,
-      "duration": 48,
-      "kind": "phone",
-      "asset": "phone-approved",
-      "close": true,
-      "overview": false
+      "from": 2133,
+      "duration": 99,
+      "kind": "approval-live",
+      "asset": "requester-live",
+      "offset": 4,
+      "changeFrame": 24,
+      "live": true,
+      "camera": {
+        "overview": false,
+        "base": [
+          400,
+          478,
+          800,
+          450
+        ],
+        "start": [
+          400,
+          478,
+          800,
+          450
+        ],
+        "end": [
+          400,
+          478,
+          800,
+          450
+        ]
+      }
     },
     {
       "id": 28,
       "scene": 5,
-      "from": 2238,
-      "duration": 21,
-      "kind": "stamp",
-      "text": "APPROVED"
+      "from": 2232,
+      "duration": 66,
+      "kind": "beside",
+      "text": "THIS\nCART.",
+      "asset": "mandate",
+      "focus": "mandate"
     },
     {
       "id": 29,
       "scene": 5,
-      "from": 2259,
-      "duration": 120,
-      "kind": "requester",
-      "asset": "requester-live",
-      "camera": {
-        "overview": true,
-        "base": [
-          0,
-          0,
-          1336,
-          948
-        ],
-        "start": [
-          400,
-          440,
-          896,
-          504
-        ],
-        "end": [
-          400,
-          466,
-          832,
-          468
-        ]
-      },
-      "live": true,
-      "rings": [
-        {
-          "rect": [
-            502,
-            478,
-            642,
-            155
-          ],
-          "at": 1.3
-        }
-      ]
+      "from": 2298,
+      "duration": 84,
+      "kind": "beside",
+      "text": "NOTHING\nELSE.",
+      "asset": "mandate",
+      "focus": "mandate"
     },
     {
       "id": 30,
-      "scene": 5,
-      "from": 2379,
-      "duration": 120,
-      "kind": "requester",
-      "asset": "mandate",
-      "camera": {
-        "overview": false,
-        "base": [
-          0,
-          0,
-          1336,
-          948
-        ],
-        "start": [
-          406,
-          400,
-          832,
-          468
-        ],
-        "end": [
-          430,
-          418,
-          768,
-          432
-        ]
-      },
-      "rings": [
-        {
-          "rect": [
-            502,
-            478,
-            642,
-            155
-          ],
-          "at": 0.2
-        }
-      ]
-    },
-    {
-      "id": 31,
-      "scene": 5,
-      "from": 2499,
-      "duration": 120,
-      "kind": "words",
-      "text": "THIS\nCART.",
-      "size": 190
-    },
-    {
-      "id": 32,
-      "scene": 5,
-      "from": 2619,
-      "duration": 111,
-      "kind": "words",
-      "text": "NOTHING\nELSE.",
-      "size": 190
-    },
-    {
-      "id": 33,
       "scene": 6,
-      "from": 2730,
+      "from": 2382,
       "duration": 111,
       "kind": "paypal",
       "asset": "paypal",
@@ -915,9 +860,9 @@
       "focus": "amount"
     },
     {
-      "id": 34,
+      "id": 31,
       "scene": 6,
-      "from": 2841,
+      "from": 2493,
       "duration": 24,
       "kind": "paypal",
       "asset": "paypal",
@@ -926,9 +871,9 @@
       "focus": "button"
     },
     {
-      "id": 35,
+      "id": 32,
       "scene": 6,
-      "from": 2865,
+      "from": 2517,
       "duration": 30,
       "kind": "paypal",
       "asset": "thanks",
@@ -936,9 +881,9 @@
       "wait": "PayPal wait shortened"
     },
     {
-      "id": 36,
+      "id": 33,
       "scene": 6,
-      "from": 2895,
+      "from": 2547,
       "duration": 120,
       "kind": "clip",
       "asset": "confirmed",
@@ -966,42 +911,45 @@
       "wait": "Capture wait shortened"
     },
     {
+      "id": 34,
+      "scene": 6,
+      "from": 2667,
+      "duration": 60,
+      "kind": "verification",
+      "asset": "confirmed",
+      "focus": "AMOUNT"
+    },
+    {
+      "id": 35,
+      "scene": 6,
+      "from": 2727,
+      "duration": 60,
+      "kind": "verification",
+      "asset": "confirmed",
+      "focus": "PAYEE"
+    },
+    {
+      "id": 36,
+      "scene": 6,
+      "from": 2787,
+      "duration": 60,
+      "kind": "verification",
+      "asset": "confirmed",
+      "focus": "ORDER"
+    },
+    {
       "id": 37,
       "scene": 6,
-      "from": 3015,
-      "duration": 60,
-      "kind": "check",
-      "text": "AMOUNT"
+      "from": 2847,
+      "duration": 45,
+      "kind": "verification",
+      "asset": "confirmed",
+      "focus": "VERIFIED"
     },
     {
       "id": 38,
       "scene": 6,
-      "from": 3075,
-      "duration": 60,
-      "kind": "check",
-      "text": "PAYEE"
-    },
-    {
-      "id": 39,
-      "scene": 6,
-      "from": 3135,
-      "duration": 60,
-      "kind": "check",
-      "text": "ORDER"
-    },
-    {
-      "id": 40,
-      "scene": 6,
-      "from": 3195,
-      "duration": 45,
-      "kind": "words",
-      "text": "VERIFIED.",
-      "size": 188
-    },
-    {
-      "id": 41,
-      "scene": 6,
-      "from": 3240,
+      "from": 2892,
       "duration": 60,
       "kind": "clip",
       "asset": "refund-click",
@@ -1029,9 +977,9 @@
       "wait": "Refund wait shortened"
     },
     {
-      "id": 42,
+      "id": 39,
       "scene": 6,
-      "from": 3300,
+      "from": 2952,
       "duration": 30,
       "kind": "clip",
       "asset": "refund-result",
@@ -1058,18 +1006,18 @@
       }
     },
     {
-      "id": 43,
+      "id": 40,
       "scene": 7,
-      "from": 3330,
+      "from": 2982,
       "duration": 60,
       "kind": "words",
       "text": "CHANGE\nTHE PRICE.",
       "kicker": "ATTEMPT 2"
     },
     {
-      "id": 44,
+      "id": 41,
       "scene": 7,
-      "from": 3390,
+      "from": 3042,
       "duration": 105,
       "kind": "clip",
       "asset": "approved",
@@ -1107,9 +1055,9 @@
       ]
     },
     {
-      "id": 45,
+      "id": 42,
       "scene": 7,
-      "from": 3495,
+      "from": 3147,
       "duration": 72,
       "kind": "words",
       "text": "+$0.01",
@@ -1117,9 +1065,9 @@
       "sub": "After approval."
     },
     {
-      "id": 46,
+      "id": 43,
       "scene": 7,
-      "from": 3567,
+      "from": 3219,
       "duration": 36,
       "kind": "clip",
       "asset": "revoked",
@@ -1158,17 +1106,17 @@
       "wait": "Price-change wait cut"
     },
     {
-      "id": 47,
+      "id": 44,
       "scene": 7,
-      "from": 3603,
+      "from": 3255,
       "duration": 21,
       "kind": "stamp",
       "text": "REVOKED"
     },
     {
-      "id": 48,
+      "id": 45,
       "scene": 7,
-      "from": 3624,
+      "from": 3276,
       "duration": 102,
       "kind": "clip",
       "asset": "revoked",
@@ -1208,64 +1156,64 @@
       "note": "Status reloaded"
     },
     {
-      "id": 49,
+      "id": 46,
       "scene": 7,
-      "from": 3726,
+      "from": 3378,
       "duration": 84,
       "kind": "words",
       "text": "MAKE THE\nAGENT PAY.",
       "kicker": "ATTEMPT 3"
     },
     {
-      "id": 50,
+      "id": 47,
       "scene": 7,
-      "from": 3810,
-      "duration": 90,
+      "from": 3462,
+      "duration": 78,
       "kind": "rpc-request"
     },
     {
-      "id": 51,
+      "id": 48,
       "scene": 7,
-      "from": 3900,
-      "duration": 90,
+      "from": 3540,
+      "duration": 60,
       "kind": "rpc-result"
     },
     {
-      "id": 52,
+      "id": 49,
       "scene": 7,
-      "from": 3990,
-      "duration": 105,
+      "from": 3600,
+      "duration": 147,
       "kind": "tools"
     },
     {
-      "id": 53,
+      "id": 50,
       "scene": 7,
-      "from": 4095,
+      "from": 3747,
       "duration": 105,
       "kind": "zero"
     },
     {
-      "id": 54,
+      "id": 51,
       "scene": 8,
-      "from": 4200,
+      "from": 3852,
       "duration": 45,
       "kind": "stat",
       "value": "160/160",
       "label": "AI tests \u00b7 8 suites \u00b7 6 written blind"
     },
     {
-      "id": 55,
+      "id": 52,
       "scene": 8,
-      "from": 4245,
+      "from": 3897,
       "duration": 45,
       "kind": "stat",
       "value": "151",
       "label": "automated tests \u00b7 127 backend + 24 frontend"
     },
     {
-      "id": 56,
+      "id": 53,
       "scene": 8,
-      "from": 4290,
+      "from": 3942,
       "duration": 45,
       "kind": "stat",
       "value": "~14 s",
@@ -1273,9 +1221,9 @@
       "source": "Recorded: 14.356 s and 12.930 s \u00b7 mean 13.643 s"
     },
     {
-      "id": 57,
+      "id": 54,
       "scene": 8,
-      "from": 4335,
+      "from": 3987,
       "duration": 120,
       "kind": "words",
       "text": "AI AGENTS ARE ALREADY\nAT THE CHECKOUT.",
@@ -1283,9 +1231,9 @@
       "wordRate": 1
     },
     {
-      "id": 58,
+      "id": 55,
       "scene": 8,
-      "from": 4455,
+      "from": 4107,
       "duration": 120,
       "kind": "words",
       "text": "THIS IS WHAT\nYES SHOULD LOOK LIKE.",
@@ -1293,51 +1241,55 @@
       "wordRate": 1
     },
     {
-      "id": 59,
+      "id": 56,
       "scene": 8,
-      "from": 4575,
+      "from": 4227,
       "duration": 120,
       "kind": "words",
       "text": "WITHOUT\nYOU?",
       "size": 190
     },
     {
-      "id": 60,
+      "id": 57,
       "scene": 8,
-      "from": 4695,
+      "from": 4347,
       "duration": 255,
       "kind": "dare"
     }
   ],
   "events": {
     "block1": 1371,
-    "approved": 2238,
-    "revoked": 3603,
-    "block2": 3603,
-    "error": 3900,
-    "block3": 3921,
-    "zero": 4095,
-    "dare": 4695,
+    "approved": 2157,
+    "revoked": 3255,
+    "block2": 3255,
+    "error": 3540,
+    "block3": 3540,
+    "zero": 3747,
+    "dare": 4347,
     "silences": [
       [
-        678,
-        690
+        609,
+        621
       ],
       [
-        2226,
-        2238
+        2121,
+        2133
       ],
       [
-        3591,
-        3603
+        2145,
+        2157
       ],
       [
-        3888,
-        3900
+        3243,
+        3255
       ],
       [
-        4083,
-        4095
+        3528,
+        3540
+      ],
+      [
+        3735,
+        3747
       ]
     ]
   }
