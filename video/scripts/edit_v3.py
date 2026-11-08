@@ -9,7 +9,7 @@ STARTS={
 5:[.35,4.15,7,10.1,13,15.8,17.7],
 6:[.3,5.8,10,15.7,17.1],
 7:[.3,2.4,9.9,13.5,18.7,20.7,21.96,23.02,24.14],
-8:[-2.5,3.25,6.1,9,16.6]}
+8:[.1,4.1,5.6,8.3,11.7]}
 # Full/sidebar-safe overview and clean main-column crops. No interpolation crosses the sidebar.
 FULL=[0,0,1920,1080]
 def camera(target,wide=None,overview=True):
@@ -21,7 +21,7 @@ def camera(target,wide=None,overview=True):
 def main():
     script=json.loads((ROOT/'scene-script-v3.json').read_text())
     phrases=json.loads((ROOT/'out/voice-v3/phrases.json').read_text())
-    for number,seconds in {2:11.7,3:12.3,5:20.4}.items():script[number-1]['seconds']=seconds
+    for number,seconds in {2:11.7,3:12.3,5:20.4,7:28,8:20.1}.items():script[number-1]['seconds']=seconds
     changed=json.loads((ROOT/'out/voice-v4/patch-phrases.json').read_text())
     old=phrases['scenes'][6]['phrases']
     phrases['scenes'][6]['phrases']=[*old[:4],changed[0],*old[4:7],changed[1]]
@@ -29,7 +29,7 @@ def main():
     (ROOT/'public/voice/v4').mkdir(parents=True,exist_ok=True)
     scenes=[];start=0
     for spec,voice in zip(script,phrases['scenes'],strict=True):
-        number=spec['id'];lead=2.5 if number==8 else 0
+        number=spec['id'];lead=0
         samples=np.zeros(round((spec['seconds']+lead)*24000),dtype=np.float32);captions=[]
         last=-lead
         for phrase,at in zip(voice['phrases'],STARTS[number],strict=True):
@@ -50,7 +50,7 @@ def main():
         (ROOT/f'public/voice/v4/scene-{number}.wav').write_bytes(target.read_bytes())
         scenes.append({'id':number,'name':spec['name'],'startFrame':round(start*30),'durationFrames':round(spec['seconds']*30),'voiceStartFrame':round((start-lead)*30),'voicePath':f'voice/v4/scene-{number}.wav','text':' '.join(spec['phrases']),'captions':captions})
         start+=spec['seconds']
-    assert abs(start-153.4)<1e-6
+    assert abs(start-147.5)<1e-6
 
     shots=[]
     def shot(scene,a,b,kind,**props):
@@ -120,32 +120,32 @@ def main():
     shot(7,16,18.6,'rpc-request')
     shot(7,18.6,20.6,'rpc-result')
     shot(7,20.6,25.5,'tools')
-    shot(7,25.5,29,'zero')
+    shot(7,25.5,28,'zero')
 
-    shot(8,0,1.5,'stat',value='160/160',label='AI tests · 8 suites · 6 written blind')
-    shot(8,1.5,3,'stat',value='151',label='automated tests · 127 backend + 24 frontend')
-    shot(8,3,4.5,'stat',value='~14 s',label='per comparison · hosted',source='Recorded: 14.356 s and 12.930 s · mean 13.643 s')
-    word(8,4.5,8.5,'AI AGENTS ARE ALREADY\nAT THE CHECKOUT.',size=126,wordRate=1)
-    word(8,8.5,12.5,'THIS IS WHAT\nYES SHOULD LOOK LIKE.',size=126,wordRate=1)
-    word(8,12.5,16.5,'WITHOUT\nYOU?',size=190)
-    shot(8,16.5,25,'dare')
+    shot(8,0,2.4,'stat',value='160/160',label='AI tests · 8 suites · 6 written blind')
+    shot(8,2.4,3.9,'stat',value='151',label='automated tests · 127 backend + 24 frontend')
+    shot(8,3.9,5.4,'stat',value='~14 s',label='per comparison · hosted',source='Recorded: 14.356 s and 12.930 s · mean 13.643 s')
+    word(8,5.4,8.1,'AI AGENTS ARE ALREADY\nAT THE CHECKOUT.',size=126,wordRate=1)
+    word(8,8.1,10.2,'THIS IS WHAT\nYES SHOULD LOOK LIKE.',size=126,wordRate=1)
+    word(8,10.2,11.6,'YOUR\nTURN.',size=190)
+    shot(8,11.6,20.1,'dare')
 
     events={'block1':scenes[3]['startFrame']+381,'approved':scenes[4]['startFrame']+387,
       'revoked':scenes[6]['startFrame']+273,'block2':scenes[6]['startFrame']+273,
       'error':scenes[6]['startFrame']+558,'block3':scenes[6]['startFrame']+558,
-      'zero':scenes[6]['startFrame']+765,'dare':scenes[7]['startFrame']+495}
+      'zero':scenes[6]['startFrame']+765,'dare':scenes[7]['startFrame']+348}
     events['silences']=[[scenes[2]['startFrame']-12,scenes[2]['startFrame']],
       [scenes[4]['startFrame']+351,scenes[4]['startFrame']+363],
       [events['approved']-12,events['approved']],[events['revoked']-12,events['revoked']],
       [events['error']-12,events['error']],[events['zero']-12,events['zero']]]
-    timeline={'version':4,'fps':30,'totalFrames':4602,'voice':'af_heart','speed':1.05,'scenes':scenes,'shots':shots,'events':events}
+    timeline={'version':4,'fps':30,'totalFrames':4425,'voice':'af_heart','speed':1.05,'scenes':scenes,'shots':shots,'events':events}
     for a,b in zip(shots,shots[1:]):assert a['from']+a['duration']==b['from'],(a['id'],b['id'])
-    assert shots[-1]['from']+shots[-1]['duration']==4602
+    assert shots[-1]['from']+shots[-1]['duration']==4425
     assert all(s['duration']<=150 or s['kind']=='dare' for s in shots)
     # Every silence is deliberate and contains no scheduled narration.
     for a,b in events['silences']:
         for scene in scenes:
             for c in scene['captions']:assert c['endFrame']+scene['startFrame']<=a or c['startFrame']+scene['startFrame']>=b,(a,b,c)
     (ROOT/'src/v3/timeline.json').write_text(json.dumps(timeline,indent=2)+'\n')
-    print('PASS: 153.4 seconds; '+str(len(shots))+' shots; no non-end-card shot over5s; narration avoids every pre-slam silence.')
+    print('PASS: 147.5 seconds; '+str(len(shots))+' shots; no non-end-card shot over5s; narration avoids every pre-slam silence.')
 if __name__=='__main__':main()

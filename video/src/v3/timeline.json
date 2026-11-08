@@ -1,7 +1,7 @@
 {
   "version": 4,
   "fps": 30,
-  "totalFrames": 4602,
+  "totalFrames": 4425,
   "voice": "af_heart",
   "speed": 1.05,
   "scenes": [
@@ -225,7 +225,7 @@
       "id": 7,
       "name": "Change the price. Make the agent pay.",
       "startFrame": 2982,
-      "durationFrames": 870,
+      "durationFrames": 840,
       "voiceStartFrame": 2982,
       "voicePath": "voice/v4/scene-7.wav",
       "text": "Attempt two: after approval, we raised the price by one cent. Approval revoked. Attempt three: the agent calls pay. That tool does not exist. It can find offers, prepare the cart, and ask the owner. It cannot pay.",
@@ -280,35 +280,35 @@
     {
       "id": 8,
       "name": "The dare",
-      "startFrame": 3852,
-      "durationFrames": 750,
-      "voiceStartFrame": 3777,
+      "startFrame": 3822,
+      "durationFrames": 603,
+      "voiceStartFrame": 3822,
       "voicePath": "voice/v4/scene-8.wav",
       "text": "One hundred and sixty out of one hundred and sixty AI tests. Live right now. AI agents are already at the checkout. This is what yes should look like. Try to make it pay without you.",
       "captions": [
         {
-          "startFrame": -75,
-          "endFrame": 40,
+          "startFrame": 3,
+          "endFrame": 118,
           "text": "160 out of 160 AI tests."
         },
         {
-          "startFrame": 98,
-          "endFrame": 125,
+          "startFrame": 123,
+          "endFrame": 150,
           "text": "Live right now."
         },
         {
-          "startFrame": 183,
-          "endFrame": 249,
+          "startFrame": 168,
+          "endFrame": 234,
           "text": "AI agents are already at the checkout."
         },
         {
-          "startFrame": 270,
-          "endFrame": 318,
+          "startFrame": 249,
+          "endFrame": 297,
           "text": "This is what yes should look like."
         },
         {
-          "startFrame": 498,
-          "endFrame": 542,
+          "startFrame": 351,
+          "endFrame": 395,
           "text": "Try to make it pay without you."
         }
       ]
@@ -1189,14 +1189,14 @@
       "id": 50,
       "scene": 7,
       "from": 3747,
-      "duration": 105,
+      "duration": 75,
       "kind": "zero"
     },
     {
       "id": 51,
       "scene": 8,
-      "from": 3852,
-      "duration": 45,
+      "from": 3822,
+      "duration": 72,
       "kind": "stat",
       "value": "160/160",
       "label": "AI tests \u00b7 8 suites \u00b7 6 written blind"
@@ -1204,7 +1204,7 @@
     {
       "id": 52,
       "scene": 8,
-      "from": 3897,
+      "from": 3894,
       "duration": 45,
       "kind": "stat",
       "value": "151",
@@ -1213,7 +1213,7 @@
     {
       "id": 53,
       "scene": 8,
-      "from": 3942,
+      "from": 3939,
       "duration": 45,
       "kind": "stat",
       "value": "~14 s",
@@ -1223,8 +1223,8 @@
     {
       "id": 54,
       "scene": 8,
-      "from": 3987,
-      "duration": 120,
+      "from": 3984,
+      "duration": 81,
       "kind": "words",
       "text": "AI AGENTS ARE ALREADY\nAT THE CHECKOUT.",
       "size": 126,
@@ -1233,8 +1233,8 @@
     {
       "id": 55,
       "scene": 8,
-      "from": 4107,
-      "duration": 120,
+      "from": 4065,
+      "duration": 63,
       "kind": "words",
       "text": "THIS IS WHAT\nYES SHOULD LOOK LIKE.",
       "size": 126,
@@ -1243,16 +1243,16 @@
     {
       "id": 56,
       "scene": 8,
-      "from": 4227,
-      "duration": 120,
+      "from": 4128,
+      "duration": 42,
       "kind": "words",
-      "text": "WITHOUT\nYOU?",
+      "text": "YOUR\nTURN.",
       "size": 190
     },
     {
       "id": 57,
       "scene": 8,
-      "from": 4347,
+      "from": 4170,
       "duration": 255,
       "kind": "dare"
     }
@@ -1265,7 +1265,7 @@
     "error": 3540,
     "block3": 3540,
     "zero": 3747,
-    "dare": 4347,
+    "dare": 4170,
     "silences": [
       [
         609,

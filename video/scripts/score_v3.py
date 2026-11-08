@@ -81,7 +81,7 @@ def main():
     # Final invitation lift: an original rising voicing, then room for the QR.
     for i,f in enumerate([261.626,329.628,391.995,523.251]):
         add(fx,dare+i*.18,tone(f,1.4,.035,.46))
-    for at,f in [(proof,392),(proof+1.5,440),(proof+3,523.251)]:add(fx,at,tone(f,.22,.035,.075))
+    for at,f in [(proof,392),(proof+2.4,440),(proof+3.9,523.251)]:add(fx,at,tone(f,.22,.035,.075))
     for a,b in e['silences']:
         assert np.max(np.abs(voice[a*1600:b*1600]))<.0001
         bed[a*1600:b*1600]=0;fx[a*1600:b*1600]=0
