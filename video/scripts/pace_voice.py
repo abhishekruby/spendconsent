@@ -47,6 +47,8 @@ def main():
             split=cue['startFrame']+round((cue['endFrame']-cue['startFrame'])*middle/len(words))
             readable.extend([{'startFrame':cue['startFrame'],'endFrame':split,'text':first},
                 {'startFrame':split,'endFrame':cue['endFrame'],'text':second}])
+        for cue in readable:
+            cue['text']=cue['text'].replace('One hundred and sixty out of one hundred and sixty','160 out of 160')
         scene['captions']=readable
         manifest.append({'scene':scene['id'],'sha256':hashlib.sha256(target.read_bytes()).hexdigest(),
                          'phrase_start_seconds':STARTS[scene['id']]})

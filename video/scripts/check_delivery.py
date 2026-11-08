@@ -17,9 +17,18 @@ def main():
     assert (video['codec_name'],video['profile'],video['pix_fmt'])==('h264','High','yuv420p')
     assert (audio['codec_name'],audio['sample_rate'])==('aac','48000')
     timeline=json.loads((ROOT/f'out/timeline-v{version}.json').read_text())
-    assert len(timeline['scenes'])==8 and timeline['duration']==165
-    assert abs(float(data['format']['duration'])-165)<.1
-    assert int(video['nb_frames'])==4950
+    assert len(timeline['scenes'])==8 and 0 < timeline['duration'] <= 175
+    assert abs(float(data['format']['duration'])-timeline['duration'])<.1
+    assert int(video['nb_frames'])==round(timeline['duration']*30)
+    # Full-size boundary frames complement the required two-second contact sheet.
+    inspection=ROOT/f'out/v{version}-scene-boundaries';inspection.mkdir(exist_ok=True)
+    source_timeline=json.loads((ROOT/'src/timeline.json').read_text())
+    frames=[f for scene in source_timeline['scenes'] for f in [scene['startFrame'],scene['startFrame']+18]]
+    expression='+'.join(f'eq(n,{frame})' for frame in frames)
+    subprocess.run(['ffmpeg','-hide_banner','-loglevel','error','-y','-i',str(movie),
+        '-vf',f"select='{expression}'",'-fps_mode','vfr',str(inspection/'boundary-%02d.png')],check=True)
+    assert len(list(inspection.glob('boundary-*.png')))==16
+    (inspection/'frames.json').write_text(json.dumps([{'file':f'boundary-{i+1:02}.png','frame':frame,'seconds':frame/30} for i,frame in enumerate(frames)],indent=2)+'\n')
     levels=measure_audio(movie)
     assert -14.5<=float(levels['input_i'])<=-13.5, levels['input_i']
     assert float(levels['input_tp'])<=-1.0, levels['input_tp']

@@ -1,67 +1,293 @@
 {
   "clips": {
-    "C1-describe": {
-      "src": "clips/C1-describe.mp4",
+    "C1-typing": {
+      "src": "clips/v2/C1-typing.mp4",
       "from": 0,
-      "duration": 315,
-      "waitLabel": "AI wait shortened \u00b7 real: 57.7 s"
+      "duration": 90,
+      "kind": "desktop",
+      "crop": {
+        "x": 280,
+        "y": 0,
+        "width": 1360,
+        "height": 765
+      }
     },
-    "C2-offers": {
-      "src": "clips/C2-offers.mp4",
+    "C1-wait": {
+      "src": "clips/v2/C1-wait.mp4",
       "from": 0,
-      "duration": 342,
-      "waitLabel": "CUT \u00b7 real offers and prices"
+      "duration": 90,
+      "kind": "desktop",
+      "crop": {
+        "x": 280,
+        "y": 0,
+        "width": 1360,
+        "height": 765
+      },
+      "waitLabel": "AI wait shortened \u00b7 real: 14.4 s"
     },
-    "C3-review": {
-      "src": "clips/C3-review.mp4",
+    "C1-understood": {
+      "src": "clips/v2/C1-understood.mp4",
       "from": 0,
-      "duration": 390,
-      "waitLabel": "CUT \u00b7 exact receipt details"
+      "duration": 120,
+      "kind": "desktop",
+      "crop": {
+        "x": 500,
+        "y": 80,
+        "width": 1104,
+        "height": 621
+      }
     },
     "C3b-ask": {
-      "src": "clips/C3b-ask.mp4",
+      "src": "clips/v2/C3b-ask.mp4",
       "from": 0,
-      "duration": 243,
-      "waitLabel": "AI wait shortened \u00b7 real: 62.0 s",
-      "speed": 1.8
+      "duration": 120,
+      "kind": "desktop",
+      "crop": {
+        "x": 280,
+        "y": 200,
+        "width": 1360,
+        "height": 765
+      }
     },
-    "C4-owner": {
-      "src": "clips/C4-owner.mp4",
+    "C2-offers": {
+      "src": "clips/v2/C2-offers.mp4",
       "from": 0,
-      "duration": 597,
-      "waitLabel": "Approval wait shortened \u00b7 left: requester \u00b7 right: owner phone",
-      "approvalFrame": 540
+      "duration": 120,
+      "kind": "desktop",
+      "crop": {
+        "x": 280,
+        "y": 80,
+        "width": 1360,
+        "height": 765
+      },
+      "rings": [
+        {
+          "startFrame": 8,
+          "endFrame": 120,
+          "x": 0.7647058823529411,
+          "y": 0.13986928104575164,
+          "width": 0.08823529411764706,
+          "height": 0.058823529411764705
+        }
+      ]
     },
-    "C7-price": {
-      "src": "clips/C7-price.mp4",
+    "C2-market": {
+      "src": "clips/v2/C2-market.mp4",
       "from": 0,
-      "duration": 252,
-      "waitLabel": "Price change \u00b7 status reloaded \u00b7 cut wait"
+      "duration": 120,
+      "kind": "desktop",
+      "crop": {
+        "x": 280,
+        "y": 100,
+        "width": 1360,
+        "height": 765
+      }
+    },
+    "C2-market-more": {
+      "src": "clips/v2/C2-market-more.mp4",
+      "from": 0,
+      "duration": 120,
+      "kind": "desktop",
+      "crop": {
+        "x": 500,
+        "y": 250,
+        "width": 1104,
+        "height": 621
+      }
+    },
+    "C2-rejections": {
+      "src": "clips/v2/C2-rejections.mp4",
+      "from": 0,
+      "duration": 120,
+      "kind": "desktop",
+      "crop": {
+        "x": 280,
+        "y": 200,
+        "width": 1360,
+        "height": 765
+      }
+    },
+    "C3-review": {
+      "src": "clips/v2/C3-review.mp4",
+      "from": 0,
+      "duration": 390,
+      "kind": "desktop",
+      "crop": {
+        "x": 280,
+        "y": 0,
+        "width": 1360,
+        "height": 765
+      },
+      "rings": [
+        {
+          "startFrame": 240,
+          "endFrame": 390,
+          "x": 0.7291666666666666,
+          "y": 0.0625,
+          "width": 0.07486979166666667,
+          "height": 0.037037037037037035
+        }
+      ]
+    },
+    "C4-requester": {
+      "src": "clips/v2/C4-requester.mp4",
+      "from": 0,
+      "duration": 750,
+      "kind": "requester",
+      "crop": {
+        "x": 23,
+        "y": 106,
+        "width": 1336,
+        "height": 948
+      },
+      "waitLabel": "Approval wait shortened",
+      "approvalFrame": 567,
+      "rings": [
+        {
+          "startFrame": 567,
+          "endFrame": 750,
+          "x": 0.37574850299401197,
+          "y": 0.5042194092827004,
+          "width": 0.4805389221556886,
+          "height": 0.15822784810126583
+        }
+      ]
+    },
+    "C4-phone": {
+      "src": "clips/v2/C4-phone.mp4",
+      "from": 0,
+      "duration": 750,
+      "kind": "phone",
+      "crop": {
+        "x": 1420,
+        "y": 106,
+        "width": 390,
+        "height": 844
+      }
     },
     "C4-montage": {
-      "src": "clips/C4-montage.mp4",
+      "src": "clips/v2/C4-montage.mp4",
       "from": 0,
-      "duration": 45,
-      "waitLabel": "SPEED \u00d72 \u00b7 real approval tap / live update",
-      "approvalFrame": 39
+      "duration": 39,
+      "kind": "phone",
+      "crop": {
+        "x": 1420,
+        "y": 106,
+        "width": 390,
+        "height": 844
+      },
+      "approvalFrame": 30
     },
     "C5-paypal": {
-      "src": "clips/C5-paypal.mp4",
+      "src": "clips/v2/C5-paypal.mp4",
       "from": 0,
-      "duration": 429,
-      "waitLabel": "PayPal wait shortened \u00b7 real checkout / server result"
+      "duration": 150,
+      "kind": "paypal",
+      "crop": {
+        "x": 660,
+        "y": 0,
+        "width": 595,
+        "height": 620
+      },
+      "rings": [
+        {
+          "startFrame": 0,
+          "endFrame": 95,
+          "x": 0.85,
+          "y": 0.018,
+          "width": 0.13,
+          "height": 0.05
+        },
+        {
+          "startFrame": 45,
+          "endFrame": 120,
+          "x": 0.055,
+          "y": 0.7,
+          "width": 0.9,
+          "height": 0.08
+        }
+      ],
+      "waitLabel": "PayPal wait shortened"
+    },
+    "C5-thanks": {
+      "src": "clips/v2/C5-thanks.mp4",
+      "from": 0,
+      "duration": 120,
+      "kind": "paypal",
+      "crop": {
+        "x": 660,
+        "y": 0,
+        "width": 595,
+        "height": 620
+      }
+    },
+    "C5-confirmed": {
+      "src": "clips/v2/C5-confirmed.mp4",
+      "from": 0,
+      "duration": 150,
+      "kind": "desktop",
+      "crop": {
+        "x": 280,
+        "y": 0,
+        "width": 1360,
+        "height": 765
+      }
     },
     "C5-montage": {
-      "src": "clips/C5-montage.mp4",
+      "src": "clips/v2/C5-montage.mp4",
       "from": 0,
-      "duration": 45,
-      "waitLabel": "CUT \u00b7 real verified payment"
+      "duration": 39,
+      "kind": "desktop",
+      "crop": {
+        "x": 280,
+        "y": 0,
+        "width": 1360,
+        "height": 765
+      }
     },
     "C6-refund": {
-      "src": "clips/C6-refund.mp4",
+      "src": "clips/v2/C6-refund.mp4",
       "from": 0,
-      "duration": 174,
-      "waitLabel": "Refund wait shortened \u00b7 real server result"
+      "duration": 210,
+      "kind": "desktop",
+      "crop": {
+        "x": 190,
+        "y": 216,
+        "width": 1536,
+        "height": 864
+      },
+      "waitLabel": "Refund wait shortened"
+    },
+    "C7-price": {
+      "src": "clips/v2/C7-price.mp4",
+      "from": 0,
+      "duration": 248,
+      "kind": "desktop",
+      "crop": {
+        "x": 400,
+        "y": 450,
+        "width": 1104,
+        "height": 621
+      },
+      "rings": [
+        {
+          "startFrame": 0,
+          "endFrame": 120,
+          "x": 0.8296875,
+          "y": 0.36203703703703705,
+          "width": 0.11041666666666666,
+          "height": 0.08148148148148149
+        },
+        {
+          "startFrame": 136,
+          "endFrame": 248,
+          "x": 0.8395833333333333,
+          "y": 0.3194444444444444,
+          "width": 0.1015625,
+          "height": 0.07962962962962963
+        }
+      ],
+      "waitLabel": "Price-change wait shortened \u00b7 status reloaded"
     }
   },
   "mcpLines": [
@@ -73,8 +299,12 @@
     "Sent to the owner for approval of $41.80.",
     "This tool cannot approve or pay; only the owner can, in their own browser."
   ],
-  "realAIWaitSeconds": 57.7,
+  "realAIWaitSeconds": 13.64,
   "expiryMinutes": 10,
   "ready": true,
-  "mcpWaitSeconds": 56.3
+  "mcpWaitSeconds": 56.3,
+  "hostedWaitsSeconds": {
+    "describe": 14.356318438000002,
+    "missing_size": 12.929548710000002
+  }
 }

@@ -13,8 +13,9 @@
     "pace": "python3 scripts/pace_voice.py",
     "record": "node scripts/record.mjs",
     "capture:mcp": "python3 scripts/capture_mcp.py",
-    "prepare": "python3 scripts/prepare_clips.py --market-start 0.7 --market-crop 780 180 675 100",
-    "render": "node scripts/render.mjs"
+    "prepare": "python3 scripts/prepare_clips.py",
+    "render": "node scripts/render.mjs",
+    "record:hosted": "node scripts/record_hosted.mjs"
   },
   "dependencies": {
     "@fontsource-variable/bricolage-grotesque": "5.3.0",

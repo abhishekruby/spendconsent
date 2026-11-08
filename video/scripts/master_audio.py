@@ -29,7 +29,7 @@ def main():
         effects[start:start+len(sound)]+=sound
     add(edit['clips']['C4-montage']['approvalFrame']/30,'thud')
     add(1.6,'chime')
-    add(timeline['scenes'][4]['startFrame']/30+edit['clips']['C4-owner']['approvalFrame']/30,'thud')
+    add(timeline['scenes'][4]['startFrame']/30+edit['clips']['C4-requester']['approvalFrame']/30,'thud')
     fx=ROOT/f'out/effects-v{version}.wav'
     with wave.open(str(fx),'wb') as wav:
         wav.setnchannels(1);wav.setsampwidth(2);wav.setframerate(48000)

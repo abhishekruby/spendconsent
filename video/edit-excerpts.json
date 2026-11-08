@@ -1,517 +1,473 @@
 {
-  "C1-describe": {
-    "sources": [
-      "raw/C1-describe.mp4"
-    ],
+  "C1-typing": {
     "width": 1920,
-    "height": 600,
+    "height": 1080,
     "cuts": [
       {
-        "inputIndex": 0,
-        "sourceStartSeconds": 2,
-        "sourceEndSeconds": 8.5,
-        "outputStartFrame": 0,
-        "durationFrames": 195,
-        "crop": [
-          772,
-          310,
-          700,
-          240
-        ]
-      },
-      {
-        "inputIndex": 0,
-        "sourceStartSeconds": 8.5,
-        "sourceEndSeconds": 66.5,
-        "outputStartFrame": 195,
-        "durationFrames": 60,
-        "crop": [
-          788,
-          330,
-          660,
-          210
-        ]
-      },
-      {
-        "inputIndex": 0,
-        "sourceStartSeconds": 69,
-        "sourceEndSeconds": 71,
-        "outputStartFrame": 255,
-        "durationFrames": 60,
-        "crop": [
-          785,
-          300,
-          650,
-          180
-        ]
-      }
-    ],
-    "channel3Included": false
-  },
-  "C2-offers": {
-    "sources": [
-      "raw/C2-offers.mp4",
-      "raw/C2-market.mp4"
-    ],
-    "width": 1920,
-    "height": 600,
-    "cuts": [
-      {
-        "inputIndex": 0,
-        "sourceStartSeconds": 3,
-        "sourceEndSeconds": 6,
+        "source": "raw/v2/C1-describe.mp4",
+        "sourceStartSeconds": 2.134626291999999,
+        "sourceEndSeconds": 5.134626291999999,
         "outputStartFrame": 0,
         "durationFrames": 90,
         "crop": [
-          775,
-          230,
-          690,
-          220
-        ]
-      },
-      {
-        "inputIndex": 0,
-        "sourceStartSeconds": 9,
-        "sourceEndSeconds": 12,
-        "outputStartFrame": 90,
-        "durationFrames": 90,
-        "crop": [
-          790,
-          485,
-          650,
-          230
-        ]
-      },
-      {
-        "inputIndex": 0,
-        "sourceStartSeconds": 24,
-        "sourceEndSeconds": 26,
-        "outputStartFrame": 180,
-        "durationFrames": 60,
-        "crop": [
-          775,
-          780,
-          690,
-          220
-        ]
-      },
-      {
-        "inputIndex": 1,
-        "sourceStartSeconds": 0.7,
-        "sourceEndSeconds": 4.1,
-        "outputStartFrame": 240,
-        "durationFrames": 102,
-        "crop": [
-          780,
-          180,
-          675,
-          100
-        ]
+          280,
+          0,
+          1360,
+          765
+        ],
+        "speed": 1,
+        "crossfadeFrames": 0
       }
     ],
-    "channel3Included": true,
-    "privacy": "app-only crops"
+    "privacy": "Whole app viewports only; PayPal buyer identifiers blurred without touching INR conversion."
   },
-  "C3-review": {
-    "sources": [
-      "raw/C3-review.mp4"
-    ],
+  "C1-wait": {
     "width": 1920,
-    "height": 600,
+    "height": 1080,
     "cuts": [
       {
-        "inputIndex": 0,
-        "sourceStartSeconds": 5,
-        "sourceEndSeconds": 9,
+        "source": "raw/v2/C1-describe.mp4",
+        "sourceStartSeconds": 7.186156203999999,
+        "sourceEndSeconds": 10.186156204,
+        "outputStartFrame": 0,
+        "durationFrames": 90,
+        "crop": [
+          280,
+          0,
+          1360,
+          765
+        ],
+        "speed": 1,
+        "crossfadeFrames": 0
+      }
+    ],
+    "privacy": "Whole app viewports only; PayPal buyer identifiers blurred without touching INR conversion."
+  },
+  "C1-understood": {
+    "width": 1920,
+    "height": 1080,
+    "cuts": [
+      {
+        "source": "raw/v2/C1-describe.mp4",
+        "sourceStartSeconds": 76.087299948,
+        "sourceEndSeconds": 80.087299948,
         "outputStartFrame": 0,
         "durationFrames": 120,
         "crop": [
-          790,
-          698,
-          650,
-          115
-        ]
-      },
-      {
-        "inputIndex": 0,
-        "sourceStartSeconds": 9,
-        "sourceEndSeconds": 13,
-        "outputStartFrame": 120,
-        "durationFrames": 120,
-        "crop": [
-          790,
-          824,
-          650,
-          175
-        ]
-      },
-      {
-        "inputIndex": 0,
-        "sourceStartSeconds": 13,
-        "sourceEndSeconds": 16,
-        "outputStartFrame": 240,
-        "durationFrames": 90,
-        "crop": [
-          786,
-          610,
-          650,
-          80
-        ]
-      },
-      {
-        "inputIndex": 0,
-        "sourceStartSeconds": 16,
-        "sourceEndSeconds": 18,
-        "outputStartFrame": 330,
-        "durationFrames": 60,
-        "crop": [
-          1295,
-          592,
-          160,
-          75
-        ]
+          500,
+          80,
+          1104,
+          621
+        ],
+        "speed": 1,
+        "crossfadeFrames": 0
       }
     ],
-    "channel3Included": false
+    "privacy": "Whole app viewports only; PayPal buyer identifiers blurred without touching INR conversion."
   },
   "C3b-ask": {
-    "sources": [
-      "raw/C3b-ask.mp4"
-    ],
     "width": 1920,
-    "height": 600,
+    "height": 1080,
     "cuts": [
       {
-        "inputIndex": 0,
-        "sourceStartSeconds": 8,
-        "sourceEndSeconds": 70,
-        "outputStartFrame": 0,
-        "durationFrames": 27,
-        "crop": [
-          790,
-          330,
-          650,
-          190
-        ]
-      },
-      {
-        "inputIndex": 0,
-        "sourceStartSeconds": 75,
-        "sourceEndSeconds": 77,
-        "outputStartFrame": 27,
-        "durationFrames": 60,
-        "crop": [
-          785,
-          365,
-          650,
-          100
-        ]
-      },
-      {
-        "inputIndex": 0,
-        "sourceStartSeconds": 89.8,
-        "sourceEndSeconds": 95,
-        "outputStartFrame": 87,
-        "durationFrames": 156,
-        "crop": [
-          780,
-          748,
-          650,
-          220
-        ]
-      }
-    ],
-    "channel3Included": false
-  },
-  "C4-owner": {
-    "sources": [
-      "raw/C4-owner.mp4"
-    ],
-    "width": 1920,
-    "height": 600,
-    "cuts": [
-      {
-        "inputIndex": 0,
-        "sourceStartSeconds": 12,
-        "sourceEndSeconds": 16,
+        "source": "raw/v2/C3b-ask-take2.mp4",
+        "sourceStartSeconds": 40.807443936,
+        "sourceEndSeconds": 44.807443936,
         "outputStartFrame": 0,
         "durationFrames": 120,
         "crop": [
-          [
-            980,
-            325,
-            200,
-            180
-          ],
-          [
-            1454,
-            225,
-            310,
-            180
-          ]
-        ]
-      },
-      {
-        "inputIndex": 0,
-        "sourceStartSeconds": 69,
-        "sourceEndSeconds": 77,
-        "outputStartFrame": 120,
-        "durationFrames": 240,
-        "crop": [
-          [
-            535,
-            600,
-            300,
-            180
-          ],
-          [
-            1454,
-            615,
-            300,
-            180
-          ]
-        ]
-      },
-      {
-        "inputIndex": 0,
-        "sourceStartSeconds": 77,
-        "sourceEndSeconds": 84.9,
-        "outputStartFrame": 360,
-        "durationFrames": 237,
-        "crop": [
-          [
-            535,
-            600,
-            300,
-            180
-          ],
-          [
-            1454,
-            615,
-            300,
-            180
-          ]
-        ]
+          280,
+          200,
+          1360,
+          765
+        ],
+        "speed": 1,
+        "crossfadeFrames": 0
       }
     ],
-    "channel3Included": false
+    "privacy": "Whole app viewports only; PayPal buyer identifiers blurred without touching INR conversion."
   },
-  "C7-price": {
-    "sources": [
-      "raw/C7-price.mp4"
-    ],
+  "C2-offers": {
     "width": 1920,
-    "height": 600,
+    "height": 1080,
     "cuts": [
       {
-        "inputIndex": 0,
-        "sourceStartSeconds": 4,
-        "sourceEndSeconds": 10.2,
+        "source": "raw/v2/C1-describe.mp4",
+        "sourceStartSeconds": 86.454058971,
+        "sourceEndSeconds": 90.454058971,
         "outputStartFrame": 0,
-        "durationFrames": 186,
+        "durationFrames": 120,
         "crop": [
-          785,
-          620,
-          650,
-          200
-        ]
-      },
-      {
-        "inputIndex": 0,
-        "sourceStartSeconds": 63,
-        "sourceEndSeconds": 65.2,
-        "outputStartFrame": 186,
-        "durationFrames": 66,
-        "crop": [
-          785,
-          600,
-          650,
-          210
-        ]
+          280,
+          80,
+          1360,
+          765
+        ],
+        "speed": 1,
+        "crossfadeFrames": 0
       }
     ],
-    "channel3Included": false
+    "privacy": "Whole app viewports only; PayPal buyer identifiers blurred without touching INR conversion."
+  },
+  "C2-market": {
+    "width": 1920,
+    "height": 1080,
+    "cuts": [
+      {
+        "source": "raw/v2/C1-describe.mp4",
+        "sourceStartSeconds": 99.056429093,
+        "sourceEndSeconds": 103.056429093,
+        "outputStartFrame": 0,
+        "durationFrames": 120,
+        "crop": [
+          280,
+          100,
+          1360,
+          765
+        ],
+        "speed": 1,
+        "crossfadeFrames": 0
+      }
+    ],
+    "privacy": "Whole app viewports only; PayPal buyer identifiers blurred without touching INR conversion."
+  },
+  "C2-market-more": {
+    "width": 1920,
+    "height": 1080,
+    "cuts": [
+      {
+        "source": "raw/v2/C1-describe.mp4",
+        "sourceStartSeconds": 104.485085809,
+        "sourceEndSeconds": 108.485085809,
+        "outputStartFrame": 0,
+        "durationFrames": 120,
+        "crop": [
+          500,
+          250,
+          1104,
+          621
+        ],
+        "speed": 1,
+        "crossfadeFrames": 0
+      }
+    ],
+    "privacy": "Whole app viewports only; PayPal buyer identifiers blurred without touching INR conversion."
+  },
+  "C2-rejections": {
+    "width": 1920,
+    "height": 1080,
+    "cuts": [
+      {
+        "source": "raw/v2/C1-describe.mp4",
+        "sourceStartSeconds": 138.684995257,
+        "sourceEndSeconds": 142.684995257,
+        "outputStartFrame": 0,
+        "durationFrames": 120,
+        "crop": [
+          280,
+          200,
+          1360,
+          765
+        ],
+        "speed": 1,
+        "crossfadeFrames": 0
+      }
+    ],
+    "privacy": "Whole app viewports only; PayPal buyer identifiers blurred without touching INR conversion."
+  },
+  "C3-review": {
+    "width": 1920,
+    "height": 1080,
+    "cuts": [
+      {
+        "source": "raw/v2/C1-describe.mp4",
+        "sourceStartSeconds": 205.35651580400003,
+        "sourceEndSeconds": 211.35651580400003,
+        "outputStartFrame": 0,
+        "durationFrames": 180,
+        "crop": [
+          280,
+          0,
+          1360,
+          765
+        ],
+        "speed": 1,
+        "crossfadeFrames": 0
+      },
+      {
+        "source": "raw/v2/C1-describe.mp4",
+        "sourceStartSeconds": 221.78413715099998,
+        "sourceEndSeconds": 229.05080381766666,
+        "outputStartFrame": 172,
+        "durationFrames": 218,
+        "crop": [
+          200,
+          85,
+          1536,
+          864
+        ],
+        "speed": 1,
+        "crossfadeFrames": 8
+      }
+    ],
+    "privacy": "Whole app viewports only; PayPal buyer identifiers blurred without touching INR conversion."
+  },
+  "C4-requester": {
+    "width": 1336,
+    "height": 948,
+    "cuts": [
+      {
+        "source": "raw/C4-owner.mp4",
+        "sourceStartSeconds": 10,
+        "sourceEndSeconds": 15,
+        "outputStartFrame": 0,
+        "durationFrames": 150,
+        "crop": [
+          23,
+          106,
+          1336,
+          948
+        ],
+        "speed": 1,
+        "crossfadeFrames": 0
+      },
+      {
+        "source": "raw/C4-owner.mp4",
+        "sourceStartSeconds": 69,
+        "sourceEndSeconds": 84.9,
+        "outputStartFrame": 142,
+        "durationFrames": 608,
+        "crop": [
+          23,
+          106,
+          1336,
+          948
+        ],
+        "speed": 1,
+        "crossfadeFrames": 8
+      }
+    ],
+    "privacy": "Whole app viewports only; PayPal buyer identifiers blurred without touching INR conversion."
+  },
+  "C4-phone": {
+    "width": 390,
+    "height": 844,
+    "cuts": [
+      {
+        "source": "raw/C4-owner.mp4",
+        "sourceStartSeconds": 10,
+        "sourceEndSeconds": 15,
+        "outputStartFrame": 0,
+        "durationFrames": 150,
+        "crop": [
+          1420,
+          106,
+          390,
+          844
+        ],
+        "speed": 1,
+        "crossfadeFrames": 0
+      },
+      {
+        "source": "raw/C4-owner.mp4",
+        "sourceStartSeconds": 69,
+        "sourceEndSeconds": 84.9,
+        "outputStartFrame": 142,
+        "durationFrames": 608,
+        "crop": [
+          1420,
+          106,
+          390,
+          844
+        ],
+        "speed": 1,
+        "crossfadeFrames": 8
+      }
+    ],
+    "privacy": "Whole app viewports only; PayPal buyer identifiers blurred without touching INR conversion."
   },
   "C4-montage": {
-    "sources": [
-      "raw/C4-owner.mp4"
-    ],
-    "width": 1920,
-    "height": 600,
+    "width": 390,
+    "height": 844,
     "cuts": [
       {
-        "inputIndex": 0,
-        "sourceStartSeconds": 80.4,
-        "sourceEndSeconds": 83.4,
+        "source": "raw/C4-owner.mp4",
+        "sourceStartSeconds": 80.5,
+        "sourceEndSeconds": 81.8,
         "outputStartFrame": 0,
-        "durationFrames": 45,
+        "durationFrames": 39,
         "crop": [
-          [
-            535,
-            600,
-            300,
-            180
-          ],
-          [
-            1454,
-            615,
-            300,
-            180
-          ]
-        ]
+          1420,
+          106,
+          390,
+          844
+        ],
+        "speed": 1,
+        "crossfadeFrames": 0
       }
     ],
-    "channel3Included": false
+    "privacy": "Whole app viewports only; PayPal buyer identifiers blurred without touching INR conversion."
   },
   "C5-paypal": {
-    "sources": [
-      "raw/C5-paypal.mp4",
-      "raw/C6-refund.mp4"
-    ],
-    "width": 1920,
-    "height": 600,
+    "width": 1190,
+    "height": 1240,
     "cuts": [
       {
-        "inputIndex": 0,
+        "source": "raw/C5-paypal.mp4",
         "sourceStartSeconds": 0,
-        "sourceEndSeconds": 1.5,
+        "sourceEndSeconds": 5,
         "outputStartFrame": 0,
-        "durationFrames": 45,
+        "durationFrames": 150,
         "crop": [
-          910,
+          660,
           0,
-          330,
-          65
-        ]
-      },
-      {
-        "inputIndex": 0,
-        "sourceStartSeconds": 1.5,
-        "sourceEndSeconds": 4.5,
-        "outputStartFrame": 45,
-        "durationFrames": 90,
-        "crop": [
-          700,
-          415,
-          530,
-          80
-        ]
-      },
-      {
-        "inputIndex": 1,
-        "sourceStartSeconds": 0.2,
-        "sourceEndSeconds": 3.7,
-        "outputStartFrame": 135,
-        "durationFrames": 105,
-        "crop": [
-          790,
-          365,
-          650,
-          170
-        ]
-      },
-      {
-        "inputIndex": 1,
-        "sourceStartSeconds": 0.2,
-        "sourceEndSeconds": 3.5,
-        "outputStartFrame": 240,
-        "durationFrames": 99,
-        "crop": [
-          790,
-          445,
-          650,
-          90
-        ]
-      },
-      {
-        "inputIndex": 0,
-        "sourceStartSeconds": 72.5,
-        "sourceEndSeconds": 75.5,
-        "outputStartFrame": 339,
-        "durationFrames": 90,
-        "crop": [
-          900,
-          915,
-          210,
-          65
-        ]
+          595,
+          620
+        ],
+        "speed": 1,
+        "crossfadeFrames": 0
       }
     ],
-    "channel3Included": false,
-    "privacy": "buyer avatar masked; payment/account references excluded by crops"
+    "privacy": "Whole app viewports only; PayPal buyer identifiers blurred without touching INR conversion."
+  },
+  "C5-thanks": {
+    "width": 1190,
+    "height": 1240,
+    "cuts": [
+      {
+        "source": "raw/C5-paypal.mp4",
+        "sourceStartSeconds": 6.5,
+        "sourceEndSeconds": 10.5,
+        "outputStartFrame": 0,
+        "durationFrames": 120,
+        "crop": [
+          660,
+          0,
+          595,
+          620
+        ],
+        "speed": 1,
+        "crossfadeFrames": 0
+      }
+    ],
+    "privacy": "Whole app viewports only; PayPal buyer identifiers blurred without touching INR conversion."
+  },
+  "C5-confirmed": {
+    "width": 1920,
+    "height": 1080,
+    "cuts": [
+      {
+        "source": "raw/C6-refund.mp4",
+        "sourceStartSeconds": 10,
+        "sourceEndSeconds": 15,
+        "outputStartFrame": 0,
+        "durationFrames": 150,
+        "crop": [
+          280,
+          0,
+          1360,
+          765
+        ],
+        "speed": 1,
+        "crossfadeFrames": 0
+      }
+    ],
+    "privacy": "Whole app viewports only; PayPal buyer identifiers blurred without touching INR conversion."
   },
   "C5-montage": {
-    "sources": [
-      "raw/C6-refund.mp4"
-    ],
     "width": 1920,
-    "height": 600,
+    "height": 1080,
     "cuts": [
       {
-        "inputIndex": 0,
-        "sourceStartSeconds": 0.2,
-        "sourceEndSeconds": 1.7,
+        "source": "raw/C6-refund.mp4",
+        "sourceStartSeconds": 10,
+        "sourceEndSeconds": 11.3,
         "outputStartFrame": 0,
-        "durationFrames": 45,
+        "durationFrames": 39,
         "crop": [
-          790,
-          365,
-          650,
-          170
-        ]
+          280,
+          0,
+          1360,
+          765
+        ],
+        "speed": 1,
+        "crossfadeFrames": 0
       }
     ],
-    "channel3Included": false,
-    "privacy": "buyer avatar masked; payment/account references excluded by crops"
+    "privacy": "Whole app viewports only; PayPal buyer identifiers blurred without touching INR conversion."
   },
   "C6-refund": {
-    "sources": [
-      "raw/C6-refund.mp4"
-    ],
     "width": 1920,
-    "height": 600,
+    "height": 1080,
     "cuts": [
       {
-        "inputIndex": 0,
-        "sourceStartSeconds": 0.2,
-        "sourceEndSeconds": 1.7,
+        "source": "raw/C6-refund.mp4",
+        "sourceStartSeconds": 42,
+        "sourceEndSeconds": 45,
         "outputStartFrame": 0,
-        "durationFrames": 45,
+        "durationFrames": 90,
         "crop": [
-          790,
-          810,
-          650,
-          130
-        ]
+          190,
+          216,
+          1536,
+          864
+        ],
+        "speed": 1,
+        "crossfadeFrames": 0
       },
       {
-        "inputIndex": 0,
-        "sourceStartSeconds": 1.7,
-        "sourceEndSeconds": 3.2,
-        "outputStartFrame": 45,
-        "durationFrames": 45,
+        "source": "raw/C6-refund.mp4",
+        "sourceStartSeconds": 47.5,
+        "sourceEndSeconds": 51.766666666666666,
+        "outputStartFrame": 82,
+        "durationFrames": 128,
         "crop": [
-          790,
-          810,
-          650,
-          130
-        ]
-      },
-      {
-        "inputIndex": 0,
-        "sourceStartSeconds": 101.6,
-        "sourceEndSeconds": 104.4,
-        "outputStartFrame": 90,
-        "durationFrames": 84,
-        "crop": [
-          765,
-          120,
-          700,
-          170
-        ]
+          190,
+          216,
+          1536,
+          864
+        ],
+        "speed": 1,
+        "crossfadeFrames": 8
       }
     ],
-    "channel3Included": false,
-    "privacy": "app-only crops"
+    "privacy": "Whole app viewports only; PayPal buyer identifiers blurred without touching INR conversion."
+  },
+  "C7-price": {
+    "width": 1920,
+    "height": 1080,
+    "cuts": [
+      {
+        "source": "raw/C7-price.mp4",
+        "sourceStartSeconds": 4,
+        "sourceEndSeconds": 8.25,
+        "outputStartFrame": 0,
+        "durationFrames": 128,
+        "crop": [
+          400,
+          450,
+          1104,
+          621
+        ],
+        "speed": 1,
+        "crossfadeFrames": 0
+      },
+      {
+        "source": "raw/C7-price.mp4",
+        "sourceStartSeconds": 63.1,
+        "sourceEndSeconds": 65.2,
+        "outputStartFrame": 120,
+        "durationFrames": 128,
+        "crop": [
+          400,
+          450,
+          1104,
+          621
+        ],
+        "speed": 1,
+        "crossfadeFrames": 8
+      }
+    ],
+    "privacy": "Whole app viewports only; PayPal buyer identifiers blurred without touching INR conversion."
   }
 }

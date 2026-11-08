@@ -17,7 +17,16 @@
   "comparison": {
     "full_request_wall_seconds": 57.664158323,
     "full_request_UI_inference_seconds": 57.4,
-    "missing_detail_UI_inference_seconds": 62.0
+    "missing_detail_UI_inference_seconds": 62.0,
+    "hosted_v2": {
+      "origin": "https://spendconsent.ullagecloud.com",
+      "describe_wall_seconds": 14.356318438000002,
+      "missing_size_wall_seconds": 12.929548710000002,
+      "mean_wall_seconds": 13.642933574000002,
+      "source": "raw/v2/manifest.json; browser POST to first non-COMPARING successful API response",
+      "describe_note": "First result asked for budget confirmation; actual $60 chip selected before READY.",
+      "missing_size_note": "Asked for cloth size, recorded actual 40 \u00d7 40 cm chip."
+    }
   },
   "sources": [
     "real local app recordings C1-describe, C2-offers, C3-review, C3b-ask",
@@ -39,8 +48,15 @@
     "total_cents": 4180,
     "currency": "USD",
     "server_state": "PAID",
-    "ui": "Paid. All verified.",
-    "refund_ui": "Order cancelled. Refunded.",
+    "ui": "Payment confirmed",
+    "refund_ui": "Order cancelled and refunded",
     "source": "real local app API response and C5/C6 recordings"
+  },
+  "tests_v2": {
+    "backend": 127,
+    "frontend": 24,
+    "total": 151,
+    "date": "2026-11-08",
+    "source": "out/v2/backend-tests.log; out/v2/frontend-tests.log"
   }
 }

@@ -1,5 +1,6 @@
 // Local-only render; publication is a separate user action.
 import fs from 'node:fs/promises';
+import {readFileSync} from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {spawn} from 'node:child_process';
@@ -13,7 +14,15 @@ if (!edit.ready) throw Error('Real footage/evidence is incomplete; refusing a fi
 const timeline=JSON.parse(await fs.readFile('src/timeline.json','utf8'));
 if (timeline.totalFrames>5250 || timeline.fps!==30) throw Error('Invalid final timeline');
 await fs.mkdir('.cache/tmp',{recursive:true});
-await fs.writeFile(`.cache/render-v${version}.pid`,String(process.pid)+'\n');
+const pidPath=`.cache/render-v${version}.pid`;
+try {
+  const previous=Number(await fs.readFile(pidPath,'utf8'));
+  if(previous>0) {try {process.kill(previous,0);throw Error(`Render ${version} is already running (${previous})`);} catch(error) {if(error.code!=='ESRCH')throw error;}}
+} catch(error) {if(error.code!=='ENOENT')throw error;}
+await fs.writeFile(pidPath,String(process.pid)+'\n');
+// Stop this renderer's descendants too: Chrome starts its own process group.
+const descendants=pid=>{let ids;try{ids=readFileSync(`/proc/${pid}/task/${pid}/children`,'utf8').trim().split(/\s+/).filter(Boolean).map(Number);}catch{return [];}return ids.flatMap(id=>[...descendants(id),id]);};
+for(const signal of ['SIGINT','SIGTERM'])process.once(signal,()=>{for(const pid of descendants(process.pid)){try{process.kill(pid,'SIGTERM');}catch{}}process.exit(signal==='SIGINT'?130:143);});
 process.env.TMPDIR=`/proc/${process.pid}/cwd/.cache/tmp`;
 process.env.XDG_CACHE_HOME=path.join(root,'.cache');
 process.env.UV_CACHE_DIR=path.join(root,'.cache/uv');
@@ -29,7 +38,7 @@ await Promise.all([
   run('uv',['run','--locked','--no-dev','python','scripts/master_audio.py','--version',String(version)]),
   run('node_modules/.bin/remotion',['render','src/index.tsx','SpendConsent',`out/.picture-v${version}.mp4`,
     '--browser-executable=/usr/bin/google-chrome','--codec=h264','--crf=18',
-    '--pixel-format=yuv420p','--x264-preset=medium','--concurrency=1','--muted','--log=info']),
+    '--pixel-format=yuv420p','--x264-preset=medium','--concurrency=1','--offthreadvideo-cache-size-in-bytes=536870912','--muted','--log=info']),
 ]);
 await run('ffmpeg',['-hide_banner','-loglevel','error','-y','-i',`out/.picture-v${version}.mp4`,
   '-i',`out/master-v${version}.wav`,'-map','0:v:0','-map','1:a:0',

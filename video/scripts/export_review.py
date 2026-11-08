@@ -20,8 +20,8 @@ def main():
     args=parser.parse_args();assert args.version>0
     timeline=json.loads((ROOT/'src/timeline.json').read_text())
     edit=json.loads((ROOT/'src/edit.json').read_text())
-    clips={1:['C4-montage','C5-montage'],2:[],3:['C1-describe','C3b-ask','C2-offers'],
-        4:['C3-review'],5:['C4-owner'],6:['C5-paypal','C6-refund'],7:['C7-price'],8:[]}
+    clips={1:['C4-montage','C5-montage'],2:[],3:['C1-typing','C1-wait','C1-understood','C3b-ask','C2-offers','C2-market','C2-market-more','C2-rejections'],
+        4:['C3-review'],5:['C4-requester','C4-phone'],6:['C5-paypal','C5-thanks','C5-confirmed','C6-refund'],7:['C7-price'],8:[]}
     captions=[];scenes=[]
     for scene in timeline['scenes']:
         for cue in scene['captions']:
@@ -34,6 +34,7 @@ def main():
             'end':(scene['startFrame']+scene['durationFrames'])/30,'voiceover':scene['text'],
             'clips_used':used})
     (ROOT/'out/captions.srt').write_text('\n\n'.join(captions)+'\n')
+    (ROOT/f'out/captions-v{args.version}.srt').write_text('\n\n'.join(captions)+'\n')
     (ROOT/f'out/timeline-v{args.version}.json').write_text(json.dumps({
         'fps':30,'width':1920,'height':1080,'duration':timeline['totalFrames']/30,
         'voice':'af_heart','scenes':scenes},indent=2)+'\n')

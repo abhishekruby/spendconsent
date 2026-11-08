@@ -6,8 +6,8 @@ No paid service, stock asset, third-party music or cloud synthesis is used.
 
 ## Review files
 
-`out/spendconsent-demo-v1.mp4`, `out/contact-sheet-v1.jpg`,
-`out/timeline-v1.json`, `out/captions.srt`, `out/qa-v1.json` and `REVIEW.md`.
+`out/spendconsent-demo-v2.mp4`, `out/contact-sheet-v2.jpg`,
+`out/timeline-v2.json`, `out/captions.srt`, `out/qa-v2.json` and `REVIEW.md`.
 Generated media, original recordings, models, caches and browser profiles are
 ignored. Only source and notices are committed.
 
@@ -27,18 +27,19 @@ npm run pace
 npm run prepare
 npm run check
 npm run check:guards
-npm run render -- 1
+npm run render -- 2
 ```
 
-Rendering requires the original local takes in `raw/`. `prepare_clips.py`
-contains the audited cut/crop map for these particular takes and writes
-`edit-excerpts.json`. Retakes require updating that map and reviewing the
-selected frames. It never recreates product pixels. After reviewing the ten
-prepared clips and the real MCP evidence, set `src/edit.json`'s `ready` to
-`true`; preparation deliberately resets it to `false`. The final renderer
-refuses incomplete evidence. `npm run studio` opens the composition preview.
-The renderer generates the QR, SRT, per-scene timeline, normalized master,
-MP4, three-second contact sheet and encoding/audio QA report.
+Rendering requires the original private takes in `raw/`, including the two hosted
+v2 takes and their measured event manifest in `raw/v2/manifest.json`.
+`prepare_clips.py` validates complete viewports, 16:9 desktop crops at least
+1000 pixels wide, safe source ranges and no speed-ups, then writes the exact
+provenance to `edit-excerpts.json`. Preparation activates readiness only after
+all 18 clips are prepared. The composition additionally rejects missing crops,
+invalid viewport kinds, overlapping panels and unsynchronized owner views.
+`npm run studio` opens the composition preview. Rendering generates the QR,
+SRT, per-scene timeline, normalized master, MP4, two-second contact sheet and
+encoding/audio QA report. Always inspect the actual render before sharing.
 
 Original scene WAVs remain in `out/voice/`. `pace_voice.py` places their
 phrases beside the real actions without speeding speech; final one-scene
@@ -82,3 +83,44 @@ The short temporary path uses `/proc/<render-or-recorder-pid>/cwd/.cache/tmp`
 to avoid Chrome Unix socket path limits while keeping files inside `video/`.
 App source remains unchanged. Private `.env` and `.runtime/` contents are not inspected by these video tools.
 See `CREDITS.md` for assets, notices and free-use eligibility.
+
+## Hosted v2 capture
+
+The approved correction takes use the hosted sandbox and an isolated X11 display:
+`Xephyr :99 -screen 1920x1080`, with a private Xauthority cookie, no TCP listener,
+and Chrome app/kiosk mode. `npm run record:hosted` uses the video-owned private
+profile and FFmpeg `:99.0+0,0`. It permits only comparison, clarification and
+review writes; approval and financial routes are blocked. `node
+scripts/record_hosted.mjs --check` checks this boundary without opening a browser.
+Only `C1-describe` and `C3b-ask-take2` are used from these hosted recordings;
+C1 continues through real offers, loaded retail listings, rejections and review.
+No additional payment or refund was needed for v2.
+
+The v2 corrections supersede v1 framing and editorial labels. Ordinary edits
+are unlabelled; only compressed waits carry a label. Final static states may
+breathe without changing pixels. Desktop source crops stay 16:9 and are never
+stretched into strips. Owner panes are separate complete measured viewports.
+
+For a fresh private display, run this from `video/` before the hosted recorder
+(leave an existing recording display running rather than starting it twice):
+
+```bash
+python3 - <<'CAPTURE_DISPLAY'
+from pathlib import Path
+import os, secrets, subprocess
+os.umask(0o077)
+cache=Path('.cache');cache.mkdir(exist_ok=True)
+auth=cache/'xephyr-v2.auth';auth.touch(mode=0o600,exist_ok=True)
+subprocess.run(['xauth','-f',str(auth.resolve())],
+    input=f'add :99 . {secrets.token_hex(16)}\n',text=True,check=True,
+    stdout=subprocess.DEVNULL)
+with (cache/'xephyr-v2.log').open('w') as log:
+    subprocess.Popen(['Xephyr',':99','-screen','1920x1080','-nolisten','tcp',
+        '-noreset','-auth',str(auth.resolve()),'-title','SpendConsent capture'],
+        stdin=subprocess.DEVNULL,stdout=log,stderr=log,start_new_session=True)
+CAPTURE_DISPLAY
+node scripts/record_hosted.mjs
+```
+
+The cookie is generated locally and passed through stdin, never printed or
+placed in command arguments. The auth file and capture profile remain ignored.
