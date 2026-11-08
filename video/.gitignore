@@ -11,3 +11,4 @@ dist/
 public/voice/
 public/clips/
 public/end-qr.png
+public/soundtrack-*.wav

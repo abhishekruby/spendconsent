@@ -1,0 +1,391 @@
+{
+  "typing": {
+    "src": "clips/v3/typing.mp4",
+    "kind": "desktop",
+    "width": 1920,
+    "height": 1080,
+    "durationFrames": 75,
+    "source": "raw/v2/C1-describe.mp4",
+    "sourceStart": 2.634626291999999,
+    "sourceEnd": 5.134626291999999,
+    "speed": 1,
+    "holdSeconds": 0.0,
+    "sidebar": [
+      439,
+      100,
+      238,
+      700
+    ]
+  },
+  "wait": {
+    "src": "clips/v3/wait.mp4",
+    "kind": "desktop",
+    "width": 1920,
+    "height": 1080,
+    "durationFrames": 45,
+    "source": "raw/v2/C1-describe.mp4",
+    "sourceStart": 7.186156203999999,
+    "sourceEnd": 8.686156204,
+    "speed": 1,
+    "holdSeconds": 0.0,
+    "sidebar": [
+      439,
+      100,
+      238,
+      700
+    ]
+  },
+  "understood": {
+    "src": "clips/v3/understood.mp4",
+    "kind": "desktop",
+    "width": 1920,
+    "height": 1080,
+    "durationFrames": 90,
+    "source": "raw/v2/C1-describe.mp4",
+    "sourceStart": 76.087299948,
+    "sourceEnd": 79.087299948,
+    "speed": 1,
+    "holdSeconds": 0,
+    "sidebar": [
+      439,
+      100,
+      238,
+      700
+    ]
+  },
+  "ask": {
+    "src": "clips/v3/ask.mp4",
+    "kind": "desktop",
+    "width": 1920,
+    "height": 1080,
+    "durationFrames": 120,
+    "source": "raw/v2/C3b-ask-take2.mp4",
+    "sourceStart": 40.807443936,
+    "sourceEnd": 44.807443936,
+    "speed": 1,
+    "holdSeconds": 0,
+    "sidebar": [
+      439,
+      100,
+      238,
+      700
+    ]
+  },
+  "offers": {
+    "src": "clips/v3/offers.mp4",
+    "kind": "desktop",
+    "width": 1920,
+    "height": 1080,
+    "durationFrames": 120,
+    "source": "raw/v2/C1-describe.mp4",
+    "sourceStart": 86.454058971,
+    "sourceEnd": 90.454058971,
+    "speed": 1,
+    "holdSeconds": 0,
+    "sidebar": [
+      439,
+      100,
+      238,
+      700
+    ]
+  },
+  "savings": {
+    "src": "clips/v3/savings.mp4",
+    "kind": "desktop",
+    "width": 1920,
+    "height": 1080,
+    "durationFrames": 90,
+    "source": "raw/v2/C1-describe.mp4",
+    "sourceStart": 205.35651580400003,
+    "sourceEnd": 208.35651580400003,
+    "speed": 1,
+    "holdSeconds": 0,
+    "sidebar": [
+      439,
+      100,
+      238,
+      700
+    ]
+  },
+  "rejections": {
+    "src": "clips/v3/rejections.mp4",
+    "kind": "desktop",
+    "width": 1920,
+    "height": 1080,
+    "durationFrames": 90,
+    "source": "raw/v2/C1-describe.mp4",
+    "sourceStart": 138.684995257,
+    "sourceEnd": 141.684995257,
+    "speed": 1,
+    "holdSeconds": 0,
+    "sidebar": [
+      439,
+      100,
+      238,
+      700
+    ]
+  },
+  "market": {
+    "src": "clips/v3/market.mp4",
+    "kind": "desktop",
+    "width": 1920,
+    "height": 1080,
+    "durationFrames": 90,
+    "source": "raw/v2/C1-describe.mp4",
+    "sourceStart": 104.485085809,
+    "sourceEnd": 107.485085809,
+    "speed": 1,
+    "holdSeconds": 0,
+    "sidebar": [
+      439,
+      100,
+      238,
+      700
+    ]
+  },
+  "receipt": {
+    "src": "clips/v3/receipt.mp4",
+    "kind": "desktop",
+    "width": 1920,
+    "height": 1080,
+    "durationFrames": 120,
+    "source": "raw/v2/C1-describe.mp4",
+    "sourceStart": 224.084137151,
+    "sourceEnd": 228.084137151,
+    "speed": 1,
+    "holdSeconds": 0,
+    "sidebar": [
+      439,
+      100,
+      238,
+      700
+    ]
+  },
+  "expiry": {
+    "src": "clips/v3/expiry.mp4",
+    "kind": "desktop",
+    "width": 1920,
+    "height": 1080,
+    "durationFrames": 120,
+    "source": "raw/v2/C1-describe.mp4",
+    "sourceStart": 229.084137151,
+    "sourceEnd": 233.084137151,
+    "speed": 1,
+    "holdSeconds": 0,
+    "sidebar": [
+      439,
+      100,
+      238,
+      700
+    ]
+  },
+  "waiting-requester": {
+    "src": "clips/v3/waiting-requester.mp4",
+    "kind": "requester",
+    "width": 1336,
+    "height": 948,
+    "durationFrames": 75,
+    "source": "raw/C4-owner.mp4",
+    "sourceStart": 69,
+    "sourceEnd": 71.5,
+    "speed": 1,
+    "holdSeconds": 0.0,
+    "sidebar": [
+      154,
+      100,
+      238,
+      800
+    ]
+  },
+  "waiting-phone": {
+    "src": "clips/v3/waiting-phone.mp4",
+    "kind": "phone",
+    "width": 390,
+    "height": 844,
+    "durationFrames": 75,
+    "source": "raw/C4-owner.mp4",
+    "sourceStart": 69,
+    "sourceEnd": 71.5,
+    "speed": 1,
+    "holdSeconds": 0.0,
+    "sidebar": null
+  },
+  "phone-gesture": {
+    "src": "clips/v3/phone-gesture.mp4",
+    "kind": "phone",
+    "width": 390,
+    "height": 844,
+    "durationFrames": 105,
+    "source": "raw/C4-owner.mp4",
+    "sourceStart": 78.7,
+    "sourceEnd": 82.2,
+    "speed": 1,
+    "holdSeconds": 0.0,
+    "sidebar": null
+  },
+  "phone-approved": {
+    "src": "clips/v3/phone-approved.mp4",
+    "kind": "phone",
+    "width": 390,
+    "height": 844,
+    "durationFrames": 48,
+    "source": "raw/C4-owner.mp4",
+    "sourceStart": 82.2,
+    "sourceEnd": 83.60000000000001,
+    "speed": 1,
+    "holdSeconds": 0.2,
+    "sidebar": null
+  },
+  "requester-live": {
+    "src": "clips/v3/requester-live.mp4",
+    "kind": "requester",
+    "width": 1336,
+    "height": 948,
+    "durationFrames": 120,
+    "source": "raw/C4-owner.mp4",
+    "sourceStart": 82,
+    "sourceEnd": 84.9,
+    "speed": 1,
+    "holdSeconds": 1.1,
+    "sidebar": [
+      154,
+      100,
+      238,
+      800
+    ]
+  },
+  "mandate": {
+    "src": "clips/v3/mandate.mp4",
+    "kind": "requester",
+    "width": 1336,
+    "height": 948,
+    "durationFrames": 120,
+    "source": "raw/C4-owner.mp4",
+    "sourceStart": 83.5,
+    "sourceEnd": 84.9,
+    "speed": 1,
+    "holdSeconds": 2.6,
+    "sidebar": [
+      154,
+      100,
+      238,
+      800
+    ]
+  },
+  "paypal": {
+    "src": "clips/v3/paypal.mp4",
+    "kind": "paypal",
+    "width": 1190,
+    "height": 1240,
+    "durationFrames": 135,
+    "source": "raw/C5-paypal.mp4",
+    "sourceStart": 0,
+    "sourceEnd": 4.5,
+    "speed": 1,
+    "holdSeconds": 0.0,
+    "sidebar": null
+  },
+  "thanks": {
+    "src": "clips/v3/thanks.mp4",
+    "kind": "paypal",
+    "width": 1190,
+    "height": 1240,
+    "durationFrames": 30,
+    "source": "raw/C5-paypal.mp4",
+    "sourceStart": 6.5,
+    "sourceEnd": 7.5,
+    "speed": 1,
+    "holdSeconds": 0,
+    "sidebar": null
+  },
+  "confirmed": {
+    "src": "clips/v3/confirmed.mp4",
+    "kind": "desktop",
+    "width": 1920,
+    "height": 1080,
+    "durationFrames": 120,
+    "source": "raw/C6-refund.mp4",
+    "sourceStart": 10,
+    "sourceEnd": 14,
+    "speed": 1,
+    "holdSeconds": 0,
+    "sidebar": [
+      439,
+      100,
+      238,
+      700
+    ]
+  },
+  "refund-click": {
+    "src": "clips/v3/refund-click.mp4",
+    "kind": "desktop",
+    "width": 1920,
+    "height": 1080,
+    "durationFrames": 60,
+    "source": "raw/C6-refund.mp4",
+    "sourceStart": 43,
+    "sourceEnd": 45,
+    "speed": 1,
+    "holdSeconds": 0,
+    "sidebar": [
+      439,
+      100,
+      238,
+      700
+    ]
+  },
+  "refund-result": {
+    "src": "clips/v3/refund-result.mp4",
+    "kind": "desktop",
+    "width": 1920,
+    "height": 1080,
+    "durationFrames": 30,
+    "source": "raw/C6-refund.mp4",
+    "sourceStart": 48,
+    "sourceEnd": 49,
+    "speed": 1,
+    "holdSeconds": 0,
+    "sidebar": [
+      439,
+      100,
+      238,
+      700
+    ]
+  },
+  "approved": {
+    "src": "clips/v3/approved.mp4",
+    "kind": "desktop",
+    "width": 1920,
+    "height": 1080,
+    "durationFrames": 105,
+    "source": "raw/C7-price.mp4",
+    "sourceStart": 9,
+    "sourceEnd": 12.5,
+    "speed": 1,
+    "holdSeconds": 0.0,
+    "sidebar": [
+      439,
+      100,
+      238,
+      700
+    ]
+  },
+  "revoked": {
+    "src": "clips/v3/revoked.mp4",
+    "kind": "desktop",
+    "width": 1920,
+    "height": 1080,
+    "durationFrames": 120,
+    "source": "raw/C7-price.mp4",
+    "sourceStart": 63.1,
+    "sourceEnd": 65.2,
+    "speed": 1,
+    "holdSeconds": 1.9,
+    "sidebar": [
+      439,
+      100,
+      238,
+      700
+    ]
+  }
+}

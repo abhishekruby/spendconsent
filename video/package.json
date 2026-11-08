@@ -15,7 +15,8 @@
     "capture:mcp": "python3 scripts/capture_mcp.py",
     "prepare": "python3 scripts/prepare_clips.py",
     "render": "node scripts/render.mjs",
-    "record:hosted": "node scripts/record_hosted.mjs"
+    "record:hosted": "node scripts/record_hosted.mjs",
+    "render:v3": "node scripts/render_v3.mjs"
   },
   "dependencies": {
     "@fontsource-variable/bricolage-grotesque": "5.3.0",

@@ -1,15 +1,55 @@
 # SpendConsent demo film
 
-1920×1080 · 30 fps · 165 seconds. Story source: `../docs/video-plan.md`.
-User-selected narration: Kokoro Heart (`af_heart`), US English, speed 0.96.
+1920×1080 · 30 fps · 165 seconds. V3 story source: `../docs/codex-video-v3-brief.md`.
+User-selected narration: Kokoro Heart (`af_heart`), US English, speed 1.05 for v3.
 No paid service, stock asset, third-party music or cloud synthesis is used.
 
 ## Review files
 
-`out/spendconsent-demo-v2.mp4`, `out/contact-sheet-v2.jpg`,
-`out/timeline-v2.json`, `out/captions.srt`, `out/qa-v2.json` and `REVIEW.md`.
+`out/spendconsent-demo-v3.mp4`, `out/contact-sheet-v3.jpg` (one frame per second),
+`out/timeline-v3.json`, `out/captions.srt`, `out/qa-v3.json` and `REVIEW.md`.
 Generated media, original recordings, models, caches and browser profiles are
 ignored. Only source and notices are committed.
+
+## V3 rebuild (existing recordings only)
+
+Use the installed, locked environment from `video/`. V3 performs no new recording,
+order, payment, capture or refund. It reuses the 151 passing v2 app tests.
+
+```bash
+uv run --locked --no-dev python scripts/narrate_v3.py
+uv run --locked --no-dev python scripts/edit_v3.py
+python3 scripts/prepare_v3.py
+uv run --locked --no-dev python scripts/score_v3.py
+npm run check
+npm run render:v3 -- draft
+```
+
+Inspect the actual 960×540 draft and its one-frame-per-second contact sheet.
+The final renderer requires `out/v3/draft-approved.json` containing the current
+`node scripts/render_v3.mjs fingerprint` hash and `visualReviewPassed: true`. Run
+`npm run render:v3 -- final` only after inspection. An exclusive marker prevents
+a second final 1080p composition render. It writes the final H.264 High/yuv420p,
+CRF 18, AAC 48 kHz movie, captions, timeline, contact sheet and encoded audio QA.
+This gate records the operator's actual inspection; it does not ask for a user
+approval or perform an automated aesthetic review.
+
+`src/v3/film.tsx` validates native bounds, minimum 760×428-equivalent desktop
+crops, 16:9 aspect, whole-or-absent sidebar and every intermediate detail camera.
+A short crossfade moves from the complete page to the detail without panning
+through sliced sidebar words. Separate complete requester/phone viewports establish context; phone and PayPal
+detail cuts use real recorded regions. `src/v3/assets.json` inventories all 23 real takes;
+`src/v3/timeline.json` records all 60 shots, voice timing and sound events.
+
+`python3 scripts/evidence_v3.py` reproduces the actual unknown-pay-tool rejection
+with backend access disabled. It does not invoke an app or payment API.
+`claims-v3.json` links every statistic, cart number and scoped zero-dollar claim
+to its source. The original synthesized score is mixed about 18 dB under active
+speech, with deliberate 0.4 s pre-slam silences and a −14 LUFS final master.
+All eight scene WAVs and natural-clause SRT captions are generated locally.
+
+The sections below preserve the v2 recording/rebuild instructions for provenance;
+they are not steps required by v3.
 
 ## Reproduce locally
 

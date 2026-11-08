@@ -1,0 +1,82 @@
+{
+  "version": 3,
+  "source_checks_date": "2026-11-08",
+  "review_date": "2026-11-09",
+  "retailer_terms": {
+    "url": "https://www.target.com/c/terms-conditions/-/N-4sr7l",
+    "updated": "2026-09-10",
+    "on_screen_quote": "are considered transactions authorized by you",
+    "scope": "Purchases/actions by an Approved Agent the customer authorized, within its granted permissions. Retailer identity is omitted on screen; this is one retailer, not a claim about every merchant."
+  },
+  "survey": {
+    "url": "https://investor.aciworldwide.com/node/26576",
+    "publication_date": "2026-06-29",
+    "field_dates": "2026-06-19/2026-06-22",
+    "sample": 2080,
+    "population": "UK adults",
+    "trust_ai_everyday_purchases_percent": 19,
+    "would_stop_after_one_mistake_percent": 60,
+    "limits": "Survey attitudes, not observed purchasing behavior or SpendConsent market validation."
+  },
+  "cart": {
+    "sku": "CLOTH-B",
+    "merchant": "Corner Supply Co. (test shop)",
+    "packs": 2,
+    "units_per_pack": 20,
+    "units": 40,
+    "items_cents": 3800,
+    "delivery_cents": 0,
+    "tax_cents": 380,
+    "total_cents": 4180,
+    "next_offer_total_cents": 4760,
+    "savings_cents": 580,
+    "expiry_minutes": 10
+  },
+  "hosted_latency": {
+    "origin": "https://spendconsent.ullagecloud.com",
+    "describe_wall_seconds": 14.356318438000002,
+    "missing_size_wall_seconds": 12.929548710000002,
+    "mean_wall_seconds": 13.642933574000002,
+    "source": "raw/v2/manifest.json; browser POST to first non-COMPARING successful API response",
+    "describe_note": "First result asked for budget confirmation; actual $60 chip selected before READY.",
+    "missing_size_note": "Asked for cloth size, recorded actual 40 \u00d7 40 cm chip."
+  },
+  "qualification": {
+    "outcomes_passed": 160,
+    "outcomes_total": 160,
+    "suites": 8,
+    "blind_suites": 6,
+    "source": "../README.md AI section; existing qualification evidence, reused without new inference."
+  },
+  "automated_tests": {
+    "backend": 127,
+    "frontend": 24,
+    "total": 151,
+    "date": "2026-11-08",
+    "source": "out/v2/backend-tests.log; out/v2/frontend-tests.log"
+  },
+  "price_change": {
+    "sku": "CLOTH-B",
+    "old_pack_price_cents": 1900,
+    "recorded_new_pack_price_cents": 1901,
+    "approval_after_reload": "REVOKED",
+    "restored_pack_price_cents": 1900,
+    "source": "actual set_offer_price command and raw/C7-price.mp4"
+  },
+  "unauthorized_attempts": {
+    "missing_size": "Actual C3b hosted take asks for size before proceeding; it creates no order.",
+    "price_change": "Actual C7 records a one-cent increase in the pack price after approval; status reload yields REVOKED. Pack price was restored in the original session.",
+    "mcp_pay": "evidence-v3.json contains actual tools/call pay rejection from the unchanged server. No backend access or financial operation.",
+    "money_moved_cents": 0,
+    "scope": "Only these three unauthorized attempts; the separate human-approved $41.80 sandbox payment and full refund remain visible."
+  },
+  "new_financial_operations_v3": 0,
+  "live_status": {
+    "source": "out/v3/live-status.json",
+    "method": "Read-only hosted GET /api/session",
+    "observed_http_status": 200,
+    "sandbox": true,
+    "ai_ready": true,
+    "limits": "Point-in-time readiness, not an uptime guarantee."
+  }
+}

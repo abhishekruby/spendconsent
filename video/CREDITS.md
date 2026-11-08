@@ -1,6 +1,6 @@
 # Assets and licences
 
-Checked 8 November 2026. Everything runs locally. No paid account, trial, API,
+Checked 8–9 November 2026. Everything runs locally. No paid account, trial, API,
 card, third-party music, stock footage or external image asset is used.
 
 | Asset / tool | Exact source | Licence / use |
@@ -59,3 +59,29 @@ added to the film. Original UI recordings and generated media are not committed.
   tool only; no server binary or desktop imagery is redistributed.
 - Channel3 retail images and retailer names occur only within the genuine
   product recording; no standalone retailer asset was imported or composited.
+
+
+## v3 story, narration and sound
+
+Checked 9 November 2026. No dependency, paid service, external music, new recording
+or new financial operation was added for v3. The existing lockfiles still pin all
+packages. Source claims and their qualifications are indexed in `claims-v3.json`.
+
+| Asset | Exact source / licence |
+| --- | --- |
+| `public/clips/v3/typing`, `wait`, `understood`, `offers`, `savings`, `rejections`, `market`, `receipt`, `expiry` (all `.mp4`) | Derivatives of the original hosted `raw/v2/C1-describe.mp4`; original project footage. Every real source interval, held state and speed is in `src/v3/assets.json`. |
+| `public/clips/v3/ask.mp4` | Original hosted `raw/v2/C3b-ask-take2.mp4`; actual missing-size question and answer-chip interaction. |
+| `public/clips/v3/waiting-requester`, `waiting-phone`, `phone-gesture`, `phone-approved`, `requester-live`, `mandate` (all `.mp4`) | Complete measured requester/phone viewports from `raw/C4-owner.mp4`; original project footage. Phone is a separate browser viewport on the laptop. |
+| `public/clips/v3/paypal.mp4`, `thanks.mp4` | Real original `raw/C5-paypal.mp4`. V3 masks only avatar and card digits, using `card-redactions-v3.json`; fictional shipping address and actual INR conversion line stay visible. No account sign-in is included. |
+| `public/clips/v3/confirmed`, `refund-click`, `refund-result` (all `.mp4`) | Real original `raw/C6-refund.mp4`; original project footage. |
+| `public/clips/v3/approved.mp4`, `revoked.mp4` | Real original `raw/C7-price.mp4`; original project footage. |
+| `out/voice-v3/*.wav`, `public/voice/v3/scene-1.wav` through `scene-8.wav` | New original script in `scene-script-v3.json`; local Kokoro v1.0 `af_heart`, speed 1.05. Same Apache-2.0 model/voice weights and MIT wrapper credited above. No cloud synthesis. |
+| `out/v3/original-score.wav`, `out/master-v3.wav`, `public/soundtrack-v3.wav` | Original pulse, harmonic pad, ticks, thuds and rising chimes synthesized numerically by `scripts/score_v3.py`. No samples, external compositions or third-party sound recordings. Original project material. |
+| `evidence-v3.json` and animated MCP terminal | Literal initialize/list/pay messages and actual rejection from the unchanged project MCP server, SHA-256 recorded in evidence. The hook is explicitly labelled request shorthand. Original project evidence, no invented tool response. |
+| Retailer terms excerpt | Six-word excerpt from [official terms](https://www.target.com/c/terms-conditions/-/N-4sr7l), updated 10 September 2026. Source attribution is anonymous on screen as requested; quotation used for commentary, no retailer logo or other asset. |
+| Survey numbers | [ACI Worldwide / YouGov primary release](https://investor.aciworldwide.com/node/26576), 29 June 2026; 2,080 UK adults. Numeric facts, no copied illustration or logo. |
+| V3 typography, shields, rings, stamps, edit map, captions and 1 fps contact sheets | Original React/Remotion/Python code using the same OFL fonts and app palette. QR reused unchanged from the original locally generated asset above. |
+
+The old v2 asset descriptions remain historical: the v3 PayPal treatment supersedes
+its shipping-address blur. Generated footage, voice, score, models and renders are
+private ignored build outputs; the source, licence notices and provenance are committed.

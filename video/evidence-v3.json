@@ -1,0 +1,129 @@
+{
+  "label": "real MCP session",
+  "server": "scripts/spendconsent_mcp.py",
+  "server_sha256": "39ed4010694d80751a03ac9dd8a073303c03f18d3eb2cc8c313e8b24f2df42a1",
+  "backend_access": "Disabled for this rejection test: loopback discard port. Unknown tools are rejected before any API call.",
+  "transcript": [
+    {
+      "request": {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "initialize",
+        "params": {
+          "protocolVersion": "2025-06-18",
+          "capabilities": {},
+          "clientInfo": {
+            "name": "video-v3-evidence",
+            "version": "3.0"
+          }
+        }
+      },
+      "response": {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "result": {
+          "protocolVersion": "2025-06-18",
+          "capabilities": {
+            "tools": {}
+          },
+          "serverInfo": {
+            "name": "spendconsent",
+            "version": "1.0"
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "jsonrpc": "2.0",
+        "id": 2,
+        "method": "tools/list",
+        "params": {}
+      },
+      "response": {
+        "jsonrpc": "2.0",
+        "id": 2,
+        "result": {
+          "tools": [
+            {
+              "name": "find_offers",
+              "description": "Compare supplier offers for a plain-language purchase request (item, exact quantity, size, budget incl. delivery and tax). Takes ~20 s.",
+              "inputSchema": {
+                "type": "object",
+                "properties": {
+                  "request": {
+                    "type": "string",
+                    "maxLength": 2000
+                  }
+                },
+                "required": [
+                  "request"
+                ]
+              }
+            },
+            {
+              "name": "prepare_cart",
+              "description": "Freeze one offer from find_offers into an exact, expiring cart for the owner to review.",
+              "inputSchema": {
+                "type": "object",
+                "properties": {
+                  "offer_id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "offer_id"
+                ]
+              }
+            },
+            {
+              "name": "request_owner_approval",
+              "description": "Open the exact cart in the owner's browser for approval. This tool cannot approve or pay; only the owner can, in their own browser.",
+              "inputSchema": {
+                "type": "object",
+                "properties": {}
+              }
+            },
+            {
+              "name": "purchase_status",
+              "description": "Current state of the purchase: approval and PayPal payment.",
+              "inputSchema": {
+                "type": "object",
+                "properties": {}
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "jsonrpc": "2.0",
+        "id": 3,
+        "method": "tools/call",
+        "params": {
+          "name": "pay",
+          "arguments": {
+            "amount": 41.8,
+            "currency": "USD"
+          }
+        }
+      },
+      "response": {
+        "jsonrpc": "2.0",
+        "id": 3,
+        "result": {
+          "content": [
+            {
+              "type": "text",
+              "text": "Unknown tool pay."
+            }
+          ],
+          "isError": true
+        }
+      }
+    }
+  ],
+  "money_moved_cents": 0,
+  "payments_created": 0
+}

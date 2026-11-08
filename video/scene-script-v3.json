@@ -1,0 +1,101 @@
+[
+  {
+    "id": 1,
+    "name": "The challenge",
+    "seconds": 9,
+    "phrases": [
+      "We gave an AI a shopping job.",
+      "Then we tried three ways to make it spend the wrong money."
+    ]
+  },
+  {
+    "id": 2,
+    "name": "The stakes",
+    "seconds": 14,
+    "phrases": [
+      "One major retailer's terms already say",
+      "your AI agent's purchases count as authorized by you.",
+      "Only one in five people trust AI to buy for them.",
+      "And most would quit after one mistake."
+    ]
+  },
+  {
+    "id": 3,
+    "name": "The promise",
+    "seconds": 10,
+    "phrases": [
+      "SpendConsent is for small teams",
+      "where one person orders and someone else pays.",
+      "The AI shops.",
+      "A person decides.",
+      "PayPal verifies."
+    ]
+  },
+  {
+    "id": 4,
+    "name": "Make it guess",
+    "seconds": 26,
+    "phrases": [
+      "Say what you need in plain words.",
+      "Our self-hosted AI reads it in about fourteen seconds.",
+      "Attempt one: we left out the size.",
+      "It doesn't guess.",
+      "It asks.",
+      "Then code, not the AI, checks every offer to the cent.",
+      "And real retail prices from Channel3 show if the deal is fair."
+    ]
+  },
+  {
+    "id": 5,
+    "name": "The only way through",
+    "seconds": 32,
+    "phrases": [
+      "This is the exact cart.",
+      "It expires in ten minutes.",
+      "And nothing moves until the person paying says yes.",
+      "One tap on their phone,",
+      "and the laptop updates by itself.",
+      "That yes fits this cart,",
+      "and nothing else."
+    ]
+  },
+  {
+    "id": 6,
+    "name": "PayPal verifies",
+    "seconds": 20,
+    "phrases": [
+      "PayPal runs the payment.",
+      "We call it paid only after our server captures it",
+      "and reads it back from PayPal.",
+      "Change your mind?",
+      "A full refund, verified the same way."
+    ]
+  },
+  {
+    "id": 7,
+    "name": "Change the price. Make the agent pay.",
+    "seconds": 29,
+    "phrases": [
+      "Attempt two:",
+      "after approval, we raised the price by one cent.",
+      "Approval revoked.",
+      "Attempt three: the agent calls pay.",
+      "It can find offers,",
+      "prepare the cart,",
+      "and ask the owner.",
+      "But that tool does not exist."
+    ]
+  },
+  {
+    "id": 8,
+    "name": "The dare",
+    "seconds": 25,
+    "phrases": [
+      "One hundred and sixty out of one hundred and sixty AI tests.",
+      "Live right now.",
+      "AI agents are already at the checkout.",
+      "This is what yes should look like.",
+      "Try to make it pay without you."
+    ]
+  }
+]
