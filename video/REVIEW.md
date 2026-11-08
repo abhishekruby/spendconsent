@@ -1,51 +1,66 @@
-# Review checkpoint — voice auditions, 7 November 2026
+# SpendConsent demo v1 — review notes
 
-## Changed
+Updated 8 November 2026. Target and timeline: **2:45, 1920×1080, 30 fps**.
+Verified final encode: H.264 High, limited-range `yuv420p`, CRF 18; AAC 48 kHz.
+165.00 seconds / 4,950 frames; **−14.02 LUFS, −1.36 dBTP**, 38 caption cues.
 
-- Isolated Remotion / React / TypeScript setup at 1920×1080, 30 fps.
-- Frontend paper/ink/persimmon tokens and the exact two font package versions.
-- Local CPU Kokoro-ONNX pipeline, four comparable US/UK female/male auditions,
-  two-pass loudness normalization, output manifest and a runnable artifact check.
-- Dependency locks, model checksum manifest, asset credits and ignored private
-  profile/raw/output/model/cache folders.
+## What changed
+
+- User-selected Heart voice, phrase timing aligned to real actions, burned
+  captions and SRT. Speech is not sped up. Original quiet thud/chime accents;
+  no music or desktop audio.
+- Eight scenes in the paper/ink/persimmon palette with the exact frontend font
+  packages; QR/live URL and GitHub end card held for 6.5 seconds.
+- Actual AI request, clarification chip, offers, Channel3 reference, exact cart,
+  owner-phone approval and requester update, PayPal payment, receipt action,
+  refund, one-cent revocation and real MCP transcript.
+- Close-up cuts replace full-desktop frames for readability and privacy. All
+  wait cuts/speed changes are labelled. No product screen or tool output is
+  recreated. MCP source: `out/mcp-session.json`; cuts: `edit-excerpts.json`.
+- Actual local comparison wait: 57.7 s; clarification inference: 62.0 s;
+  MCP comparison: 56.3 s. The hosted ~14 s figure is not presented as local speed.
+- Runtime cart expiry is ten minutes; approval validity is five minutes.
+  Proof uses README's conservative **100+ backend tests**, plus the documented
+  **160/160 AI outcomes, eight suites, six written blind**.
+
+## Verified sandbox journey
+
+One **$41.80 USD** payment reached server `PAID` / “Paid. All verified.” and one
+full refund reached “Order cancelled. Refunded.” The earlier expired approval
+was stopped without capture. Two orders were created, within the recording
+approval's cap. Catalog pack price was restored from 1901 to 1900 cents after
+filming the real `REVOKED` response.
+
+## Editorial variations / review focus
+
+- The payment result uses the real all-green “Payment confirmed” receipt card;
+  the initial desktop focus loss after the PayPal popup is excluded. Only the
+  real PayPal header/button, foreground receipt and refund ranges are used.
+- Owner view is a real separate phone-sized browser context on the same laptop.
+  The close-up split is labelled requester left / owner phone right; this is
+  viewport emulation, not a claim of a second physical device.
+- Refund is shown from the paid receipt rather than the Purchases drawer.
+- A dedicated rejection-reason close-up is an editorial option for the next
+  review; v1 prioritizes the actual eligible offers, totals and clarification.
+- Macro crops deliberately exclude peripheral UI; review the pacing and phone
+  readability, especially the approval split. No placeholder product footage
+  remains in the ready composition.
+- The end-card demo URL returned HTTP 200 on 8 November. The repository remains
+  private; judge access/publication needs the owner's later decision.
 
 ## Validation
 
-- `npm run check:voices` passed: all four WAV hashes and durations match the
-  manifest; mono 48 kHz PCM; −14.47 to −14.04 LUFS; −1.50 dBTP on every sample.
-- `npm run check` passed. Remotion bundled and rendered `out/setup-slate.png`
-  with installed Chrome. The 1920×1080 frame was visually inspected: the actual
-  fonts, palette and 96 px margins render correctly, with no overflow.
-- Chrome needs the short `/proc/self/cwd/.cache/tmp` TMPDIR alias documented in
-  README to avoid Unix socket path limits in this workspace. It resolves inside
-  `video/`; no separate browser profile outside this folder is needed.
-- Listening and voice choice remain the user's review step. These technical
-  checks do not establish preferred vocal style or pronunciation quality.
-
-## Pending / placeholders
-
-`SetupSlate` is a labelled development slate. No product screens, real MCP
-transcript, footage, captions, complete film timeline, contact sheet or final
-video have been created. No payments or refunds have been attempted. Step 2
-and later remain pending the explicit voice-choice pause in the user brief.
-
-## Open questions
-
-1. Choose **A Heart (US female), B Michael (US male), C Emma (UK female), or
-   D George (UK male)** after listening. All use the same text and speed 0.96.
-   Listen especially for "SpendConsent" and "PayPal" pronunciation.
-2. Verify the running app's actual cart expiry: video plan says ten minutes;
-   README's table says five. Do not silently choose either.
-3. Verify test-count evidence before displaying 150+: README currently supports
-   100+ backend tests plus frontend tests. The 160/160 AI result is supported by
-   README and impact evidence, but is a benchmark, not customer adoption proof.
-4. Measure every local AI wait; do not reuse the hosted ~14-second figure as a
-   local measurement. Survey claims need their source line and sample scope.
-
-## Next action
-
-Stop for the user's voice selection, then build the non-footage scenes and
-recorder. Ask before opening the first PayPal sign-in popup; the user controls
-credentials and must leave the laptop idle during automated recording. Do not
-record the login. Keep at most six sub-$100 sandbox payment attempts in a local
-ledger. Every shortened wait and all payment scenes need the required labels.
+- Independent combined source review found no remaining actionable bugs after
+  financial-control, authentication/privacy and evidence-export fixes.
+- Guard checks, TypeScript, cut-plan checks, caption timing and MCP excerpt
+  matching passed. Representative shopping, approval, payment and MCP frames
+  were visually checked for layout and privacy.
+- `check_delivery.py --version 1` passed on the finished MP4: dimensions,
+  frame rate/count, duration, High profile, `yuv420p`, AAC 48 kHz, loudness,
+  true peak, SRT cue count and review artifacts. Report: `out/qa-v1.json`.
+- Full contact sheet inspected: eight scenes, real payment/refund/revocation
+  proof, labelled edits, readable end card, no background editor or exposed
+  approval URL/account identifiers in the selected shots.
+- Final encoding explicitly converts the Remotion full-range picture to
+  BT.709 limited-range `yuv420p`; the delivery check caught the initial range
+  mismatch before delivery.

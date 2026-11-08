@@ -7,11 +7,20 @@
     "studio": "remotion studio src/index.tsx",
     "check": "tsc --noEmit",
     "voices": "uv run --locked --no-dev python scripts/voice_samples.py",
-    "check:voices": "uv run --locked --no-dev python scripts/check_voice_samples.py"
+    "check:voices": "uv run --locked --no-dev python scripts/check_voice_samples.py",
+    "check:guards": "node scripts/check_record_guards.mjs",
+    "narrate": "uv run --locked --no-dev python scripts/narrate.py",
+    "pace": "python3 scripts/pace_voice.py",
+    "record": "node scripts/record.mjs",
+    "capture:mcp": "python3 scripts/capture_mcp.py",
+    "prepare": "python3 scripts/prepare_clips.py --market-start 0.7 --market-crop 780 180 675 100",
+    "render": "node scripts/render.mjs"
   },
   "dependencies": {
     "@fontsource-variable/bricolage-grotesque": "5.3.0",
     "@fontsource/ibm-plex-mono": "5.3.0",
+    "playwright": "1.65.0",
+    "qrcode": "1.5.4",
     "react": "19.3.1",
     "react-dom": "19.3.1",
     "remotion": "4.0.541"

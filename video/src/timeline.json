@@ -1,0 +1,268 @@
+{
+  "fps": 30,
+  "totalFrames": 4950,
+  "scenes": [
+    {
+      "id": 1,
+      "startFrame": 0,
+      "durationFrames": 360,
+      "voicePath": "voice/scene-1.wav",
+      "text": "AI agents can already shop for you. But would you give one your card?",
+      "captions": [
+        {
+          "startFrame": 129,
+          "endFrame": 197,
+          "text": "AI agents can already shop for you."
+        },
+        {
+          "startFrame": 240,
+          "endFrame": 285,
+          "text": "But would you give one your card?"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "startFrame": 360,
+      "durationFrames": 600,
+      "voicePath": "voice/scene-2.wav",
+      "text": "Only one in five people trust AI to buy for them. Most would quit after a single mistake. SpendConsent is built for small teams where one person orders supplies and someone else pays. The AI does the shopping. A person approves the exact cart. PayPal verifies the payment.",
+      "captions": [
+        {
+          "startFrame": 12,
+          "endFrame": 105,
+          "text": "Only one in five people trust AI to buy for them."
+        },
+        {
+          "startFrame": 117,
+          "endFrame": 187,
+          "text": "Most would quit after a single mistake."
+        },
+        {
+          "startFrame": 195,
+          "endFrame": 281,
+          "text": "SpendConsent is built for small teams where"
+        },
+        {
+          "startFrame": 281,
+          "endFrame": 380,
+          "text": "one person orders supplies and someone else pays."
+        },
+        {
+          "startFrame": 387,
+          "endFrame": 435,
+          "text": "The AI does the shopping."
+        },
+        {
+          "startFrame": 444,
+          "endFrame": 505,
+          "text": "A person approves the exact cart."
+        },
+        {
+          "startFrame": 510,
+          "endFrame": 565,
+          "text": "PayPal verifies the payment."
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "startFrame": 960,
+      "durationFrames": 900,
+      "voicePath": "voice/scene-3.wav",
+      "text": "Just say what you need, in plain words. An open AI model on our own server reads it and makes one catalog search. It keeps only what you actually wrote. If a detail is missing, it asks instead of guessing. Then plain code checks every offer and does every cent of math. Real retail prices from Channel3 show whether the deal is fair.",
+      "captions": [
+        {
+          "startFrame": 12,
+          "endFrame": 78,
+          "text": "Just say what you need, in plain words."
+        },
+        {
+          "startFrame": 84,
+          "endFrame": 152,
+          "text": "An open AI model on our own"
+        },
+        {
+          "startFrame": 152,
+          "endFrame": 230,
+          "text": "server reads it and makes one catalog search."
+        },
+        {
+          "startFrame": 243,
+          "endFrame": 303,
+          "text": "It keeps only what you actually wrote."
+        },
+        {
+          "startFrame": 321,
+          "endFrame": 414,
+          "text": "If a detail is missing, it asks instead of guessing."
+        },
+        {
+          "startFrame": 465,
+          "endFrame": 578,
+          "text": "Then plain code checks every offer and does every cent of math."
+        },
+        {
+          "startFrame": 690,
+          "endFrame": 810,
+          "text": "Real retail prices from Channel3 show whether the deal is fair."
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "startFrame": 1860,
+      "durationFrames": 390,
+      "voicePath": "voice/scene-4.wav",
+      "text": "This is the exact cart. Merchant, packs, tax, delivery and total. It expires in ten minutes.",
+      "captions": [
+        {
+          "startFrame": 18,
+          "endFrame": 65,
+          "text": "This is the exact cart."
+        },
+        {
+          "startFrame": 96,
+          "endFrame": 180,
+          "text": "Merchant, packs, tax, delivery and total."
+        },
+        {
+          "startFrame": 312,
+          "endFrame": 361,
+          "text": "It expires in ten minutes."
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "startFrame": 2250,
+      "durationFrames": 750,
+      "voicePath": "voice/scene-5.wav",
+      "text": "The person preparing the cart isn't the one paying. One tap sends the owner a private link. They approve this exact cart, nothing else. And the requester's screen updates on its own.",
+      "captions": [
+        {
+          "startFrame": 15,
+          "endFrame": 103,
+          "text": "The person preparing the cart isn't the one paying."
+        },
+        {
+          "startFrame": 150,
+          "endFrame": 214,
+          "text": "One tap sends the owner a private link."
+        },
+        {
+          "startFrame": 429,
+          "endFrame": 504,
+          "text": "They approve this exact cart, nothing else."
+        },
+        {
+          "startFrame": 552,
+          "endFrame": 623,
+          "text": "And the requester's screen updates on its own."
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "startFrame": 3000,
+      "durationFrames": 810,
+      "voicePath": "voice/scene-6.wav",
+      "text": "Checkout runs on PayPal. We only call it paid after our server captures the order and reads it back from PayPal. Amount, payee and order must match. Changed your mind? The owner can cancel for a full PayPal refund, verified the same way.",
+      "captions": [
+        {
+          "startFrame": 12,
+          "endFrame": 60,
+          "text": "Checkout runs on PayPal."
+        },
+        {
+          "startFrame": 150,
+          "endFrame": 222,
+          "text": "We only call it paid after our server"
+        },
+        {
+          "startFrame": 222,
+          "endFrame": 303,
+          "text": "captures the order and reads it back from PayPal."
+        },
+        {
+          "startFrame": 444,
+          "endFrame": 505,
+          "text": "Amount, payee and order must match."
+        },
+        {
+          "startFrame": 600,
+          "endFrame": 636,
+          "text": "Changed your mind?"
+        },
+        {
+          "startFrame": 660,
+          "endFrame": 793,
+          "text": "The owner can cancel for a full PayPal refund, verified the same way."
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "startFrame": 3810,
+      "durationFrames": 630,
+      "voicePath": "voice/scene-7.wav",
+      "text": "Change one cent after approval and the approval is void. Any AI agent can shop through our MCP server. Find offers, prepare the cart, ask the owner. But there is simply no tool that pays.",
+      "captions": [
+        {
+          "startFrame": 81,
+          "endFrame": 185,
+          "text": "Change one cent after approval and the approval is void."
+        },
+        {
+          "startFrame": 270,
+          "endFrame": 368,
+          "text": "Any AI agent can shop through our MCP server."
+        },
+        {
+          "startFrame": 381,
+          "endFrame": 463,
+          "text": "Find offers, prepare the cart, ask the owner."
+        },
+        {
+          "startFrame": 516,
+          "endFrame": 578,
+          "text": "But there is simply no tool that pays."
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "startFrame": 4440,
+      "durationFrames": 510,
+      "voicePath": "voice/scene-8.wav",
+      "text": "One hundred and sixty out of one hundred and sixty on our AI tests. It's live. Try it yourself. SpendConsent. AI that shops. A person who decides. And PayPal that verifies.",
+      "captions": [
+        {
+          "startFrame": 12,
+          "endFrame": 146,
+          "text": "One hundred and sixty out of one hundred and sixty on our AI tests."
+        },
+        {
+          "startFrame": 249,
+          "endFrame": 300,
+          "text": "It's live. Try it yourself."
+        },
+        {
+          "startFrame": 321,
+          "endFrame": 355,
+          "text": "SpendConsent."
+        },
+        {
+          "startFrame": 360,
+          "endFrame": 441,
+          "text": "AI that shops. A person who decides."
+        },
+        {
+          "startFrame": 450,
+          "endFrame": 499,
+          "text": "And PayPal that verifies."
+        }
+      ]
+    }
+  ]
+}

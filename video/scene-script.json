@@ -1,0 +1,10 @@
+[
+  {"id":1,"minimumSeconds":12,"phrases":["AI agents can already shop for you.","But would you give one your card?"]},
+  {"id":2,"minimumSeconds":20,"phrases":["Only one in five people trust AI to buy for them.","Most would quit after a single mistake.","SpendConsent is built for small teams where one person orders supplies and someone else pays.","The AI does the shopping.","A person approves the exact cart.","PayPal verifies the payment."]},
+  {"id":3,"minimumSeconds":30,"phrases":["Just say what you need, in plain words.","An open AI model on our own server reads it and makes one catalog search.","It keeps only what you actually wrote.","If a detail is missing, it asks instead of guessing.","Then plain code checks every offer and does every cent of math.","Real retail prices from Channel3 show whether the deal is fair."]},
+  {"id":4,"minimumSeconds":13,"phrases":["This is the exact cart.","Merchant, packs, tax, delivery and total.","It expires in ten minutes."]},
+  {"id":5,"minimumSeconds":25,"phrases":["The person preparing the cart isn't the one paying.","One tap sends the owner a private link.","They approve this exact cart, nothing else.","And the requester's screen updates on its own."]},
+  {"id":6,"minimumSeconds":27,"phrases":["Checkout runs on PayPal.","We only call it paid after our server captures the order and reads it back from PayPal.","Amount, payee and order must match.","Changed your mind?", "The owner can cancel for a full PayPal refund, verified the same way."]},
+  {"id":7,"minimumSeconds":21,"phrases":["Change one cent after approval and the approval is void.","Any AI agent can shop through our MCP server.","Find offers, prepare the cart, ask the owner.","But there is simply no tool that pays."]},
+  {"id":8,"minimumSeconds":17,"phrases":["One hundred and sixty out of one hundred and sixty on our AI tests.","It's live. Try it yourself.","SpendConsent.","AI that shops. A person who decides.","And PayPal that verifies."]}
+]

@@ -1,59 +1,84 @@
 # SpendConsent demo film
 
-Source of truth: `../docs/video-plan.md`. Target 165 seconds, 1920×1080, 30 fps;
-hard ceiling 175 seconds. Work stays here; app code is not changed, and private
-configuration is not inspected. No cloud synthesis, paid APIs, stock assets or music.
+1920×1080 · 30 fps · 165 seconds. Story source: `../docs/video-plan.md`.
+User-selected narration: Kokoro Heart (`af_heart`), US English, speed 0.96.
+No paid service, stock asset, third-party music or cloud synthesis is used.
 
-## Current checkpoint: choose a voice
+## Review files
 
-Four local Kokoro auditions use identical copy and speed. Listen in
-`out/voice-samples/`, then choose A, B, C or D. The film, recorder and scene
-narrations are intentionally pending this choice. `SetupSlate` is a development
-slate, not product footage or a demo render.
+`out/spendconsent-demo-v1.mp4`, `out/contact-sheet-v1.jpg`,
+`out/timeline-v1.json`, `out/captions.srt`, `out/qa-v1.json` and `REVIEW.md`.
+Generated media, original recordings, models, caches and browser profiles are
+ignored. Only source and notices are committed.
 
-| Choice | Voice | Locale |
-| --- | --- | --- |
-| A | Heart (`af_heart`), female | US |
-| B | Michael (`am_michael`), male | US |
-| C | Emma (`bf_emma`), female | UK |
-| D | George (`bm_george`), male | UK |
+## Reproduce locally
 
-From `video/` (all caches stay here):
+Run from `video/`. Node 22.14.0, Python 3.12.3, FFmpeg 6.1.1 and installed
+Chrome are used; npm and uv dependencies are pinned in both lockfiles.
 
 ```bash
 export UV_CACHE_DIR="$PWD/.cache/uv"
 export UV_PYTHON_DOWNLOADS=never
 export npm_config_cache="$PWD/.cache/npm"
-mkdir -p "$PWD/.cache/tmp"
-# Short Linux alias avoids Chrome's Unix socket path limit in this long workspace.
-# Run these commands with video/ as the current directory.
-export TMPDIR=/proc/self/cwd/.cache/tmp
 npm ci --no-audit --no-fund
 uv sync --locked --no-dev --python /usr/bin/python3
-npm run voices
-npm run check:voices
+npm run narrate
+npm run pace
+npm run prepare
 npm run check
-npm run studio
+npm run check:guards
+npm run render -- 1
 ```
 
-The first voice run downloads public versioned ONNX model files into `models/`
-and verifies their SHA-256 against `models.json`. No account or API key is used.
-Auditions are mono 48 kHz PCM WAV, normalized to −14 LUFS with a −1.5 dBTP
-peak limiter (4× oversampling for the final level match).
-Measured durations, loudness, peaks and hashes are saved in the output manifest.
+Rendering requires the original local takes in `raw/`. `prepare_clips.py`
+contains the audited cut/crop map for these particular takes and writes
+`edit-excerpts.json`. Retakes require updating that map and reviewing the
+selected frames. It never recreates product pixels. After reviewing the ten
+prepared clips and the real MCP evidence, set `src/edit.json`'s `ready` to
+`true`; preparation deliberately resets it to `false`. The final renderer
+refuses incomplete evidence. `npm run studio` opens the composition preview.
+The renderer generates the QR, SRT, per-scene timeline, normalized master,
+MP4, three-second contact sheet and encoding/audio QA report.
 
-## Recording boundary for the next phase
+Original scene WAVs remain in `out/voice/`. `pace_voice.py` places their
+phrases beside the real actions without speeding speech; final one-scene
+WAVs are in `out/voice-paced/` and `public/voice/`. Long caption phrases are
+split into sequential readable cues. Original thud/chime accents are
+synthesized in `master_audio.py`; there is no music or recorded desktop audio.
 
-Use real app recordings only; do not synthesize app screens. Persistent Chrome
-profile, raw recordings, outputs, models, environments and caches are ignored.
-Before the first PayPal popup, hand off for the user's sandbox buyer sign-in;
-do not record login or inspect credentials. Recording-only approval covers at
-most six sandbox payments, each strictly below USD 100, and their refunds.
-Maintain an ignored local action ledger before any money-moving step. No live
-payments, publishing, deployment or submissions are authorized here.
+## Record a new take
 
-Keep sandbox labels visible; redact links/tokens, emails and account IDs before
-export. Measure real waits and label every shortened wait. Recheck facts before
-scene work: the plan says ten-minute expiry but README says five minutes;
-README supports 100+ backend tests rather than the plan's 150+ total; local
-latency must be measured, not copied from the hosted deployment.
+Start the existing app with `../scripts/run_demo.sh`, then `npm run record`.
+The driver uses headed Chrome kiosk at 1920×1080, persistent private profile
+`.chrome-profile/`, injected cursor/ripples and FFmpeg X11 capture. JSON-line
+commands arrive on stdin, for example:
+
+```json
+{"op":"start","name":"C1-describe"}
+{"op":"stop"}
+```
+
+The user must leave the laptop idle while capture runs. Sign-in is user-only;
+recording stops before every checkout opening and authentication navigation.
+No password, email or OTP value is read or typed. Native pointer control is
+restored for handoff. Credentials and authority URLs never enter command-line
+arguments. The recorder keeps the intended app surface above the editor and
+stops on a page crash; all selected source ranges still need visual review.
+
+Financial operations are separate guarded commands tied to the request,
+review, attempt, provider order, exact USD total and sandbox environment.
+The private `.cache/action-ledger.json` caps this authorized recording at six
+order attempts, each strictly below $100, and prevents blind payment/refund
+retries. Do not reset the ledger during this recording project. Fresh financial
+work needs its own applicable user authorization. No publication is performed.
+
+`npm run capture:mcp` runs the unchanged real MCP server against the local app.
+Its owner-browser helper receives the approval URL through stdin, never argv.
+`out/mcp-session.json` retains sanitized responses; the film uses verified
+literal excerpts. Capture this outside an active desktop take: it opens a
+real, separate owner browser briefly.
+
+The short temporary path uses `/proc/<render-or-recorder-pid>/cwd/.cache/tmp`
+to avoid Chrome Unix socket path limits while keeping files inside `video/`.
+App source remains unchanged. Private `.env` and `.runtime/` contents are not inspected by these video tools.
+See `CREDITS.md` for assets, notices and free-use eligibility.

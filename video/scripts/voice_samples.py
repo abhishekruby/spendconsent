@@ -68,7 +68,7 @@ def measure_audio(path):
     ]))
 
 
-def main():
+def load_engine():
     import numpy as np
     import onnxruntime as ort
     from kokoro_onnx import Kokoro
@@ -80,7 +80,40 @@ def main():
     options.inter_op_num_threads = 1
     session = ort.InferenceSession(str(paths['kokoro-v1.0.onnx']),
         sess_options=options, providers=['CPUExecutionProvider'])
-    engine = Kokoro.from_session(session, str(paths['voices-v1.0.bin']))
+    return Kokoro.from_session(session, str(paths['voices-v1.0.bin']))
+
+
+def normalize(raw, target, pad=True):
+    # Two-pass loudnorm gives matching audition levels and limits true peaks.
+    base = ('adelay=200:all=1,apad=pad_dur=0.45,' if pad else '') + 'loudnorm=I=-14:TP=-1.5:LRA=7'
+    measure = loudness_report(run_ffmpeg([
+        '-i', str(raw), '-af', base + ':print_format=json', '-f', 'null', '-',
+    ]))
+    normalizer = base + (
+        f":measured_I={measure['input_i']}:measured_TP={measure['input_tp']}"
+        f":measured_LRA={measure['input_lra']}:measured_thresh={measure['input_thresh']}"
+        f":offset={measure['target_offset']}:linear=true"
+    )
+    run_ffmpeg(['-i', str(raw), '-af', normalizer,
+                '-ar', '48000', '-ac', '1', '-c:a', 'pcm_s16le', str(target)])
+    measured = measure_audio(target)
+    # Loudnorm can undershoot on short, high-crest-factor speech. Match the
+    # audition level after resampling; catch only the newly raised peaks.
+    correction = -14 - float(measured['input_i'])
+    if abs(correction) > 0.1:
+        leveled = target.with_suffix('.level.wav')
+        run_ffmpeg(['-i', str(target), '-af',
+            f'aresample=192000,volume={correction:.3f}dB,'
+            'alimiter=limit=0.841395:level=false:latency=true,aresample=48000',
+            '-c:a', 'pcm_s16le', str(leveled)])
+        leveled.replace(target)
+        measured = measure_audio(target)
+    return measured
+
+
+def main():
+    import numpy as np
+    engine = load_engine()
     output = ROOT / 'out' / 'voice-samples'
     output.mkdir(parents=True, exist_ok=True)
     manifest = {'text': TEXT, 'speed': SPEED, 'engine': 'kokoro-onnx==0.6.1',
@@ -101,30 +134,7 @@ def main():
             handle.setframerate(rate)
             handle.writeframes((np.clip(samples, -1, 1) * 32767).astype('<i2').tobytes())
         target = output / f'{choice}-{voice}.wav'
-        # Two-pass loudnorm gives matching audition levels and limits true peaks.
-        base = 'adelay=200:all=1,apad=pad_dur=0.45,loudnorm=I=-14:TP=-1.5:LRA=7'
-        measure = loudness_report(run_ffmpeg([
-            '-i', str(raw), '-af', base + ':print_format=json', '-f', 'null', '-',
-        ]))
-        normalizer = base + (
-            f":measured_I={measure['input_i']}:measured_TP={measure['input_tp']}"
-            f":measured_LRA={measure['input_lra']}:measured_thresh={measure['input_thresh']}"
-            f":offset={measure['target_offset']}:linear=true"
-        )
-        run_ffmpeg(['-i', str(raw), '-af', normalizer,
-                    '-ar', '48000', '-ac', '1', '-c:a', 'pcm_s16le', str(target)])
-        measured = measure_audio(target)
-        # Loudnorm can undershoot on short, high-crest-factor speech. Match the
-        # audition level after resampling; catch only the newly raised peaks.
-        correction = -14 - float(measured['input_i'])
-        if abs(correction) > 0.1:
-            leveled = target.with_suffix('.level.wav')
-            run_ffmpeg(['-i', str(target), '-af',
-                f'aresample=192000,volume={correction:.3f}dB,'
-                'alimiter=limit=0.841395:level=false:latency=true,aresample=48000',
-                '-c:a', 'pcm_s16le', str(leveled)])
-            leveled.replace(target)
-            measured = measure_audio(target)
+        measured = normalize(raw, target)
         with wave.open(str(target), 'rb') as handle:
             duration = handle.getnframes() / handle.getframerate()
         manifest['samples'].append({

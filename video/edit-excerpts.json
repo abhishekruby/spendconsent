@@ -1,0 +1,517 @@
+{
+  "C1-describe": {
+    "sources": [
+      "raw/C1-describe.mp4"
+    ],
+    "width": 1920,
+    "height": 600,
+    "cuts": [
+      {
+        "inputIndex": 0,
+        "sourceStartSeconds": 2,
+        "sourceEndSeconds": 8.5,
+        "outputStartFrame": 0,
+        "durationFrames": 195,
+        "crop": [
+          772,
+          310,
+          700,
+          240
+        ]
+      },
+      {
+        "inputIndex": 0,
+        "sourceStartSeconds": 8.5,
+        "sourceEndSeconds": 66.5,
+        "outputStartFrame": 195,
+        "durationFrames": 60,
+        "crop": [
+          788,
+          330,
+          660,
+          210
+        ]
+      },
+      {
+        "inputIndex": 0,
+        "sourceStartSeconds": 69,
+        "sourceEndSeconds": 71,
+        "outputStartFrame": 255,
+        "durationFrames": 60,
+        "crop": [
+          785,
+          300,
+          650,
+          180
+        ]
+      }
+    ],
+    "channel3Included": false
+  },
+  "C2-offers": {
+    "sources": [
+      "raw/C2-offers.mp4",
+      "raw/C2-market.mp4"
+    ],
+    "width": 1920,
+    "height": 600,
+    "cuts": [
+      {
+        "inputIndex": 0,
+        "sourceStartSeconds": 3,
+        "sourceEndSeconds": 6,
+        "outputStartFrame": 0,
+        "durationFrames": 90,
+        "crop": [
+          775,
+          230,
+          690,
+          220
+        ]
+      },
+      {
+        "inputIndex": 0,
+        "sourceStartSeconds": 9,
+        "sourceEndSeconds": 12,
+        "outputStartFrame": 90,
+        "durationFrames": 90,
+        "crop": [
+          790,
+          485,
+          650,
+          230
+        ]
+      },
+      {
+        "inputIndex": 0,
+        "sourceStartSeconds": 24,
+        "sourceEndSeconds": 26,
+        "outputStartFrame": 180,
+        "durationFrames": 60,
+        "crop": [
+          775,
+          780,
+          690,
+          220
+        ]
+      },
+      {
+        "inputIndex": 1,
+        "sourceStartSeconds": 0.7,
+        "sourceEndSeconds": 4.1,
+        "outputStartFrame": 240,
+        "durationFrames": 102,
+        "crop": [
+          780,
+          180,
+          675,
+          100
+        ]
+      }
+    ],
+    "channel3Included": true,
+    "privacy": "app-only crops"
+  },
+  "C3-review": {
+    "sources": [
+      "raw/C3-review.mp4"
+    ],
+    "width": 1920,
+    "height": 600,
+    "cuts": [
+      {
+        "inputIndex": 0,
+        "sourceStartSeconds": 5,
+        "sourceEndSeconds": 9,
+        "outputStartFrame": 0,
+        "durationFrames": 120,
+        "crop": [
+          790,
+          698,
+          650,
+          115
+        ]
+      },
+      {
+        "inputIndex": 0,
+        "sourceStartSeconds": 9,
+        "sourceEndSeconds": 13,
+        "outputStartFrame": 120,
+        "durationFrames": 120,
+        "crop": [
+          790,
+          824,
+          650,
+          175
+        ]
+      },
+      {
+        "inputIndex": 0,
+        "sourceStartSeconds": 13,
+        "sourceEndSeconds": 16,
+        "outputStartFrame": 240,
+        "durationFrames": 90,
+        "crop": [
+          786,
+          610,
+          650,
+          80
+        ]
+      },
+      {
+        "inputIndex": 0,
+        "sourceStartSeconds": 16,
+        "sourceEndSeconds": 18,
+        "outputStartFrame": 330,
+        "durationFrames": 60,
+        "crop": [
+          1295,
+          592,
+          160,
+          75
+        ]
+      }
+    ],
+    "channel3Included": false
+  },
+  "C3b-ask": {
+    "sources": [
+      "raw/C3b-ask.mp4"
+    ],
+    "width": 1920,
+    "height": 600,
+    "cuts": [
+      {
+        "inputIndex": 0,
+        "sourceStartSeconds": 8,
+        "sourceEndSeconds": 70,
+        "outputStartFrame": 0,
+        "durationFrames": 27,
+        "crop": [
+          790,
+          330,
+          650,
+          190
+        ]
+      },
+      {
+        "inputIndex": 0,
+        "sourceStartSeconds": 75,
+        "sourceEndSeconds": 77,
+        "outputStartFrame": 27,
+        "durationFrames": 60,
+        "crop": [
+          785,
+          365,
+          650,
+          100
+        ]
+      },
+      {
+        "inputIndex": 0,
+        "sourceStartSeconds": 89.8,
+        "sourceEndSeconds": 95,
+        "outputStartFrame": 87,
+        "durationFrames": 156,
+        "crop": [
+          780,
+          748,
+          650,
+          220
+        ]
+      }
+    ],
+    "channel3Included": false
+  },
+  "C4-owner": {
+    "sources": [
+      "raw/C4-owner.mp4"
+    ],
+    "width": 1920,
+    "height": 600,
+    "cuts": [
+      {
+        "inputIndex": 0,
+        "sourceStartSeconds": 12,
+        "sourceEndSeconds": 16,
+        "outputStartFrame": 0,
+        "durationFrames": 120,
+        "crop": [
+          [
+            980,
+            325,
+            200,
+            180
+          ],
+          [
+            1454,
+            225,
+            310,
+            180
+          ]
+        ]
+      },
+      {
+        "inputIndex": 0,
+        "sourceStartSeconds": 69,
+        "sourceEndSeconds": 77,
+        "outputStartFrame": 120,
+        "durationFrames": 240,
+        "crop": [
+          [
+            535,
+            600,
+            300,
+            180
+          ],
+          [
+            1454,
+            615,
+            300,
+            180
+          ]
+        ]
+      },
+      {
+        "inputIndex": 0,
+        "sourceStartSeconds": 77,
+        "sourceEndSeconds": 84.9,
+        "outputStartFrame": 360,
+        "durationFrames": 237,
+        "crop": [
+          [
+            535,
+            600,
+            300,
+            180
+          ],
+          [
+            1454,
+            615,
+            300,
+            180
+          ]
+        ]
+      }
+    ],
+    "channel3Included": false
+  },
+  "C7-price": {
+    "sources": [
+      "raw/C7-price.mp4"
+    ],
+    "width": 1920,
+    "height": 600,
+    "cuts": [
+      {
+        "inputIndex": 0,
+        "sourceStartSeconds": 4,
+        "sourceEndSeconds": 10.2,
+        "outputStartFrame": 0,
+        "durationFrames": 186,
+        "crop": [
+          785,
+          620,
+          650,
+          200
+        ]
+      },
+      {
+        "inputIndex": 0,
+        "sourceStartSeconds": 63,
+        "sourceEndSeconds": 65.2,
+        "outputStartFrame": 186,
+        "durationFrames": 66,
+        "crop": [
+          785,
+          600,
+          650,
+          210
+        ]
+      }
+    ],
+    "channel3Included": false
+  },
+  "C4-montage": {
+    "sources": [
+      "raw/C4-owner.mp4"
+    ],
+    "width": 1920,
+    "height": 600,
+    "cuts": [
+      {
+        "inputIndex": 0,
+        "sourceStartSeconds": 80.4,
+        "sourceEndSeconds": 83.4,
+        "outputStartFrame": 0,
+        "durationFrames": 45,
+        "crop": [
+          [
+            535,
+            600,
+            300,
+            180
+          ],
+          [
+            1454,
+            615,
+            300,
+            180
+          ]
+        ]
+      }
+    ],
+    "channel3Included": false
+  },
+  "C5-paypal": {
+    "sources": [
+      "raw/C5-paypal.mp4",
+      "raw/C6-refund.mp4"
+    ],
+    "width": 1920,
+    "height": 600,
+    "cuts": [
+      {
+        "inputIndex": 0,
+        "sourceStartSeconds": 0,
+        "sourceEndSeconds": 1.5,
+        "outputStartFrame": 0,
+        "durationFrames": 45,
+        "crop": [
+          910,
+          0,
+          330,
+          65
+        ]
+      },
+      {
+        "inputIndex": 0,
+        "sourceStartSeconds": 1.5,
+        "sourceEndSeconds": 4.5,
+        "outputStartFrame": 45,
+        "durationFrames": 90,
+        "crop": [
+          700,
+          415,
+          530,
+          80
+        ]
+      },
+      {
+        "inputIndex": 1,
+        "sourceStartSeconds": 0.2,
+        "sourceEndSeconds": 3.7,
+        "outputStartFrame": 135,
+        "durationFrames": 105,
+        "crop": [
+          790,
+          365,
+          650,
+          170
+        ]
+      },
+      {
+        "inputIndex": 1,
+        "sourceStartSeconds": 0.2,
+        "sourceEndSeconds": 3.5,
+        "outputStartFrame": 240,
+        "durationFrames": 99,
+        "crop": [
+          790,
+          445,
+          650,
+          90
+        ]
+      },
+      {
+        "inputIndex": 0,
+        "sourceStartSeconds": 72.5,
+        "sourceEndSeconds": 75.5,
+        "outputStartFrame": 339,
+        "durationFrames": 90,
+        "crop": [
+          900,
+          915,
+          210,
+          65
+        ]
+      }
+    ],
+    "channel3Included": false,
+    "privacy": "buyer avatar masked; payment/account references excluded by crops"
+  },
+  "C5-montage": {
+    "sources": [
+      "raw/C6-refund.mp4"
+    ],
+    "width": 1920,
+    "height": 600,
+    "cuts": [
+      {
+        "inputIndex": 0,
+        "sourceStartSeconds": 0.2,
+        "sourceEndSeconds": 1.7,
+        "outputStartFrame": 0,
+        "durationFrames": 45,
+        "crop": [
+          790,
+          365,
+          650,
+          170
+        ]
+      }
+    ],
+    "channel3Included": false,
+    "privacy": "buyer avatar masked; payment/account references excluded by crops"
+  },
+  "C6-refund": {
+    "sources": [
+      "raw/C6-refund.mp4"
+    ],
+    "width": 1920,
+    "height": 600,
+    "cuts": [
+      {
+        "inputIndex": 0,
+        "sourceStartSeconds": 0.2,
+        "sourceEndSeconds": 1.7,
+        "outputStartFrame": 0,
+        "durationFrames": 45,
+        "crop": [
+          790,
+          810,
+          650,
+          130
+        ]
+      },
+      {
+        "inputIndex": 0,
+        "sourceStartSeconds": 1.7,
+        "sourceEndSeconds": 3.2,
+        "outputStartFrame": 45,
+        "durationFrames": 45,
+        "crop": [
+          790,
+          810,
+          650,
+          130
+        ]
+      },
+      {
+        "inputIndex": 0,
+        "sourceStartSeconds": 101.6,
+        "sourceEndSeconds": 104.4,
+        "outputStartFrame": 90,
+        "durationFrames": 84,
+        "crop": [
+          765,
+          120,
+          700,
+          170
+        ]
+      }
+    ],
+    "channel3Included": false,
+    "privacy": "app-only crops"
+  }
+}

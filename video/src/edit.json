@@ -1,0 +1,80 @@
+{
+  "clips": {
+    "C1-describe": {
+      "src": "clips/C1-describe.mp4",
+      "from": 0,
+      "duration": 315,
+      "waitLabel": "AI wait shortened \u00b7 real: 57.7 s"
+    },
+    "C2-offers": {
+      "src": "clips/C2-offers.mp4",
+      "from": 0,
+      "duration": 342,
+      "waitLabel": "CUT \u00b7 real offers and prices"
+    },
+    "C3-review": {
+      "src": "clips/C3-review.mp4",
+      "from": 0,
+      "duration": 390,
+      "waitLabel": "CUT \u00b7 exact receipt details"
+    },
+    "C3b-ask": {
+      "src": "clips/C3b-ask.mp4",
+      "from": 0,
+      "duration": 243,
+      "waitLabel": "AI wait shortened \u00b7 real: 62.0 s",
+      "speed": 1.8
+    },
+    "C4-owner": {
+      "src": "clips/C4-owner.mp4",
+      "from": 0,
+      "duration": 597,
+      "waitLabel": "Approval wait shortened \u00b7 left: requester \u00b7 right: owner phone",
+      "approvalFrame": 540
+    },
+    "C7-price": {
+      "src": "clips/C7-price.mp4",
+      "from": 0,
+      "duration": 252,
+      "waitLabel": "Price change \u00b7 status reloaded \u00b7 cut wait"
+    },
+    "C4-montage": {
+      "src": "clips/C4-montage.mp4",
+      "from": 0,
+      "duration": 45,
+      "waitLabel": "SPEED \u00d72 \u00b7 real approval tap / live update",
+      "approvalFrame": 39
+    },
+    "C5-paypal": {
+      "src": "clips/C5-paypal.mp4",
+      "from": 0,
+      "duration": 429,
+      "waitLabel": "PayPal wait shortened \u00b7 real checkout / server result"
+    },
+    "C5-montage": {
+      "src": "clips/C5-montage.mp4",
+      "from": 0,
+      "duration": 45,
+      "waitLabel": "CUT \u00b7 real verified payment"
+    },
+    "C6-refund": {
+      "src": "clips/C6-refund.mp4",
+      "from": 0,
+      "duration": 174,
+      "waitLabel": "Refund wait shortened \u00b7 real server result"
+    }
+  },
+  "mcpLines": [
+    "find_offers",
+    "Status: READY.",
+    "prepare_cart",
+    "total $41.80 USD",
+    "request_owner_approval",
+    "Sent to the owner for approval of $41.80.",
+    "This tool cannot approve or pay; only the owner can, in their own browser."
+  ],
+  "realAIWaitSeconds": 57.7,
+  "expiryMinutes": 10,
+  "ready": true,
+  "mcpWaitSeconds": 56.3
+}

@@ -1,0 +1,46 @@
+{
+  "voice": "af_heart",
+  "cart": {
+    "sku": "CLOTH-B",
+    "merchant": "Corner Supply Co. (test shop)",
+    "packs": 2,
+    "units_per_pack": 20,
+    "units": 40,
+    "items_cents": 3800,
+    "delivery_cents": 0,
+    "tax_cents": 380,
+    "total_cents": 4180,
+    "next_offer_total_cents": 4760,
+    "savings_cents": 580,
+    "expiry_minutes": 10
+  },
+  "comparison": {
+    "full_request_wall_seconds": 57.664158323,
+    "full_request_UI_inference_seconds": 57.4,
+    "missing_detail_UI_inference_seconds": 62.0
+  },
+  "sources": [
+    "real local app recordings C1-describe, C2-offers, C3-review, C3b-ask",
+    "README.md AI qualification a01b9f9:160/160,8suites,6blind,100+backendtests",
+    "docs/impact-evidence.md:19%,60%,2,080UKadults,June2026"
+  ],
+  "price_change": {
+    "sku": "CLOTH-B",
+    "old_pack_price_cents": 1900,
+    "recorded_new_pack_price_cents": 1901,
+    "approval_after_reload": "REVOKED",
+    "restored_pack_price_cents": 1900,
+    "source": "actual set_offer_price command and raw/C7-price.mp4"
+  },
+  "sandbox_orders_created": 2,
+  "sandbox_verified_captures": 1,
+  "sandbox_verified_full_refunds": 1,
+  "payment": {
+    "total_cents": 4180,
+    "currency": "USD",
+    "server_state": "PAID",
+    "ui": "Paid. All verified.",
+    "refund_ui": "Order cancelled. Refunded.",
+    "source": "real local app API response and C5/C6 recordings"
+  }
+}

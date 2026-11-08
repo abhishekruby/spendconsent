@@ -8,3 +8,6 @@ node_modules/
 __pycache__/
 *.tsbuildinfo
 dist/
+public/voice/
+public/clips/
+public/end-qr.png
