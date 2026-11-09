@@ -311,7 +311,6 @@ Devpost registration is user-reported from the earlier chat, not independently v
 - Reviewed earlier project notes.
 - Compared all five ideas against competitor primary sources, market/problem evidence, official PayPal capabilities, and public hackathon project pages.
 - Confirmed Paceline, EscrowEase, and PartDrop list this hackathon; the complete gallery is unpublished. No exclusivity or prize-probability claim made.
-- Saved docs/market-research-and-ranking.md with rankings, competitor overlap, candidate refinements, examples, market limits, and validation gates.
 - Conditional recommendation: ERP data-readiness + human acceptance + reviewed invoicing; alternate: repair-queue procurement. This is a recommendation, not an agreed product selection.
 - No implementation, outreach, paid service, payment, or API mutation performed. Next step: discuss the refined top two directions and agree before building.
 

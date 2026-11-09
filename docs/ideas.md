@@ -1,6 +1,6 @@
 # Five differentiated product candidates
 
-Status: brainstorming only, 13 October 2026. Market research and a personalized conditional ranking are now available in [market-research-and-ranking.md](market-research-and-ranking.md). Names are working labels. None is selected or implemented. Differentiation is a design hypothesis; market novelty and demand have not been validated. PayPal capabilities are grounded in the [official resources](https://paypalaihackathon.devpost.com/resources); each exact integration still needs a sandbox feasibility check.
+Status: brainstorming only, 13 October 2026. Names are working labels. None is selected or implemented. Differentiation is a design hypothesis; market novelty and demand have not been validated. PayPal capabilities are grounded in the [official resources](https://paypalaihackathon.devpost.com/resources); each exact integration still needs a sandbox feasibility check.
 
 ## 1. Scope-to-Invoice: change-order assistant for freelancers
 
