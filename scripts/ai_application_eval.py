@@ -127,6 +127,14 @@ def original_cases(rows):
     return cases
 
 
+def current_commit(original):
+    # History was rewritten once before publication; evidence keeps the original IDs.
+    for line in (ROOT / "docs/evidence/commit-map.md").read_text().splitlines():
+        if line.startswith(original + " "):
+            return line.split()[1]
+    return original
+
+
 def load_cases():
     rows = offers()
     suites = {"original": original_cases(rows)}
@@ -137,7 +145,7 @@ def load_cases():
         assert sha(SEED) == fixture["catalog"]["seed_sha256"]
         assert sha("backend/purchases/catalog.py") == fixture["catalog"]["arithmetic_sha256"]
         if name.startswith("unseen"):
-            frozen = subprocess.check_output(["git", "show", fixture["adapter_freeze_commit"] +
+            frozen = subprocess.check_output(["git", "show", current_commit(fixture["adapter_freeze_commit"]) +
                 ":backend/purchases/agent.py"], cwd=ROOT)
             # Provenance: authored after this frozen adapter. Later adapter fixes are
             # hashed in each report checkpoint; the fixer stays blind to these cases.
