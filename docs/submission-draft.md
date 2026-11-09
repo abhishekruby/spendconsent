@@ -99,7 +99,7 @@ React · TypeScript · Vite · Docker · Caddy · Google Cloud
 Open https://spendconsent.ullagecloud.com (no sign-up). Sandbox only: test money,
 fictional shop, nothing ships.
 
-1. Keep the sample request, or type your own, and choose **Compare offers** (about 14 s).
+1. Tap a sample such as **40 microfiber cloths**, or type your own, then choose **Compare offers** (about 14 s). If it asks for a detail, answer it.
 2. Choose **Review purchase**, tick the box and approve. To see the owner flow, open
    the approval link in a second browser or on your phone.
 3. Pay in the PayPal window with this sandbox buyer:
