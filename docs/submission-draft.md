@@ -1,114 +1,109 @@
-# Devpost submission draft (private — publishing needs the user's approval)
+# Devpost submission text
+
+Paste each section into its Devpost field. Never add sandbox passwords to this file.
 
 **Name:** SpendConsent
-**Tagline:** AI agents can shop for you. SpendConsent makes sure they can't spend what you didn't approve.
+
+**Tagline:** AI shops. You decide. PayPal verifies.
+
+**Video:** https://youtu.be/7zj3F00tqmI
+
+**Try it:** https://spendconsent.ullagecloud.com
+
+**Code:** https://github.com/abhishekruby/paypal-ai-hackathon-2026 (MIT)
 
 ## Inspiration
 
-AI agents are learning to shop. But would you give one your PayPal?
+AI agents can already shop for you. Would you give one your card?
 
-Shoppers have answered. In a June 2026 YouGov survey for ACI Worldwide (2,080 UK
-adults), 60% said they would stop using an AI shopping agent after one mistake,
-and 70% said purchases made without asking would put them off. In RTB House's
-2026 study across the US, UK, France and Japan, approval before checkout was the
-single most requested safeguard, and a guaranteed return window made people far
-more willing to give an agent a budget.
+One major US retailer's terms now say purchases by an AI agent you approved "are
+considered transactions authorized by you". In a June 2026 YouGov survey for ACI
+Worldwide (2,080 UK adults), only 19% trusted AI to make everyday purchases, and
+60% would stop using a shopping agent after one mistake. In RTB House's 2026 study
+across four countries, approval before checkout was the most requested safeguard.
 
-We took that literally. The agent does all the tedious work. A person approves
-the exact cart. PayPal moves the money, and you can cancel and get a refund.
-
-Our test case is the small business that reorders the same supplies every month
-(cloths, bin bags, spray bottles, notebooks). The hard part is not clicking "buy";
-it is checking the size, making the pack count add up to exactly the quantity
-needed, and keeping the delivered total, with tax, inside the budget.
+So we built an agent that does the shopping and cannot spend. Then we tried to break it.
 
 ## What it does
 
-1. **Describe it in plain words.** "Exactly 40 microfiber cloths, 40 × 40 cm, under
-   $60 including delivery and tax." A local AI model reads it; if something is
-   missing it asks instead of guessing.
-2. **Compare on the real delivered cost.** The server rules out wrong sizes and
-   packs that can't make the exact quantity, and shows the cheapest offer that
-   fits ("$5.80 less than the next"). Live US retail prices from **Channel3** show
-   whether the supplier price is fair.
-3. **Approve the exact cart.** Merchant, item, packs, tax, delivery, total. The
-   approval is a *cart mandate*: a SHA-256 fingerprint of exactly that cart. Any
-   later change, even one cent within budget, voids it. The person preparing the
-   cart can send a one-cart approval link to the owner's phone.
-4. **Pay with PayPal.** The server creates and captures the order, then reads it
-   back from PayPal (amount, payee, order) before it says "Paid". Uncertain
-   outcomes stay "unknown"; nothing is retried blindly.
-5. **Cancel & refund for 7 days.** One click issues a full PayPal refund, verified against the
-   original capture.
+SpendConsent is for small teams where one person orders supplies and someone else pays.
 
-**Any AI agent can use it.** SpendConsent is also an MCP server. Claude Desktop (or
-any MCP client) can find offers, prepare the cart and ask the owner to approve it.
-There is deliberately no tool to approve or pay: the approval link opens in the
-owner's browser and never enters the agent's context.
+1. **Say what you need.** "Exactly 40 microfiber cloths, 40 × 40 cm, under $60
+   including delivery and tax." A self-hosted AI model reads it in about 14 seconds.
+2. **Compare on the real delivered cost.** Code, not the AI, rules out wrong sizes
+   and packs that can't make the exact quantity, then shows the cheapest offer that
+   fits. Live retail prices from **Channel3** show whether the deal is fair.
+3. **Approve the exact cart.** The owner gets a private link on their phone. Their
+   approval is a fingerprint of that merchant, item, quantity and total. The
+   requester's screen updates by itself.
+4. **Pay with PayPal.** We call it paid only after our server captures the order and
+   reads it back from PayPal: amount, payee and order must match.
+5. **Cancel and refund.** A full PayPal refund for 7 days, verified the same way.
+
+**Three ways we tried to make it spend the wrong money:**
+
+- **Make it guess.** We left out the size. It asks instead.
+- **Change the price.** We raised it one cent after approval. The approval was revoked.
+- **Make the agent pay.** Any AI agent can use SpendConsent through MCP to find offers,
+  prepare a cart and ask the owner. We called `pay`. The real answer:
+  `Unknown tool pay.` No tool can approve or pay.
 
 ## How we built it
 
-- **AI:** Qwen3-4B (Q4_K_M) on llama.cpp, CPU only, on the user's machine: no
-  hosted AI, no API key, no prompt data leaving the laptop. One native tool call
-  per comparison. The model copies values as written; code keeps only numbers
-  that appear in the buyer's own text and does all units and money maths.
-- **PayPal:** Orders v2 (create, capture, independent read-back), Payments v2
-  refunds, and the JavaScript SDK v6 for buyer approval. A persisted checkout state
-  machine (CREATING → AWAITING_BUYER → CAPTURING → VERIFYING → PAID, plus UNKNOWN,
-  STOPPED, PAYMENT_REVIEW) with idempotent request IDs; refunds have their own row
-  and key, committed before the request.
-- **Channel3:** one product search per request, filtered to the same size, to show
-  real retail prices beside the offers and in the agent's answers.
-- **Backend:** Django 5.2, DRF, PostgreSQL with database triggers that version
-  offers; immutable reviews with digests and short expiries.
-- **Frontend:** React 19 + TypeScript, no UI kit: a journey tracker, a receipt-style
-  review with countdown and approval stamp, live AI progress, interface sounds,
-  light/dark, phone layouts.
-- **Agents:** a stdlib MCP server (`scripts/spendconsent_mcp.py`).
+- **AI:** Qwen3-4B on llama.cpp, self-hosted on CPU, with no cloud AI. One native tool
+  call per comparison. The model copies values as written; code keeps only numbers
+  found in the buyer's own text and does all unit and money maths.
+- **PayPal:** Orders v2 (create, capture, independent read-back), Payments v2 refunds
+  and the JavaScript SDK v6, on a persisted state machine with idempotent requests.
+  Uncertain outcomes stay "unknown" and are never retried blindly.
+- **Channel3:** one product search per request, for real retail prices beside the offers.
+- **Stack:** Django 5.2, DRF, PostgreSQL, React 19, TypeScript, and a standard-library MCP server.
 
 ## Proof
 
-- **AI quality:** 160/160 on eight test suites (six written blind by a separate
-  author) run against the real application code. Re-run on the current code (a01b9f9): 160/160 again, warm medians 16–23 s per comparison on a laptop CPU.
-- **Five usability tasks** through the real app: 5/5 correct, median 18.9 s.
-- **122 backend tests** on real PostgreSQL (state machine, idempotency, races,
-  stale approvals, refunds) and 17 frontend tests.
-- **Real PayPal sandbox purchases** captured and verified; the bugs we hit (a
-  closed popup, a disposed PayPal session) are documented and fixed.
-- Every payment and permission change passed an independent security review.
+- **160/160** AI outcomes across 8 test suites, 6 written blind by a separate author,
+  run against the real application. Earlier failed runs are kept in the repository.
+- **151 automated tests:** 127 backend on real PostgreSQL (state machine, idempotency,
+  races, stale approvals, refunds) and 24 frontend, run in CI.
+- Verified PayPal sandbox purchases and a verified full refund, with evidence in the repository.
 
 ## Challenges we ran into
 
-Making a small local model reliable: early versions rounded prices or invented
-sizes. We moved every number out of the model's hands, and kept every failed
-evaluation run on record. Real PayPal edge cases: `PAYER_ACTION_REQUIRED`, closed
-popups and background refreshes that silently cancelled an open PayPal session.
+Making a small model reliable: early versions rounded prices or invented sizes, so we
+moved every number out of its hands. PayPal edge cases too: an order left at
+`PAYER_ACTION_REQUIRED` once stuck forever as "unknown" until we handled it properly.
 
-## Accomplishments we're proud of
+## Accomplishments that we're proud of
 
-An agent that is genuinely useful but provably can't overspend, and a checkout
-that never claims "paid" without PayPal's own record.
+An agent that is useful and structurally cannot pay, and a checkout that never says
+"paid" without PayPal's own record.
 
 ## What we learned
 
-Trust is the product. "Can the AI buy it?" is easy; "will people let it?" needs
-exact approvals, hard limits, protected payment details and an easy refund.
+"Can the AI buy it?" is easy. "Will people let it?" needs exact approvals, hard
+limits and an easy refund.
 
-## What's next
+## What's next for SpendConsent
 
-Spending rules for low-risk reorders (approve once within a limit, with cancel & refund),
-real supplier catalogs, and approval by push notification.
+Real supplier catalogs, approval by push notification, and spending limits for
+low-risk reorders that keep cancel and refund.
 
 ## Built with
 
-PayPal Orders v2 · PayPal Payments v2 (refunds) · PayPal JavaScript SDK v6 ·
-Channel3 API · Model Context Protocol · Qwen3-4B · llama.cpp · Django · Django REST
-Framework · PostgreSQL · React · TypeScript · Vite
+PayPal Orders v2 · PayPal Payments v2 · PayPal JavaScript SDK v6 · Channel3 · Model
+Context Protocol · Qwen3-4B · llama.cpp · Django · Django REST Framework · PostgreSQL ·
+React · TypeScript · Vite · Docker · Caddy · Google Cloud
 
-## Testing instructions (for judges)
+## Testing instructions
 
-`docker compose up --build`, then open http://127.0.0.1:5173 (first start downloads
-the 2.5 GB model once). Without PayPal credentials the app runs and says payment is
-off. <!-- TODO: sandbox buyer login + PayPal sandbox app credentials via the private testing field -->
+Open https://spendconsent.ullagecloud.com (no sign-up). Sandbox only: test money,
+fictional shop, nothing ships.
 
-Sandbox only: fictional shop, test money, nothing ships.
+1. Keep the sample request, or type your own, and choose **Compare offers** (about 14 s).
+2. Choose **Review purchase**, tick the box and approve. To see the owner flow, open
+   the approval link in a second browser or on your phone.
+3. Pay in the PayPal window with this sandbox buyer:
+   **[EMAIL AND PASSWORD: enter only in Devpost's testing field]**
+4. Try to make it pay without approval.
+
+To run it yourself: `docker compose up --build`, then open http://127.0.0.1:5173. See the README.

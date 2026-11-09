@@ -4,8 +4,10 @@
 
 **An AI purchasing assistant that can't spend money you didn't approve.**
 
+**[Try it live](https://spendconsent.ullagecloud.com)** (sandbox, test money) · **[Watch the 2:27 demo](https://youtu.be/7zj3F00tqmI)**
+
 A small-business owner types what they need ("exactly 40 microfiber cloths,
-40 × 40 cm, under $60 including delivery and tax, one-time"). A local AI model
+40 × 40 cm, under $60 including delivery and tax, one-time"). A self-hosted AI model
 reads the request and calls one catalog tool. The server compares offers on the
 full delivered cost and shows an exact cart (merchant, SKU, packs, tax, delivery,
 total). The owner approves that exact cart. Then PayPal sandbox checkout runs, and
@@ -28,7 +30,7 @@ the human approves the exact cart, PayPal moves the money.**
 | --- | --- | --- |
 | Understand the request | Local Qwen3-4B (llama.cpp, CPU) via one native tool call | The model copies values *as written*; code keeps only numbers literally in the buyer's text, converts units and cents itself, and asks the buyer about anything missing or ambiguous |
 | Compare | Server | Exact spec and individual-unit quantity, full delivered total within budget, USD and one-time only; rejected offers say why |
-| Review | Server | Immutable snapshot + digest, 5-minute expiry |
+| Review | Server | Immutable snapshot + digest, 10-minute expiry |
 | Approve | Buyer, in the app | Binds that exact cart. Any later price or offer change revokes it, even within budget |
 | Pay | PayPal Orders v2 + JS SDK v6 (sandbox) | Server creates and captures the order, then reads it back independently (amount, currency, payee, order) before showing "Payment confirmed". Uncertain outcomes stay UNKNOWN; nothing is retried blindly |
 | Cancel & refund | PayPal Payments v2 refund, owner-confirmed, 7 days | One full refund per purchase with its own idempotency key; verified against the original capture; stock returned once |
@@ -39,13 +41,13 @@ the human approves the exact cart, PayPal moves the money.**
   them written by a separate author who never shared them before inference.
   Current qualified run [a01b9f9](docs/evidence/ai-application-qualification-a01b9f9.json):
   **160/160** (gate: ≥ 18/20 per suite), one model call per comparison, warm
-  medians 16–23 s on a laptop CPU. Earlier failed runs are kept; see
+  medians 16–23 s on a laptop CPU (about 14 s on the hosted demo). Earlier failed runs are kept; see
   [AI evaluation](docs/ai-application-evaluation.md).
 - **PayPal sandbox:** a real end-to-end purchase (USD 47.60, captured, read back,
   stock decremented), with the problems found on the way:
   [sandbox purchase evidence](docs/evidence/sandbox-purchase-2026-10-21.md).
-- **Tests:** 100+ backend tests on real PostgreSQL (checkout state machine,
-  idempotency, concurrency, stale approvals) and frontend unit tests.
+- **Tests:** 151 automated tests in CI: 127 backend on real PostgreSQL (checkout state
+  machine, idempotency, concurrency, stale approvals) and 24 frontend.
 
 ## Run it locally
 
