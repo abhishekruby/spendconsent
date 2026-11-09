@@ -25,8 +25,7 @@ Deadline 12 Nov 2026 noon PST (13 Nov 01:30 IST).
 
 ## AI evidence (never pool, never erase failures)
 
-- Failed runs kept: 9b459c6, 8b36b78, 2d1279b (model unit arithmetic → the
-  as-written protocol), ef89dff partial.
+- Failed runs are kept in docs/evidence.
 - **4158aba (= ef89dff sources): ALL SIX SUITE GATES PASSED** — original 20/20,
   regression 20/20, exposed 808472c 18/20, a12decc 18/20, 168eee7 20/20, blind
   52ad168 18/20; warm medians 26–38 s, max 55.3 s.
@@ -59,6 +58,10 @@ Deadline 12 Nov 2026 noon PST (13 Nov 01:30 IST).
   user's approval.
 - **Next:** user live-tests Cancel & refund; demo video (`docs/demo-script.md`), Devpost
   (`docs/submission-draft.md`), judge sandbox access, public repo, submit by 10 Nov.
+
+## Demo video
+
+Public since 9 Nov: https://youtu.be/7zj3F00tqmI (`video/out/spendconsent-demo-v5.mp4`, 2:27).
 
 ## Hosted demo (7 Nov)
 
