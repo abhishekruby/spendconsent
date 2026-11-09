@@ -1,6 +1,6 @@
 # SpendConsent
 
-[![tests](https://github.com/abhishekruby/paypal-ai-hackathon-2026/actions/workflows/ci.yml/badge.svg)](https://github.com/abhishekruby/paypal-ai-hackathon-2026/actions/workflows/ci.yml)
+[![tests](https://github.com/abhishekruby/spendconsent/actions/workflows/ci.yml/badge.svg)](https://github.com/abhishekruby/spendconsent/actions/workflows/ci.yml)
 
 **An AI purchasing assistant that can't spend money you didn't approve.**
 

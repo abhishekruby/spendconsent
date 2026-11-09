@@ -10,7 +10,7 @@ Paste each section into its Devpost field. Never add sandbox passwords to this f
 
 **Try it:** https://spendconsent.ullagecloud.com
 
-**Code:** https://github.com/abhishekruby/paypal-ai-hackathon-2026 (MIT)
+**Code:** https://github.com/abhishekruby/spendconsent (MIT)
 
 ## Inspiration
 
