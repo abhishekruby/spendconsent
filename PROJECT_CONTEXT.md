@@ -1,6 +1,6 @@
 # SpendConsent — compact handoff
 
-Updated 21 Oct 2026, 17:00 IST, by Claude (after Codex `8390ffe`). Claude and ChatGPT/Codex
+Claude and ChatGPT/Codex
 alternate on this repo: read AGENTS.md, then this file. Latest session summary:
 docs/handoff-codex-2026-10-21.md. History:
 PROJECT_CONTEXT_HISTORY.md, docs/progress.md, docs/ai-application-evaluation.md.
