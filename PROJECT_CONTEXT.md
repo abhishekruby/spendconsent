@@ -10,7 +10,7 @@ PROJECT_CONTEXT_HISTORY.md, docs/progress.md, docs/ai-application-evaluation.md.
 Unchanged full [PRD](docs/PRD.md): actual local AI, server-owned exact USD
 totals, immutable human approval, one merchant/SKU, 16 fictional SKUs, one-time
 USD, PayPal sandbox only. Zero cost, secrets, action-time financial consent and
-no-publication boundaries remain. Private pushes authorized; repo PRIVATE.
+no-publication boundaries remain. Repo PUBLIC since 9 Nov (old history kept private: `…-private-archive`).
 Deadline 12 Nov 2026 noon PST (13 Nov 01:30 IST).
 
 ## AI protocol now (backend/purchases/agent.py)
