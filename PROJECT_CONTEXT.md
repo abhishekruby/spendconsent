@@ -56,8 +56,7 @@ Deadline 12 Nov 2026 noon PST (13 Nov 01:30 IST).
   `docs/impact-evidence.md`). Judge audit: `docs/judge-audit.md`.
 - Buyer-consent mode (cap $100) is how the API runs. Public/money steps need the
   user's approval.
-- **Next:** user live-tests Cancel & refund; demo video (`docs/demo-script.md`), Devpost
-  (`docs/submission-draft.md`), judge sandbox access, public repo, submit by 10 Nov.
+- **Status (9 Nov):** Devpost entry SUBMITTED. Keep the hosted VM running until judging ends (15 Dec), then delete it. Avoid app changes unless something breaks.
 
 ## Demo video
 
